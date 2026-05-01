@@ -19,7 +19,7 @@ export const Route = createFileRoute("/inventory")({
       { name: "description", content: "Track stock, low-stock alerts and product categories." },
     ],
   }),
-  component: Inventory;
+  component: Inventory,
 });
 
 const fmt = (n: number) => "₹" + n.toLocaleString("en-IN");
