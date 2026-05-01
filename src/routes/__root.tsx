@@ -29,20 +29,20 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "LedgerLite — Smart Billing & Accounting for Small Business" },
+      { name: "description", content: "Modern billing, invoicing, inventory & GST accounting dashboard for small businesses. Fast, simple, mobile-first." },
+      { name: "author", content: "LedgerLite" },
+      { property: "og:title", content: "LedgerLite — Smart Billing & Accounting" },
+      { property: "og:description", content: "Modern billing, invoicing & GST accounting for small businesses." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" },
     ],
   }),
   shellComponent: RootShell,
@@ -64,6 +64,24 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
+import { AppTopbar } from "@/components/AppTopbar";
+import { Toaster } from "@/components/ui/sonner";
+
 function RootComponent() {
-  return <Outlet />;
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <AppSidebar />
+        <SidebarInset className="flex min-w-0 flex-1 flex-col">
+          <AppTopbar />
+          <main className="flex-1 p-4 md:p-6 lg:p-8">
+            <Outlet />
+          </main>
+        </SidebarInset>
+      </div>
+      <Toaster richColors position="top-right" />
+    </SidebarProvider>
+  );
 }
