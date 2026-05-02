@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Search, Phone, MessageCircle, BookOpen } from "lucide-react";
 import { toast } from "sonner";
+import { AddPartyDialog } from "@/components/EntityDialogs";
 
 export const Route = createFileRoute("/parties")({
   head: () => ({
@@ -33,8 +35,16 @@ const parties = [
 ];
 
 function Parties() {
+  const [open, setOpen] = useState(false);
   const totalReceivable = parties.filter((p) => p.balance > 0).reduce((s, p) => s + p.balance, 0);
   const totalPayable = parties.filter((p) => p.balance < 0).reduce((s, p) => s + Math.abs(p.balance), 0);
+
+  const callParty = (p: typeof parties[number]) => {
+    window.open(`tel:${p.phone.replace(/\s/g, "")}`);
+  };
+  const openLedger = (p: typeof parties[number]) => {
+    toast.message(`Opening khata for ${p.name}`);
+  };
 
   return (
     <div className="space-y-6">
@@ -42,11 +52,13 @@ function Parties() {
         title="Parties"
         subtitle={`${parties.length} customers & suppliers · digital khata`}
         actions={
-          <Button className="rounded-xl">
+          <Button className="rounded-xl" onClick={() => setOpen(true)}>
             <Plus className="mr-1 h-4 w-4" /> Add Party
           </Button>
         }
       />
+
+      <AddPartyDialog open={open} onOpenChange={setOpen} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Card className="border-0 bg-gradient-to-br from-success-soft to-card shadow-[var(--shadow-card)]">
@@ -106,10 +118,10 @@ function Parties() {
                       <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => toast.success(`Reminder sent to ${p.name}`)}>
                         <MessageCircle className="h-3.5 w-3.5" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7">
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => callParty(p)}>
                         <Phone className="h-3.5 w-3.5" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7">
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openLedger(p)}>
                         <BookOpen className="h-3.5 w-3.5" />
                       </Button>
                     </div>
