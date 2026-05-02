@@ -11,6 +11,8 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Plus, Search, Upload, Boxes, AlertTriangle, ScanLine } from "lucide-react";
+import { toast } from "sonner";
+import { AddProductDialog } from "@/components/EntityDialogs";
 
 export const Route = createFileRoute("/inventory")({
   head: () => ({
@@ -37,6 +39,7 @@ const products = [
 
 function Inventory() {
   const [cat, setCat] = useState("all");
+  const [open, setOpen] = useState(false);
   const cats = ["all", "Grocery", "Bakery", "Dairy", "Packaged"];
   const filtered = cat === "all" ? products : products.filter((p) => p.cat === cat);
   const lowCount = products.filter((p) => p.stock < p.min).length;
@@ -49,15 +52,17 @@ function Inventory() {
         subtitle={`${products.length} products · ${lowCount} need restocking`}
         actions={
           <>
-            <Button variant="outline" className="rounded-xl">
+            <Button variant="outline" className="rounded-xl" onClick={() => toast.message("Upload .xlsx with product list")}>
               <Upload className="mr-1 h-4 w-4" /> Bulk Upload
             </Button>
-            <Button className="rounded-xl">
+            <Button className="rounded-xl" onClick={() => setOpen(true)}>
               <Plus className="mr-1 h-4 w-4" /> Add Product
             </Button>
           </>
         }
       />
+
+      <AddProductDialog open={open} onOpenChange={setOpen} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card className="border-0 shadow-[var(--shadow-card)]">
