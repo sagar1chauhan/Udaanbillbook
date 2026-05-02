@@ -47,7 +47,10 @@ export function useMockAuth() {
   useEffect(() => {
     setUser(read());
     setHydrated(true);
-    return mockAuth.subscribe(() => setUser(read()));
+    const unsub = mockAuth.subscribe(() => setUser(read()));
+    return () => {
+      unsub();
+    };
   }, []);
   return { user, hydrated, isAuthenticated: !!user };
 }
