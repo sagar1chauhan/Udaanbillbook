@@ -64,12 +64,41 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AppTopbar } from "@/components/AppTopbar";
 import { Toaster } from "@/components/ui/sonner";
+import { useMockAuth } from "@/lib/auth-store";
+
+const PUBLIC_ROUTES = ["/login", "/register", "/verify-otp"];
 
 function RootComponent() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, hydrated } = useMockAuth();
+  const isPublic = PUBLIC_ROUTES.some((p) => location.pathname.startsWith(p));
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!isAuthenticated && !isPublic) {
+      navigate({ to: "/login" });
+    }
+  }, [hydrated, isAuthenticated, isPublic, navigate]);
+
+  if (isPublic) {
+    return (
+      <>
+        <Outlet />
+        <Toaster richColors position="top-right" />
+      </>
+    );
+  }
+
+  // Avoid flashing protected layout before redirect
+  if (hydrated && !isAuthenticated) return null;
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
