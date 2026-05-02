@@ -16,6 +16,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { NewInvoiceDialog } from "@/components/NewInvoiceDialog";
+import { downloadInvoicePdf } from "@/lib/invoice-pdf";
 
 export const Route = createFileRoute("/billing")({
   head: () => ({
@@ -47,7 +49,33 @@ const statusStyles: Record<string, string> = {
 
 function Billing() {
   const [tab, setTab] = useState("all");
+  const [open, setOpen] = useState(false);
   const filtered = tab === "all" ? invoices : invoices.filter((i) => i.status.toLowerCase() === tab);
+
+  const downloadOne = (inv: typeof invoices[number]) => {
+    downloadInvoicePdf({
+      number: inv.id,
+      date: inv.date,
+      business: {
+        name: "Sharma Traders",
+        address: "Shop 12, MG Road, Indore, MP 452001",
+        gstin: "23ABCDE1234F1Z5",
+        phone: "+91 98765 43210",
+      },
+      party: { name: inv.party },
+      lines: [
+        { name: "Items as per challan", qty: 1, rate: inv.amount / 1.18, gst: 18 },
+      ],
+    });
+    toast.success(`${inv.id} downloaded`);
+  };
+
+  const shareWA = (inv: typeof invoices[number]) => {
+    const msg = encodeURIComponent(
+      `Hi ${inv.party}, your invoice ${inv.id} of ₹${inv.amount.toLocaleString("en-IN")} is ready.`,
+    );
+    window.open(`https://wa.me/?text=${msg}`, "_blank");
+  };
 
   return (
     <div className="space-y-6">
@@ -56,15 +84,17 @@ function Billing() {
         subtitle="248 invoices · ₹4,82,300 collected this month"
         actions={
           <>
-            <Button variant="outline" className="rounded-xl">
+            <Button variant="outline" className="rounded-xl" onClick={() => toast.success("Exporting invoices…")}>
               <FileDown className="mr-1 h-4 w-4" /> Export
             </Button>
-            <Button className="rounded-xl" onClick={() => toast.success("New invoice draft created")}>
+            <Button className="rounded-xl" onClick={() => setOpen(true)}>
               <Plus className="mr-1 h-4 w-4" /> New Invoice
             </Button>
           </>
         }
       />
+
+      <NewInvoiceDialog open={open} onOpenChange={setOpen} />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[
