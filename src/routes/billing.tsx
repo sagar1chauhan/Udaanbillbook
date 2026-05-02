@@ -171,10 +171,10 @@ function Billing() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => toast.success("Downloaded PDF")}>
+                          <DropdownMenuItem onClick={() => downloadOne(inv)}>
                             <FileDown className="mr-2 h-4 w-4" /> Download PDF
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => toast.success("Shared on WhatsApp")}>
+                          <DropdownMenuItem onClick={() => shareWA(inv)}>
                             <Share2 className="mr-2 h-4 w-4" /> Share via WhatsApp
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -195,10 +195,14 @@ function Billing() {
             <p className="text-sm text-muted-foreground">Auto-calculated CGST/SGST · WhatsApp share · PDF download</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="rounded-xl">
+            <Button
+              variant="outline"
+              className="rounded-xl"
+              onClick={() => window.open("https://wa.me/?text=" + encodeURIComponent("Sharing invoice from LedgerLite"), "_blank")}
+            >
               <Share2 className="mr-1 h-4 w-4" /> Share via WhatsApp
             </Button>
-            <Button className="rounded-xl">
+            <Button className="rounded-xl" onClick={() => setOpen(true)}>
               <Plus className="mr-1 h-4 w-4" /> Create Invoice
             </Button>
           </div>
