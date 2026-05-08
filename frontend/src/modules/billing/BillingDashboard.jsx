@@ -20,7 +20,7 @@ import { downloadInvoicePdf } from "@/lib/invoice-pdf";
 
 const fmt = (n) => "₹" + n.toLocaleString("en-IN");
 
-const invoices = [
+const INITIAL_INVOICES = [
   { id: "INV-2041", party: "Anil Sweets", date: "28 Apr 2026", amount: 24500, status: "Unpaid" },
   { id: "INV-2040", party: "Sharma Kirana", date: "27 Apr 2026", amount: 12800, status: "Partial" },
   { id: "INV-2039", party: "Green Mart", date: "26 Apr 2026", amount: 8400, status: "Paid" },
@@ -37,6 +37,7 @@ const statusStyles = {
 };
 
 export function BillingDashboard() {
+  const [invoices, setInvoices] = useState(INITIAL_INVOICES);
   const [tab, setTab] = useState("all");
   const [open, setOpen] = useState(false);
   const filtered = tab === "all" ? invoices : invoices.filter((i) => i.status.toLowerCase() === tab);
@@ -83,7 +84,11 @@ export function BillingDashboard() {
         }
       />
 
-      <NewInvoiceDialog open={open} onOpenChange={setOpen} />
+      <NewInvoiceDialog 
+        open={open} 
+        onOpenChange={setOpen} 
+        onAdd={(newInv) => setInvoices([newInv, ...invoices])} 
+      />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {[

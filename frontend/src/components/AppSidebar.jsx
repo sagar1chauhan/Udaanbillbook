@@ -11,6 +11,7 @@ import {
   Calculator,
   ShieldCheck,
   UserCog,
+  LogOut,
 } from "lucide-react";
 import {
   Sidebar,
@@ -24,7 +25,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useMockAuth } from "@/lib/auth-store";
+import { useMockAuth, mockAuth } from "@/lib/auth-store";
+import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
 import logo from "../public/udaan-logo-removebg-preview.png";
 
 const main = [
@@ -46,9 +49,27 @@ const adminItems = [
 export function AppSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { user } = useMockAuth();
-  const isAdmin = user?.role === "admin" || true; // Defaulting to true for demo
+  
+  // Use actual user role from auth store, default to Staff if missing
+  const userRole = user?.role || "Staff"; 
+  const isAdmin = userRole === "Admin";
+
+  // Filter sections based on permissions
+  const staffAllowed = ["Dashboard", "Billing", "Inventory", "Parties", "Expenses", "Accounting"];
+  const filteredMain = main.filter(item => {
+    if (isAdmin) return true;
+    if (userRole === "Staff") return staffAllowed.includes(item.title);
+    return false; // Viewer only has read access, but we hide other things or they can see but not edit. Let's just follow same for Viewer for now, or just limit to Dashboard. We'll stick to Staff for now.
+  });
 
   const isActive = (url) => (url === "/" ? path === "/" : path.startsWith(url));
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    mockAuth.signOut();
+    toast.success("Logged out successfully");
+    navigate({ to: "/login" });
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r">
@@ -66,7 +87,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Business Operations</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {main.map((item) => (
+              {filteredMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
                     <Link to={item.url}>
@@ -100,14 +121,28 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
       </SidebarContent>
-      <SidebarFooter className="border-t">
-        <div className="flex items-center gap-3 rounded-xl bg-primary-soft p-3 group-data-[collapsible=icon]:hidden">
-          <Sparkles className="h-5 w-5 text-primary" />
-          <div className="flex-1">
-            <p className="text-xs font-semibold">Pro Plan Active</p>
-            <p className="text-[11px] text-muted-foreground">All features unlocked</p>
-          </div>
-        </div>
+      <SidebarFooter className="border-t p-2">
+        <SidebarMenu>
+          <SidebarMenuItem className="mb-2 group-data-[collapsible=icon]:hidden">
+            <div className="flex items-center gap-3 rounded-xl bg-primary-soft p-3">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <div className="flex-1">
+                <p className="text-xs font-semibold">Pro Plan Active</p>
+                <p className="text-[11px] text-muted-foreground">All features unlocked</p>
+              </div>
+            </div>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton 
+              onClick={handleLogout}
+              className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-xl"
+              tooltip="Logout"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );

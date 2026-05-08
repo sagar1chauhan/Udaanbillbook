@@ -71,6 +71,7 @@ import { useLocation, useNavigate } from "@tanstack/react-router";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AppTopbar } from "@/components/AppTopbar";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { Toaster } from "@/components/ui/sonner";
 import { useMockAuth } from "@/lib/auth-store";
 
@@ -105,11 +106,12 @@ function RootComponent() {
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         <AppSidebar />
-        <SidebarInset className="flex min-w-0 flex-1 flex-col">
+        <SidebarInset className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">
           <AppTopbar />
           <main className="flex-1 p-4 md:p-6 lg:p-8">
             <Outlet />
           </main>
+          <MobileBottomNav />
         </SidebarInset>
       </div>
       <Toaster richColors position="top-right" />

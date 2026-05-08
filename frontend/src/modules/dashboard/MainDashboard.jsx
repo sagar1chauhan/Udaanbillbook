@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   AreaChart,
   Area,
@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import { NewInvoiceDialog } from "@/components/NewInvoiceDialog";
 
 const salesData = [
   { d: "Mon", sales: 18400, expense: 7200 },
@@ -95,6 +96,8 @@ function Kpi({
 }
 
 export function MainDashboard() {
+  const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -105,7 +108,7 @@ export function MainDashboard() {
             <Button variant="outline" className="rounded-xl">
               <Download className="mr-1 h-4 w-4" /> Export
             </Button>
-            <Button className="rounded-xl">
+            <Button className="rounded-xl" onClick={() => setIsNewInvoiceOpen(true)}>
               <Plus className="mr-1 h-4 w-4" /> New Invoice
             </Button>
           </>
@@ -298,6 +301,8 @@ export function MainDashboard() {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+      
+      <NewInvoiceDialog open={isNewInvoiceOpen} onOpenChange={setIsNewInvoiceOpen} />
     </div>
   );
 }

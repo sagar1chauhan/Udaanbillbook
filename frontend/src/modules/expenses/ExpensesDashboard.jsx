@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,15 @@ import { toast } from "sonner";
 
 const fmt = (n) => "₹" + n.toLocaleString("en-IN");
 
-const expenses = [
+const catIcons = {
+  Fuel: Fuel,
+  Utilities: Zap,
+  Logistics: Truck,
+  Supplies: ShoppingBag,
+  Payroll: Users,
+};
+
+const INITIAL_EXPENSES = [
   { name: "Diesel - Delivery Van", cat: "Fuel", icon: Fuel, amount: 4200, date: "28 Apr" },
   { name: "Shop Electricity Bill", cat: "Utilities", icon: Zap, amount: 6800, date: "27 Apr" },
   { name: "Transport - Wholesale Pickup", cat: "Logistics", icon: Truck, amount: 3500, date: "26 Apr" },
@@ -31,13 +39,40 @@ const catColors = {
 };
 
 export function ExpensesDashboard() {
-  const total = expenses.reduce((s, e) => s + e.amount, 0);
+  const [expenseList, setExpenseList] = useState(INITIAL_EXPENSES);
+  const [title, setTitle] = useState("");
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("Fuel");
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+
+  const total = expenseList.reduce((s, e) => s + e.amount, 0);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!title || !amount) {
+      toast.error("Please fill in title and amount");
+      return;
+    }
+
+    const newExpense = {
+      name: title,
+      cat: category,
+      icon: catIcons[category] || ShoppingBag,
+      amount: parseFloat(amount),
+      date: new Date(date).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }),
+    };
+
+    setExpenseList([newExpense, ...expenseList]);
+    setTitle("");
+    setAmount("");
+    toast.success("Expense recorded");
+  };
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Expenses"
-        subtitle={`${fmt(total)} spent this month across ${expenses.length} entries`}
+        subtitle={`${fmt(total)} spent this month across ${expenseList.length} entries`}
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -46,27 +81,34 @@ export function ExpensesDashboard() {
             <CardTitle className="text-base">Add Expense</CardTitle>
           </CardHeader>
           <CardContent>
-            <form
-              className="space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                toast.success("Expense recorded");
-              }}
-            >
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-1.5">
                 <Label htmlFor="title">Title</Label>
-                <Input id="title" placeholder="e.g. Diesel for van" className="h-10 rounded-xl" />
+                <Input
+                  id="title"
+                  placeholder="e.g. Diesel for van"
+                  className="h-10 rounded-xl"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="amt">Amount</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">₹</span>
-                  <Input id="amt" type="number" placeholder="0" className="h-10 rounded-xl pl-7" />
+                  <Input
+                    id="amt"
+                    type="number"
+                    placeholder="0"
+                    className="h-10 rounded-xl pl-7"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
                 </div>
               </div>
               <div className="space-y-1.5">
                 <Label>Category</Label>
-                <Select defaultValue="Fuel">
+                <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger className="h-10 rounded-xl">
                     <SelectValue />
                   </SelectTrigger>
@@ -79,7 +121,13 @@ export function ExpensesDashboard() {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="date">Date</Label>
-                <Input id="date" type="date" className="h-10 rounded-xl" />
+                <Input
+                  id="date"
+                  type="date"
+                  className="h-10 rounded-xl"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
               </div>
               <Button type="submit" className="w-full rounded-xl">
                 <Plus className="mr-1 h-4 w-4" /> Save Expense
@@ -94,7 +142,7 @@ export function ExpensesDashboard() {
             <Badge variant="secondary" className="rounded-full">This month</Badge>
           </CardHeader>
           <CardContent className="space-y-2">
-            {expenses.map((e, i) => (
+            {expenseList.map((e, i) => (
               <div key={i} className="flex items-center gap-3 rounded-xl border bg-card p-3 transition-all duration-200 hover:translate-x-1 hover:shadow-sm">
                 <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${catColors[e.cat]}`}>
                   <e.icon className="h-5 w-5" />

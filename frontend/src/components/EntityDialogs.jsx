@@ -76,7 +76,7 @@ export function AddProductDialog({
 }
 
 export function AddPartyDialog({
-  open, onOpenChange,
+  open, onOpenChange, onAdd,
 }) {
   const [f, setF] = useState({ name: "", phone: "", type: "Customer", opening: "" });
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
@@ -94,6 +94,16 @@ export function AddPartyDialog({
             e.preventDefault();
             if (!f.name.trim()) return toast.error("Enter party name");
             if (f.phone.length !== 10) return toast.error("Enter 10-digit phone");
+            
+            if (onAdd) {
+              onAdd({
+                name: f.name.trim(),
+                type: f.type,
+                phone: `+91 ${f.phone.slice(0,4)} ${f.phone.slice(4)}`,
+                balance: Number(f.opening) || 0,
+              });
+            }
+            
             toast.success(`${f.name} added`);
             onOpenChange(false);
             setF({ name: "", phone: "", type: "Customer", opening: "" });
@@ -131,6 +141,95 @@ export function AddPartyDialog({
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit" className="rounded-xl">Save Party</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function CashInOutDialog({
+  open, onOpenChange, onAdd,
+}) {
+  const [f, setF] = useState({ desc: "", amount: "", type: "IN", party: "", mode: "Cash" });
+  const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>Cash In/Out</DialogTitle>
+          <DialogDescription>Record a manual cash or bank transaction.</DialogDescription>
+        </DialogHeader>
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!f.desc.trim()) return toast.error("Enter description");
+            if (!f.amount) return toast.error("Enter amount");
+            
+            if (onAdd) {
+              onAdd({
+                desc: f.desc.trim(),
+                date: "Just now",
+                amount: Number(f.amount),
+                type: f.type,
+                party: f.party.trim() || "General",
+                mode: f.mode,
+              });
+            }
+            
+            toast.success("Transaction recorded");
+            onOpenChange(false);
+            setF({ desc: "", amount: "", type: "IN", party: "", mode: "Cash" });
+          }}
+        >
+          <div className="grid grid-cols-2 gap-3 p-1 bg-muted rounded-xl">
+             <Button 
+                type="button" 
+                variant={f.type === 'IN' ? 'default' : 'ghost'} 
+                className="rounded-lg h-9"
+                onClick={() => set('type', 'IN')}
+             >Cash In</Button>
+             <Button 
+                type="button" 
+                variant={f.type === 'OUT' ? 'destructive' : 'ghost'} 
+                className="rounded-lg h-9 text-destructive hover:text-destructive"
+                onClick={() => set('type', 'OUT')}
+             >Cash Out</Button>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="desc">Description</Label>
+            <Input id="desc" value={f.desc} onChange={(e) => set("desc", e.target.value)} className="h-10 rounded-xl" placeholder="e.g. Received from customer" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="amt">Amount (₹)</Label>
+              <Input id="amt" type="number" value={f.amount} onChange={(e) => set("amount", e.target.value)} className="h-10 rounded-xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Payment Mode</Label>
+              <Select value={f.mode} onValueChange={(v) => set("mode", v)}>
+                <SelectTrigger className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Cash">Cash</SelectItem>
+                  <SelectItem value="Bank">Bank</SelectItem>
+                  <SelectItem value="UPI">UPI</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="party">Party (Optional)</Label>
+            <Input id="party" value={f.party} onChange={(e) => set("party", e.target.value)} className="h-10 rounded-xl" placeholder="e.g. John Doe" />
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" className="rounded-xl">Record Transaction</Button>
           </DialogFooter>
         </form>
       </DialogContent>

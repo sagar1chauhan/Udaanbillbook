@@ -69,12 +69,15 @@ function VerifyOtp() {
     const code = digits.join("");
     if (code.length !== 6) return toast.error("Enter all 6 digits");
 
-    // Mock — accept any 6-digit code
+    // Mock — assign role based on phone number for testing
+    const isAdminUser = search.phone === "9999999999" || search.phone === "9876543210";
+    
     mockAuth.signIn({
-      name: search.name || "Rahul Kumar",
+      name: search.name || (isAdminUser ? "Admin User" : "Staff User"),
       business: search.business || "Sharma Traders",
       phone: search.phone,
       email: search.email,
+      role: isAdminUser ? "Admin" : "Staff"
     });
     toast.success(search.mode === "register" ? "Account created!" : "Signed in successfully");
     navigate({ to: "/" });

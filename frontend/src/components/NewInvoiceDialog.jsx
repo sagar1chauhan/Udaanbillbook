@@ -15,7 +15,7 @@ import { downloadInvoicePdf } from "@/lib/invoice-pdf";
 const fmt = (n) => "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 
 export function NewInvoiceDialog({
-  open, onOpenChange,
+  open, onOpenChange, onAdd,
 }) {
   const [party, setParty] = useState("Anil Sweets");
   const [phone, setPhone] = useState("9876504521");
@@ -56,6 +56,19 @@ export function NewInvoiceDialog({
   const onSave = () => {
     if (!party.trim()) return toast.error("Please enter party name");
     if (!lines.some((l) => l.name.trim())) return toast.error("Add at least one item");
+    
+    if (onAdd) {
+      onAdd({
+        id: "INV-" + Math.floor(2000 + Math.random() * 999),
+        party: party,
+        date: new Date().toLocaleDateString("en-IN", {
+          day: "2-digit", month: "short", year: "numeric",
+        }),
+        amount: totals.grand,
+        status: "Unpaid"
+      });
+    }
+
     toast.success("Invoice saved as draft");
     onOpenChange(false);
   };

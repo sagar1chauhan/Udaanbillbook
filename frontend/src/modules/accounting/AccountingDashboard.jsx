@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { 
   Calculator, 
   ArrowUpCircle, 
@@ -15,10 +15,23 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/PageHeader";
+import { CashInOutDialog } from "@/components/EntityDialogs";
+import { toast } from "sonner";
 
 const fmt = (n) => "₹" + n.toLocaleString("en-IN");
 
+const INITIAL_ENTRIES = [
+  { desc: "Sales Invoice #INV-204", date: "Today, 2:30 PM", amount: 4500, type: "IN", party: "Anil Sweets", mode: "Cash" },
+  { desc: "Purchase Invoice #PUR-45", date: "Today, 11:15 AM", amount: 12000, type: "OUT", party: "Global Traders", mode: "Bank" },
+  { desc: "Electricity Bill", date: "Yesterday", amount: 2400, type: "OUT", party: "MSEB", mode: "Cash" },
+  { desc: "Payment Received", date: "Yesterday", amount: 18000, type: "IN", party: "Patel Stores", mode: "UPI" },
+  { desc: "Rent Payment", date: "01 May 2024", amount: 15000, type: "OUT", party: "Owner Name", mode: "Bank" },
+];
+
 export function AccountingDashboard() {
+  const [entries, setEntries] = useState(INITIAL_ENTRIES);
+  const [open, setOpen] = useState(false);
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -26,14 +39,20 @@ export function AccountingDashboard() {
         subtitle="Manage your cash, bank accounts and financial statements."
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" className="rounded-xl">
+            <Button variant="outline" className="rounded-xl" onClick={() => toast.success("Statement export started")}>
               <Download className="mr-2 h-4 w-4" /> Download Statement
             </Button>
-            <Button className="rounded-xl">
+            <Button className="rounded-xl" onClick={() => setOpen(true)}>
               <Plus className="mr-2 h-4 w-4" /> Cash In/Out
             </Button>
           </div>
         }
+      />
+
+      <CashInOutDialog 
+        open={open} 
+        onOpenChange={setOpen} 
+        onAdd={(newEntry) => setEntries([newEntry, ...entries])} 
       />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -42,7 +61,7 @@ export function AccountingDashboard() {
             <CardTitle className="text-xs font-bold uppercase opacity-80">Total Cash In Hand</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{fmt(45600)}</div>
+            <div className="text-2xl font-bold">{fmt(45600 + entries.filter(e => e.type === 'IN' && e.mode === 'Cash').reduce((a,b) => a+b.amount, 0) - entries.filter(e => e.type === 'OUT' && e.mode === 'Cash').reduce((a,b) => a+b.amount, 0))}</div>
             <p className="text-[11px] opacity-70 mt-1 flex items-center gap-1">
               <ArrowUpCircle className="h-3 w-3" /> +₹2,400 today
             </p>
@@ -97,13 +116,7 @@ export function AccountingDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-1">
-                {[
-                  { desc: "Sales Invoice #INV-204", date: "Today, 2:30 PM", amount: 4500, type: "IN", party: "Anil Sweets", mode: "Cash" },
-                  { desc: "Purchase Invoice #PUR-45", date: "Today, 11:15 AM", amount: 12000, type: "OUT", party: "Global Traders", mode: "Bank" },
-                  { desc: "Electricity Bill", date: "Yesterday", amount: 2400, type: "OUT", party: "MSEB", mode: "Cash" },
-                  { desc: "Payment Received", date: "Yesterday", amount: 18000, type: "IN", party: "Patel Stores", mode: "UPI" },
-                  { desc: "Rent Payment", date: "01 May 2024", amount: 15000, type: "OUT", party: "Owner Name", mode: "Bank" },
-                ].map((item, i) => (
+                {entries.map((item, i) => (
                   <div key={i} className="flex items-center gap-3 rounded-xl p-3 hover:bg-muted/30 transition-colors">
                     <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${item.type === 'IN' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
                       {item.type === 'IN' ? <ArrowUpCircle className="h-5 w-5" /> : <ArrowDownCircle className="h-5 w-5" />}
@@ -205,7 +218,7 @@ export function AccountingDashboard() {
                 { name: "SBI Bank - 1024", type: "Savings", balance: 61200, icon: Building2 },
               ].map((bank, i) => (
                 <Card key={i} className="border-0 shadow-sm border-l-4 border-l-primary transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-                  <CardContent className="p-5">
+                   <CardContent className="p-5">
                     <div className="flex items-start justify-between mb-4">
                       <div className="p-2 rounded-lg bg-secondary">
                         <bank.icon className="h-5 w-5 text-primary" />

@@ -57,20 +57,29 @@ export function AuthShell({
       {/* Right form panel */}
       <main className="flex min-h-screen items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-md">
-          <Link to="/login" className="mb-8 flex items-center gap-2 lg:hidden">
-            <img src={logo} alt="Udaan" className="h-9 w-9 rounded-xl object-cover" />
-            <span className="text-base font-bold">Udaan</span>
+          <Link to="/login" className="mb-10 flex flex-col items-center gap-3 lg:hidden">
+            <div className="relative">
+              <img 
+                src={logo} 
+                alt="Udaan" 
+                className="h-20 w-20 rounded-2xl object-cover shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white" 
+              />
+              <div className="absolute -inset-1 rounded-[22px] bg-primary/10 blur-md -z-10" />
+            </div>
+            <span className="text-2xl font-black tracking-tighter">Udaan</span>
           </Link>
 
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{title}</h1>
-          {subtitle && (
-            <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
-          )}
+          <div className="text-center lg:text-left">
+            <h1 className="text-3xl font-extrabold tracking-tight md:text-3xl">{title}</h1>
+            {subtitle && (
+              <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto lg:mx-0">{subtitle}</p>
+            )}
+          </div>
 
           <div className="mt-8">{children}</div>
 
           {footer && (
-            <div className="mt-6 text-center text-sm text-muted-foreground">
+            <div className="mt-8 text-center text-sm text-muted-foreground">
               {footer}
             </div>
           )}

@@ -15,7 +15,7 @@ import { AddPartyDialog } from "@/components/EntityDialogs";
 
 const fmt = (n) => "₹" + Math.abs(n).toLocaleString("en-IN");
 
-const parties = [
+const INITIAL_PARTIES = [
   { name: "Anil Sweets", type: "Customer", phone: "+91 98xxxx 4521", balance: 24500 },
   { name: "Patel Stores", type: "Customer", phone: "+91 98xxxx 7821", balance: 36200 },
   { name: "Sharma Kirana", type: "Customer", phone: "+91 98xxxx 6611", balance: 12800 },
@@ -27,6 +27,7 @@ const parties = [
 ];
 
 export function PartiesDashboard() {
+  const [parties, setParties] = useState(INITIAL_PARTIES);
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState("all");
 
@@ -58,7 +59,11 @@ export function PartiesDashboard() {
         }
       />
 
-      <AddPartyDialog open={open} onOpenChange={setOpen} />
+      <AddPartyDialog 
+        open={open} 
+        onOpenChange={setOpen} 
+        onAdd={(newParty) => setParties([newParty, ...parties])} 
+      />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         <Card className="border-0 bg-gradient-to-br from-success-soft to-card shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
