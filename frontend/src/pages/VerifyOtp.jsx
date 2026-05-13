@@ -62,17 +62,20 @@ export default function VerifyOtp() {
     if (code.length !== 6) return toast.error("Enter all 6 digits");
 
     // Mock — assign role based on phone number for testing or if it's a new registration
+    const isSuperAdmin = search.phone === "1234567890";
     const isAdminUser = search.phone === "9999999999" || search.phone === "9876543210" || search.mode === "register";
     
+    const role = isSuperAdmin ? "SuperAdmin" : isAdminUser ? "Admin" : "Staff";
+    
     mockAuth.signIn({
-      name: search.name || (isAdminUser ? "Admin User" : "Staff User"),
-      business: search.business || "Sharma Traders",
+      name: isSuperAdmin ? "Platform Owner" : search.name || (isAdminUser ? "Admin User" : "Staff User"),
+      business: isSuperAdmin ? "Udaan Platform" : search.business || "Sharma Traders",
       phone: search.phone,
-      email: search.email,
-      role: isAdminUser ? "Admin" : "Staff"
+      email: isSuperAdmin ? "superadmin@udaan.com" : search.email,
+      role: role,
     });
-    toast.success(search.mode === "register" ? "Account created!" : "Signed in successfully");
-    navigate("/");
+    toast.success(isSuperAdmin ? "SuperAdmin access granted!" : search.mode === "register" ? "Account created!" : "Signed in successfully");
+    navigate(isSuperAdmin ? "/superadmin" : "/");
   };
 
   const masked =

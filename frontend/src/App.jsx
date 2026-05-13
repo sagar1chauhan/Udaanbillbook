@@ -20,17 +20,32 @@ import { ReportsDashboard } from "./modules/reports/ReportsDashboard";
 import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
 import { useSubscription } from "./hooks/useSubscription";
+import { useMockAuth } from "./lib/auth-store";
+
+// SuperAdmin imports
+import { SuperAdminLayout } from "./modules/superadmin/layouts/SuperAdminLayout";
+import { SADashboard } from "./modules/superadmin/pages/SADashboard";
+import { BusinessManagement } from "./modules/superadmin/pages/BusinessManagement";
+import { SubscriptionManager } from "./modules/superadmin/pages/SubscriptionManager";
+import { RevenueTransactions } from "./modules/superadmin/pages/RevenueTransactions";
+import { SecurityCenter } from "./modules/superadmin/pages/SecurityCenter";
+import { PlatformAnalytics } from "./modules/superadmin/pages/PlatformAnalytics";
+import { UserManagementSA } from "./modules/superadmin/pages/UserManagementSA";
+import { SupportTickets } from "./modules/superadmin/pages/SupportTickets";
+import { ActivityLog } from "./modules/superadmin/pages/ActivityLog";
+import { SASettings } from "./modules/superadmin/pages/SASettings";
 
 function SubscriptionGuard({ children, feature }) {
   const { canAccessFeature, hydrated } = useSubscription();
-  
-  if (!hydrated) {
-    return null; // Wait for auth store to hydrate from localStorage
-  }
-  
-  if (!canAccessFeature(feature)) {
-    return <Navigate to="/pricing" replace />;
-  }
+  if (!hydrated) return null;
+  if (!canAccessFeature(feature)) return <Navigate to="/pricing" replace />;
+  return children;
+}
+
+function SuperAdminGuard({ children }) {
+  const { user, hydrated } = useMockAuth();
+  if (!hydrated) return null;
+  if (!user || user.role !== "SuperAdmin") return <Navigate to="/login" replace />;
   return children;
 }
 
@@ -66,7 +81,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
 
-          {/* Protected Routes */}
+          {/* Protected Business Routes */}
           <Route path="/" element={<MainDashboard />} />
           <Route path="/accounting" element={<SubscriptionGuard feature="accounting"><AccountingDashboard /></SubscriptionGuard>} />
           <Route path="/admin/users" element={<SubscriptionGuard feature="admin"><UserManagement /></SubscriptionGuard>} />
@@ -81,6 +96,20 @@ export default function App() {
 
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
+        </Route>
+
+        {/* ====== SuperAdmin Routes (completely separate layout) ====== */}
+        <Route element={<SuperAdminGuard><SuperAdminLayout /></SuperAdminGuard>}>
+          <Route path="/superadmin" element={<SADashboard />} />
+          <Route path="/superadmin/analytics" element={<PlatformAnalytics />} />
+          <Route path="/superadmin/businesses" element={<BusinessManagement />} />
+          <Route path="/superadmin/subscriptions" element={<SubscriptionManager />} />
+          <Route path="/superadmin/revenue" element={<RevenueTransactions />} />
+          <Route path="/superadmin/users" element={<UserManagementSA />} />
+          <Route path="/superadmin/security" element={<SecurityCenter />} />
+          <Route path="/superadmin/tickets" element={<SupportTickets />} />
+          <Route path="/superadmin/activity" element={<ActivityLog />} />
+          <Route path="/superadmin/settings" element={<SASettings />} />
         </Route>
       </Routes>
     </BrowserRouter>
