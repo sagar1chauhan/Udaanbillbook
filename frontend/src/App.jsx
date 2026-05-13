@@ -18,6 +18,21 @@ import { InventoryDashboard } from "./modules/inventory/InventoryDashboard";
 import { PartiesDashboard } from "./modules/parties/PartiesDashboard";
 import { ReportsDashboard } from "./modules/reports/ReportsDashboard";
 import Settings from "./pages/Settings";
+import Pricing from "./pages/Pricing";
+import { useSubscription } from "./hooks/useSubscription";
+
+function SubscriptionGuard({ children, feature }) {
+  const { canAccessFeature, hydrated } = useSubscription();
+  
+  if (!hydrated) {
+    return null; // Wait for auth store to hydrate from localStorage
+  }
+  
+  if (!canAccessFeature(feature)) {
+    return <Navigate to="/pricing" replace />;
+  }
+  return children;
+}
 
 function NotFound() {
   return (
@@ -53,15 +68,16 @@ export default function App() {
 
           {/* Protected Routes */}
           <Route path="/" element={<MainDashboard />} />
-          <Route path="/accounting" element={<AccountingDashboard />} />
-          <Route path="/admin/users" element={<UserManagement />} />
+          <Route path="/accounting" element={<SubscriptionGuard feature="accounting"><AccountingDashboard /></SubscriptionGuard>} />
+          <Route path="/admin/users" element={<SubscriptionGuard feature="admin"><UserManagement /></SubscriptionGuard>} />
           <Route path="/billing" element={<BillingDashboard />} />
-          <Route path="/expenses" element={<ExpensesDashboard />} />
-          <Route path="/gst" element={<GstDashboard />} />
-          <Route path="/inventory" element={<InventoryDashboard />} />
+          <Route path="/expenses" element={<SubscriptionGuard feature="expenses"><ExpensesDashboard /></SubscriptionGuard>} />
+          <Route path="/gst" element={<SubscriptionGuard feature="gst"><GstDashboard /></SubscriptionGuard>} />
+          <Route path="/inventory" element={<SubscriptionGuard feature="inventory"><InventoryDashboard /></SubscriptionGuard>} />
           <Route path="/parties" element={<PartiesDashboard />} />
-          <Route path="/reports" element={<ReportsDashboard />} />
+          <Route path="/reports" element={<SubscriptionGuard feature="reports"><ReportsDashboard /></SubscriptionGuard>} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/pricing" element={<Pricing />} />
 
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />

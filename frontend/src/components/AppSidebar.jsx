@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   UserCog,
   LogOut,
+  Lock,
 } from "lucide-react";
 import {
   Sidebar,
@@ -26,6 +27,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useMockAuth, mockAuth } from "@/lib/auth-store";
+import { useSubscription, PLANS } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 import { useSidebar } from "@/components/ui/sidebar";
 const logo = "/udaan-logo-removebg-preview.png";
@@ -50,6 +52,7 @@ export function AppSidebar() {
   const location = useLocation();
   const path = location.pathname;
   const { user } = useMockAuth();
+  const { currentPlan, isFree, canAccessFeature } = useSubscription();
   const { setOpenMobile, isMobile } = useSidebar();
   
   // Use actual user role from auth store, default to Staff if missing
@@ -93,16 +96,29 @@ export function AppSidebar() {
           <SidebarGroupLabel>Business Operations</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {filteredMain.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title} onClick={closeSidebar}>
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {filteredMain.map((item) => {
+                // To determine the feature name from the URL (e.g., /billing -> billing)
+                const featureKey = item.url === "/" ? "dashboard" : item.url.replace("/", "");
+                const hasAccess = canAccessFeature(featureKey);
+
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton 
+                      asChild 
+                      isActive={isActive(item.url)} 
+                      tooltip={item.title} 
+                      onClick={closeSidebar}
+                      className={!hasAccess ? "opacity-50 hover:opacity-100" : ""}
+                    >
+                      <Link to={hasAccess ? item.url : "/pricing"}>
+                        <item.icon className="h-4 w-4" />
+                        <span className="flex-1">{item.title}</span>
+                        {!hasAccess && <Lock className="h-3 w-3 text-muted-foreground ml-auto" />}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -130,13 +146,34 @@ export function AppSidebar() {
       <SidebarFooter className="border-t p-2">
         <SidebarMenu>
           <SidebarMenuItem className="mb-2 group-data-[collapsible=icon]:hidden">
-            <div className="flex items-center gap-3 rounded-xl bg-primary-soft p-3">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <div className="flex-1">
-                <p className="text-xs font-semibold">Pro Plan Active</p>
-                <p className="text-[11px] text-muted-foreground">All features unlocked</p>
+            {isFree ? (
+              <div className="flex flex-col gap-2 rounded-xl bg-muted/50 p-3 border border-border/50">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-background rounded-md shadow-sm">
+                    <Sparkles className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-foreground">Free Plan</p>
+                    <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Limited features</p>
+                  </div>
+                </div>
+                <Link to="/pricing" onClick={closeSidebar}>
+                  <button className="w-full text-[11px] font-semibold bg-primary hover:bg-primary/90 text-primary-foreground py-1.5 rounded-lg transition-colors">
+                    Upgrade to Premium
+                  </button>
+                </Link>
               </div>
-            </div>
+            ) : (
+              <Link to="/settings" onClick={closeSidebar}>
+                <div className="flex items-center gap-3 rounded-xl bg-primary-soft p-3 hover:bg-primary/10 transition-colors cursor-pointer border border-primary/20">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold">{currentPlan} Plan</p>
+                    <p className="text-[11px] text-muted-foreground">All features unlocked</p>
+                  </div>
+                </div>
+              </Link>
+            )}
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton 

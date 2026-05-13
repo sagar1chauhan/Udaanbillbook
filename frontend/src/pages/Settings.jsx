@@ -7,8 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { useSubscription, PLANS } from "@/hooks/useSubscription";
+import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 
 export default function Settings() {
+  const { currentPlan, isFree, planStatus } = useSubscription();
+  const validUntil = new Date();
+  validUntil.setFullYear(validUntil.getFullYear() + 1);
+
   return (
     <div className="space-y-6">
       <PageHeader title="Settings" subtitle="Manage business profile and preferences" />
@@ -49,7 +56,38 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-[var(--shadow-card)]">
+        {/* Subscription Card */}
+        <Card className="border-0 shadow-[var(--shadow-card)] lg:col-span-3">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center justify-between">
+              Subscription & Billing
+              <Badge variant={isFree ? "secondary" : "default"} className={!isFree ? "bg-emerald-500 hover:bg-emerald-600" : ""}>
+                {currentPlan} Plan
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl border border-border/50 bg-muted/20">
+              <div className="space-y-1">
+                <p className="font-semibold">Current Plan: {currentPlan}</p>
+                {isFree ? (
+                  <p className="text-sm text-muted-foreground">You are currently on the free tier. Upgrade to unlock more features.</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Your {currentPlan} plan is active. Valid until: <span className="font-medium text-foreground">{validUntil.toLocaleDateString()}</span>
+                  </p>
+                )}
+              </div>
+              <Link to="/pricing">
+                <Button variant={isFree ? "default" : "outline"} className="rounded-xl w-full md:w-auto">
+                  {isFree ? "Upgrade Now" : "Manage Plan"}
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-[var(--shadow-card)] lg:col-span-1">
           <CardHeader>
             <CardTitle className="text-base">Preferences</CardTitle>
           </CardHeader>

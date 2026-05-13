@@ -27,6 +27,14 @@ export const mockAuth = {
     window.localStorage.removeItem(KEY);
     listeners.forEach((l) => l());
   },
+  updateUser(updates) {
+    const current = read();
+    if (current) {
+      const updated = { ...current, ...updates };
+      window.localStorage.setItem(KEY, JSON.stringify(updated));
+      listeners.forEach((l) => l());
+    }
+  },
   subscribe(l) {
     listeners.add(l);
     return () => listeners.delete(l);
