@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus, Search, Upload, Boxes, AlertTriangle, ScanLine, Filter } from "lucide-react";
 import { toast } from "sonner";
+import { useMockAuth } from "@/lib/auth-store";
 import { AddProductDialog } from "@/components/EntityDialogs";
 
 const fmt = (n) => "₹" + n.toLocaleString("en-IN");
@@ -30,31 +31,43 @@ const products = [
 ];
 
 export function InventoryDashboard() {
+  const { user } = useMockAuth();
+  const isViewer = user?.role === "Viewer";
+
+  const [inventory, setInventory] = useState(products);
   const [cat, setCat] = useState("all");
   const [open, setOpen] = useState(false);
   const cats = ["all", "Grocery", "Bakery", "Dairy", "Packaged"];
-  const filtered = cat === "all" ? products : products.filter((p) => p.cat === cat);
-  const lowCount = products.filter((p) => p.stock < p.min).length;
-  const totalValue = products.reduce((s, p) => s + p.price * p.stock, 0);
+  
+  const filtered = cat === "all" ? inventory : inventory.filter((p) => p.cat === cat);
+  const lowCount = inventory.filter((p) => p.stock < p.min).length;
+  const totalValue = inventory.reduce((s, p) => s + p.price * p.stock, 0);
+
+  const handleAdd = (newP) => {
+    setInventory([newP, ...inventory]);
+    setOpen(false);
+  };
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Inventory"
-        subtitle={`${products.length} products · ${lowCount} need restocking`}
+        subtitle={`${inventory.length} products · ${lowCount} need restocking`}
         actions={
           <>
             <Button variant="outline" className="rounded-xl" onClick={() => toast.message("Upload .xlsx with product list")}>
               <Upload className="mr-1 h-4 w-4" /> Bulk Upload
             </Button>
-            <Button className="rounded-xl" onClick={() => setOpen(true)}>
-              <Plus className="mr-1 h-4 w-4" /> Add Product
-            </Button>
+            {!isViewer && (
+              <Button className="rounded-xl" onClick={() => setOpen(true)}>
+                <Plus className="mr-1 h-4 w-4" /> Add Product
+              </Button>
+            )}
           </>
         }
       />
 
-      <AddProductDialog open={open} onOpenChange={setOpen} />
+      <AddProductDialog open={open} onOpenChange={setOpen} onAdd={handleAdd} />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
         <Card className="border-0 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-1 hover:shadow-md">

@@ -11,7 +11,7 @@ import {
 import { toast } from "sonner";
 
 export function AddProductDialog({
-  open, onOpenChange,
+  open, onOpenChange, onAdd,
 }) {
   const [f, setF] = useState({ name: "", sku: "", cat: "Grocery", price: "", stock: "" });
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
@@ -29,6 +29,18 @@ export function AddProductDialog({
             e.preventDefault();
             if (!f.name.trim()) return toast.error("Enter product name");
             if (!f.price) return toast.error("Enter price");
+            
+            if (onAdd) {
+              onAdd({
+                name: f.name.trim(),
+                sku: f.sku.trim() || `SKU-${Math.floor(100 + Math.random() * 900)}`,
+                cat: f.cat,
+                price: Number(f.price),
+                stock: Number(f.stock) || 0,
+                min: 10,
+              });
+            }
+            
             toast.success(`${f.name} added to inventory`);
             onOpenChange(false);
             setF({ name: "", sku: "", cat: "Grocery", price: "", stock: "" });

@@ -1,8 +1,8 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Bell, Search, Plus, LogOut, Settings as SettingsIcon, User } from "lucide-react";
-import { useNavigate, Link } from "@tanstack/react-router";
+import { useNavigate, Link } from "react-router-dom";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import logo from "../public/udaan-logo-removebg-preview.png";
+const logo = "/udaan-logo-removebg-preview.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -30,7 +30,7 @@ export function AppTopbar() {
   const onLogout = () => {
     mockAuth.signOut();
     toast.success("Signed out");
-    navigate({ to: "/login" });
+    navigate("/login");
   };
 
   return (

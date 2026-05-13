@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   ReceiptText,
@@ -27,8 +27,8 @@ import {
 } from "@/components/ui/sidebar";
 import { useMockAuth, mockAuth } from "@/lib/auth-store";
 import { toast } from "sonner";
-import { useNavigate } from "@tanstack/react-router";
-import logo from "../public/udaan-logo-removebg-preview.png";
+import { useSidebar } from "@/components/ui/sidebar";
+const logo = "/udaan-logo-removebg-preview.png";
 
 const main = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -47,19 +47,25 @@ const adminItems = [
 ];
 
 export function AppSidebar() {
-  const path = useRouterState({ select: (r) => r.location.pathname });
+  const location = useLocation();
+  const path = location.pathname;
   const { user } = useMockAuth();
+  const { setOpenMobile, isMobile } = useSidebar();
   
   // Use actual user role from auth store, default to Staff if missing
   const userRole = user?.role || "Staff"; 
   const isAdmin = userRole === "Admin";
 
+  const closeSidebar = () => {
+    if (isMobile) setOpenMobile(false);
+  };
+
   // Filter sections based on permissions
   const staffAllowed = ["Dashboard", "Billing", "Inventory", "Parties", "Expenses", "Accounting"];
   const filteredMain = main.filter(item => {
     if (isAdmin) return true;
-    if (userRole === "Staff") return staffAllowed.includes(item.title);
-    return false; // Viewer only has read access, but we hide other things or they can see but not edit. Let's just follow same for Viewer for now, or just limit to Dashboard. We'll stick to Staff for now.
+    if (userRole === "Staff" || userRole === "Viewer") return staffAllowed.includes(item.title);
+    return false;
   });
 
   const isActive = (url) => (url === "/" ? path === "/" : path.startsWith(url));
@@ -68,7 +74,7 @@ export function AppSidebar() {
   const handleLogout = () => {
     mockAuth.signOut();
     toast.success("Logged out successfully");
-    navigate({ to: "/login" });
+    navigate("/login");
   };
 
   return (
@@ -89,7 +95,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {filteredMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title} onClick={closeSidebar}>
                     <Link to={item.url}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
@@ -108,7 +114,7 @@ export function AppSidebar() {
               <SidebarMenu>
                 {adminItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title} onClick={closeSidebar}>
                       <Link to={item.url}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>

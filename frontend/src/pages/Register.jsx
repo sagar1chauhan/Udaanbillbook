@@ -1,5 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthShell } from "@/components/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,16 +10,6 @@ import {
 import { ArrowRight, Phone } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/register")({
-  head: () => ({
-    meta: [
-      { title: "Create your account — Udaan" },
-      { name: "description", content: "Start your free Udaan account in 30 seconds — billing, GST and inventory." },
-    ],
-  }),
-  component: Register,
-});
-
 const businessTypes = [
   "Retail Shop",
   "Wholesale / Distribution",
@@ -29,7 +19,7 @@ const businessTypes = [
   "Other",
 ];
 
-function Register() {
+export default function Register() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
@@ -54,16 +44,7 @@ function Register() {
     setLoading(true);
     setTimeout(() => {
       toast.success("OTP sent to +91 " + clean);
-      navigate({
-        to: "/verify-otp",
-        search: {
-          phone: clean,
-          mode: "register",
-          name: form.name,
-          business: form.business,
-          email: form.email,
-        },
-      });
+      navigate(`/verify-otp?phone=${clean}&mode=register&name=${form.name}&business=${form.business}&email=${form.email}`);
     }, 600);
   };
 

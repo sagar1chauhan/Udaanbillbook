@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +21,7 @@ export function LoginForm() {
     setLoading(true);
     setTimeout(() => {
       toast.success("OTP sent to +91 " + clean);
-      navigate({ to: "/verify-otp", search: { phone: clean, mode: "login" } });
+      navigate(`/verify-otp?phone=${clean}&mode=login`);
     }, 600);
   };
 

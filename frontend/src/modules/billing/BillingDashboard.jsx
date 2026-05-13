@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { NewInvoiceDialog } from "@/components/NewInvoiceDialog";
+import { useMockAuth } from "@/lib/auth-store";
 import { downloadInvoicePdf } from "@/lib/invoice-pdf";
 
 const fmt = (n) => "₹" + n.toLocaleString("en-IN");
@@ -37,6 +38,9 @@ const statusStyles = {
 };
 
 export function BillingDashboard() {
+  const { user } = useMockAuth();
+  const isViewer = user?.role === "Viewer";
+
   const [invoices, setInvoices] = useState(INITIAL_INVOICES);
   const [tab, setTab] = useState("all");
   const [open, setOpen] = useState(false);
@@ -77,9 +81,11 @@ export function BillingDashboard() {
             <Button variant="outline" className="rounded-xl" onClick={() => toast.success("Exporting invoices…")}>
               <FileDown className="mr-1 h-4 w-4" /> Export
             </Button>
-            <Button className="rounded-xl" onClick={() => setOpen(true)}>
-              <Plus className="mr-1 h-4 w-4" /> New Invoice
-            </Button>
+            {!isViewer && (
+              <Button className="rounded-xl" onClick={() => setOpen(true)}>
+                <Plus className="mr-1 h-4 w-4" /> New Invoice
+              </Button>
+            )}
           </>
         }
       />
@@ -206,9 +212,11 @@ export function BillingDashboard() {
             >
               <Share2 className="mr-1 h-4 w-4" /> Share via WhatsApp
             </Button>
-            <Button className="rounded-xl" onClick={() => setOpen(true)}>
-              <Plus className="mr-1 h-4 w-4" /> Create Invoice
-            </Button>
+            {!isViewer && (
+              <Button className="rounded-xl" onClick={() => setOpen(true)}>
+                <Plus className="mr-1 h-4 w-4" /> Create Invoice
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

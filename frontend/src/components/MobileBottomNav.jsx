@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, ReceiptText, Boxes, Users, MoreHorizontal } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 
@@ -10,7 +10,8 @@ const navItems = [
 ];
 
 export function MobileBottomNav() {
-  const path = useRouterState({ select: (r) => r.location.pathname });
+  const location = useLocation();
+  const path = location.pathname;
   const { toggleSidebar } = useSidebar();
 
   const isActive = (url) => (url === "/" ? path === "/" : path.startsWith(url));

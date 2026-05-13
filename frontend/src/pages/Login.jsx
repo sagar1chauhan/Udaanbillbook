@@ -1,18 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import React from "react";
+import { Link } from "react-router-dom";
 import { AuthShell } from "@/components/AuthShell";
 import { LoginForm } from "@/modules/auth/LoginForm";
 
-export const Route = createFileRoute("/login")({
-  head: () => ({
-    meta: [
-      { title: "Sign in — Udaan" },
-      { name: "description", content: "Sign in to Udaan with your mobile number to manage billing, GST and inventory." },
-    ],
-  }),
-  component: Login,
-});
-
-function Login() {
+export default function Login() {
   return (
     <AuthShell
       title="Welcome back"
@@ -30,8 +21,8 @@ function Login() {
 
       <p className="mt-6 text-center text-xs text-muted-foreground">
         By continuing you agree to our{" "}
-        <a className="underline">Terms</a> and{" "}
-        <a className="underline">Privacy Policy</a>.
+        <a className="underline cursor-pointer">Terms</a> and{" "}
+        <a className="underline cursor-pointer">Privacy Policy</a>.
       </p>
     </AuthShell>
   );

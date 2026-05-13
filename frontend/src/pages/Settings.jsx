@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import React from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,17 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/settings")({
-  head: () => ({
-    meta: [
-      { title: "Settings — Udaan" },
-      { name: "description", content: "Business profile, GST and notification preferences." },
-    ],
-  }),
-  component: Settings,
-});
-
-function Settings() {
+export default function Settings() {
   return (
     <div className="space-y-6">
       <PageHeader title="Settings" subtitle="Manage business profile and preferences" />

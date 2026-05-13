@@ -1,5 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthShell } from "@/components/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,26 +7,18 @@ import { ArrowRight, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { mockAuth } from "@/lib/auth-store";
 
-export const Route = createFileRoute("/verify-otp")({
-  validateSearch: (s) => ({
-    phone: String(s.phone ?? ""),
-    mode: s.mode ?? "login",
-    name: s.name ? String(s.name) : undefined,
-    business: s.business ? String(s.business) : undefined,
-    email: s.email ? String(s.email) : undefined,
-  }),
-  head: () => ({
-    meta: [
-      { title: "Verify OTP — Udaan" },
-      { name: "description", content: "Verify the 6-digit OTP sent to your mobile to access Udaan." },
-    ],
-  }),
-  component: VerifyOtp,
-});
-
-function VerifyOtp() {
-  const search = Route.useSearch();
+export default function VerifyOtp() {
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  
+  const search = {
+    phone: searchParams.get("phone") || "",
+    mode: searchParams.get("mode") || "login",
+    name: searchParams.get("name") || undefined,
+    business: searchParams.get("business") || undefined,
+    email: searchParams.get("email") || undefined,
+  };
+
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [resend, setResend] = useState(30);
   const refs = useRef([]);
@@ -69,8 +61,8 @@ function VerifyOtp() {
     const code = digits.join("");
     if (code.length !== 6) return toast.error("Enter all 6 digits");
 
-    // Mock — assign role based on phone number for testing
-    const isAdminUser = search.phone === "9999999999" || search.phone === "9876543210";
+    // Mock — assign role based on phone number for testing or if it's a new registration
+    const isAdminUser = search.phone === "9999999999" || search.phone === "9876543210" || search.mode === "register";
     
     mockAuth.signIn({
       name: search.name || (isAdminUser ? "Admin User" : "Staff User"),
@@ -80,7 +72,7 @@ function VerifyOtp() {
       role: isAdminUser ? "Admin" : "Staff"
     });
     toast.success(search.mode === "register" ? "Account created!" : "Signed in successfully");
-    navigate({ to: "/" });
+    navigate("/");
   };
 
   const masked =

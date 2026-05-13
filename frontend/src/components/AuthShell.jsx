@@ -1,6 +1,6 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
-import logo from "../public/udaan-logo-removebg-preview.png";
+const logo = "/udaan-logo-removebg-preview.png";
 
 export function AuthShell({
   title,
