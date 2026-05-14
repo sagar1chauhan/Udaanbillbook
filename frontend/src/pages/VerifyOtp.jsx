@@ -100,7 +100,7 @@ export default function VerifyOtp() {
       }
     >
       <form onSubmit={onSubmit} className="space-y-6">
-        <div className="flex justify-between gap-2 sm:gap-3" onPaste={onPaste}>
+        <div className="flex justify-center gap-1.5 sm:gap-3" onPaste={onPaste}>
           {digits.map((d, i) => (
             <Input
               key={i}
@@ -112,30 +112,32 @@ export default function VerifyOtp() {
               value={d}
               onChange={(e) => setDigit(i, e.target.value)}
               onKeyDown={(e) => onKey(i, e)}
-              className="h-14 w-12 rounded-xl text-center text-xl font-bold sm:h-16 sm:w-14 sm:text-2xl"
+              className="h-12 w-9 rounded-lg text-center text-lg font-bold sm:h-16 sm:w-14 sm:rounded-xl sm:text-2xl"
             />
           ))}
         </div>
 
-        <div className="flex items-center justify-between text-sm">
-          <span className="flex items-center gap-1.5 text-muted-foreground">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-xs sm:text-sm">
+          <span className="flex items-center gap-1.5 text-muted-foreground justify-center sm:justify-start">
             <ShieldCheck className="h-4 w-4 text-success" />
             Demo mode — any 6 digits work
           </span>
-          {resend > 0 ? (
-            <span className="text-muted-foreground">Resend in {resend}s</span>
-          ) : (
-            <button
-              type="button"
-              className="font-semibold text-primary hover:underline"
-              onClick={() => {
-                setResend(30);
-                toast.success("OTP resent");
-              }}
-            >
-              Resend OTP
-            </button>
-          )}
+          <div className="flex justify-center sm:justify-end">
+            {resend > 0 ? (
+              <span className="text-muted-foreground font-medium">Resend in {resend}s</span>
+            ) : (
+              <button
+                type="button"
+                className="font-semibold text-primary hover:underline"
+                onClick={() => {
+                  setResend(30);
+                  toast.success("OTP resent");
+                }}
+              >
+                Resend OTP
+              </button>
+            )}
+          </div>
         </div>
 
         <Button type="submit" className="h-12 w-full rounded-xl text-base">
