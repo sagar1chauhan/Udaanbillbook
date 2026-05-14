@@ -7,23 +7,19 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { ArrowRight, Phone } from "lucide-react";
+import { ArrowRight, Phone, MapPin } from "lucide-react";
 import { toast } from "sonner";
-
-const businessTypes = [
-  "Retail Shop",
-  "Wholesale / Distribution",
-  "Manufacturing",
-  "Services",
-  "Restaurant / Cafe",
-  "Other",
-];
+import { usePlatformSettings } from "@/lib/platform-settings";
 
 export default function Register() {
   const navigate = useNavigate();
+  const { settings } = usePlatformSettings();
+  const businessTypes = settings.businessTypes;
+
   const [form, setForm] = useState({
     name: "",
     business: "",
+    address: "",
     type: "Retail Shop",
     phone: "",
     email: "",
@@ -37,6 +33,7 @@ export default function Register() {
     const clean = form.phone.replace(/\D/g, "");
     if (!form.name.trim()) return toast.error("Please enter your full name");
     if (!form.business.trim()) return toast.error("Please enter your business name");
+    if (!form.address.trim()) return toast.error("Please enter your business address");
     if (clean.length !== 10) return toast.error("Please enter a valid 10-digit mobile number");
     if (form.email && !/^\S+@\S+\.\S+$/.test(form.email))
       return toast.error("Please enter a valid email or leave it blank");
@@ -44,7 +41,7 @@ export default function Register() {
     setLoading(true);
     setTimeout(() => {
       toast.success("OTP sent to +91 " + clean);
-      navigate(`/verify-otp?phone=${clean}&mode=register&name=${form.name}&business=${form.business}&email=${form.email}`);
+      navigate(`/verify-otp?phone=${clean}&mode=register&name=${form.name}&business=${form.business}&email=${form.email}&address=${form.address}`);
     }, 600);
   };
 
@@ -83,6 +80,20 @@ export default function Register() {
               onChange={(e) => set("business", e.target.value)}
               className="h-11 rounded-xl"
             />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="address">Business Address</Label>
+          <div className="relative">
+            <Input
+              id="address"
+              placeholder="Street, City, Pincode"
+              value={form.address}
+              onChange={(e) => set("address", e.target.value)}
+              className="h-11 rounded-xl pl-10"
+            />
+            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           </div>
         </div>
 
@@ -138,3 +149,4 @@ export default function Register() {
     </AuthShell>
   );
 }
+
