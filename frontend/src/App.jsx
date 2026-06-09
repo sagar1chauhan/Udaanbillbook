@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./Layout";
+import { InvoiceProvider } from "./contexts/InvoiceContext";
 
 // Auth Pages
 import Login from "./pages/Login";
@@ -12,6 +13,8 @@ import { MainDashboard } from "./modules/dashboard/MainDashboard";
 import { AccountingDashboard } from "./modules/accounting/AccountingDashboard";
 import { UserManagement } from "./modules/admin/UserManagement";
 import { BillingDashboard } from "./modules/billing/BillingDashboard";
+import NewSale from "./modules/billing/NewSale";
+import NewPurchase from "./modules/billing/NewPurchase";
 import { ExpensesDashboard } from "./modules/expenses/ExpensesDashboard";
 import { GstDashboard } from "./modules/gst/GstDashboard";
 import { InventoryDashboard } from "./modules/inventory/InventoryDashboard";
@@ -73,6 +76,7 @@ function NotFound() {
 
 export default function App() {
   return (
+    <InvoiceProvider>
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
@@ -86,6 +90,8 @@ export default function App() {
           <Route path="/accounting" element={<SubscriptionGuard feature="accounting"><AccountingDashboard /></SubscriptionGuard>} />
           <Route path="/admin/users" element={<SubscriptionGuard feature="admin"><UserManagement /></SubscriptionGuard>} />
           <Route path="/billing" element={<BillingDashboard />} />
+          <Route path="/sale/new" element={<NewSale />} />
+          <Route path="/purchase/new" element={<NewPurchase />} />
           <Route path="/expenses" element={<SubscriptionGuard feature="expenses"><ExpensesDashboard /></SubscriptionGuard>} />
           <Route path="/gst" element={<SubscriptionGuard feature="gst"><GstDashboard /></SubscriptionGuard>} />
           <Route path="/inventory" element={<SubscriptionGuard feature="inventory"><InventoryDashboard /></SubscriptionGuard>} />
@@ -113,5 +119,6 @@ export default function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </InvoiceProvider>
   );
 }

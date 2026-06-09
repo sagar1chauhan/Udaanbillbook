@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,21 +16,11 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { NewInvoiceDialog } from "@/components/NewInvoiceDialog";
 import { useMockAuth } from "@/lib/auth-store";
 import { downloadInvoicePdf } from "@/lib/invoice-pdf";
+import { useInvoices } from "@/contexts/InvoiceContext";
 
 const fmt = (n) => "₹" + n.toLocaleString("en-IN");
-
-const INITIAL_INVOICES = [
-  { id: "INV-2041", party: "Anil Sweets", date: "28 Apr 2026", amount: 24500, status: "Unpaid" },
-  { id: "INV-2040", party: "Sharma Kirana", date: "27 Apr 2026", amount: 12800, status: "Partial" },
-  { id: "INV-2039", party: "Green Mart", date: "26 Apr 2026", amount: 8400, status: "Paid" },
-  { id: "INV-2038", party: "Patel Stores", date: "25 Apr 2026", amount: 36200, status: "Unpaid" },
-  { id: "INV-2037", party: "Mehta Foods", date: "24 Apr 2026", amount: 18900, status: "Paid" },
-  { id: "INV-2036", party: "Modern Bakery", date: "23 Apr 2026", amount: 5400, status: "Paid" },
-  { id: "INV-2035", party: "Ravi General Store", date: "22 Apr 2026", amount: 14200, status: "Partial" },
-];
 
 const statusStyles = {
   Paid: "bg-success-soft text-success border-success/20",
@@ -40,10 +31,9 @@ const statusStyles = {
 export function BillingDashboard() {
   const { user } = useMockAuth();
   const isViewer = user?.role === "Viewer";
+  const { invoices } = useInvoices();
 
-  const [invoices, setInvoices] = useState(INITIAL_INVOICES);
   const [tab, setTab] = useState("all");
-  const [open, setOpen] = useState(false);
   const filtered = tab === "all" ? invoices : invoices.filter((i) => i.status.toLowerCase() === tab);
 
   const downloadOne = (inv) => {
@@ -82,18 +72,21 @@ export function BillingDashboard() {
               <FileDown className="mr-1 h-4 w-4" /> Export
             </Button>
             {!isViewer && (
-              <Button className="rounded-xl" onClick={() => setOpen(true)}>
-                <Plus className="mr-1 h-4 w-4" /> New Invoice
-              </Button>
+              <>
+                <Button asChild className="rounded-xl bg-red-500 hover:bg-red-600">
+                  <Link to="/sale/new">
+                    <Plus className="mr-1 h-4 w-4" /> Sale
+                  </Link>
+                </Button>
+                <Button asChild className="rounded-xl bg-blue-600 hover:bg-blue-700">
+                  <Link to="/purchase/new">
+                    <Plus className="mr-1 h-4 w-4" /> Purchase
+                  </Link>
+                </Button>
+              </>
             )}
           </>
         }
-      />
-
-      <NewInvoiceDialog 
-        open={open} 
-        onOpenChange={setOpen} 
-        onAdd={(newInv) => setInvoices([newInv, ...invoices])} 
       />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -154,6 +147,7 @@ export function BillingDashboard() {
               <TableHeader>
                 <TableRow className="border-b">
                   <TableHead>Invoice</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Party</TableHead>
                   <TableHead className="hidden md:table-cell">Date</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
@@ -165,6 +159,11 @@ export function BillingDashboard() {
                 {filtered.map((inv) => (
                   <TableRow key={inv.id} className="border-b last:border-0">
                     <TableCell className="font-semibold">{inv.id}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={inv.type === 'Sale' ? 'border-red-200 bg-red-50 text-red-700' : 'border-blue-200 bg-blue-50 text-blue-700'}>
+                        {inv.type || 'Sale'}
+                      </Badge>
+                    </TableCell>
                     <TableCell>{inv.party}</TableCell>
                     <TableCell className="hidden text-muted-foreground md:table-cell">{inv.date}</TableCell>
                     <TableCell className="text-right font-semibold">{fmt(inv.amount)}</TableCell>
@@ -213,9 +212,18 @@ export function BillingDashboard() {
               <Share2 className="mr-1 h-4 w-4" /> Share via WhatsApp
             </Button>
             {!isViewer && (
-              <Button className="rounded-xl" onClick={() => setOpen(true)}>
-                <Plus className="mr-1 h-4 w-4" /> Create Invoice
-              </Button>
+              <>
+                <Button asChild className="rounded-xl bg-red-500 hover:bg-red-600">
+                  <Link to="/sale/new">
+                    <Plus className="mr-1 h-4 w-4" /> Sale
+                  </Link>
+                </Button>
+                <Button asChild className="rounded-xl bg-blue-600 hover:bg-blue-700">
+                  <Link to="/purchase/new">
+                    <Plus className="mr-1 h-4 w-4" /> Purchase
+                  </Link>
+                </Button>
+              </>
             )}
           </div>
         </CardContent>

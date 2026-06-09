@@ -21,7 +21,16 @@ import {
   ArrowDownRight,
   Download,
   Plus,
+  Calculator,
+  ClipboardCheck,
+  ShoppingBasket,
+  FileText,
+  UserCheck,
+  Truck,
+  Package,
+  MoreHorizontal,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +38,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { NewInvoiceDialog } from "@/components/NewInvoiceDialog";
+import { GstCalculatorDialog } from "@/components/GstCalculatorDialog";
 
 const salesData = [
   { d: "Mon", sales: 18400, expense: 7200 },
@@ -97,21 +107,24 @@ function Kpi({
 
 export function MainDashboard() {
   const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
+  const [isGstCalculatorOpen, setIsGstCalculatorOpen] = useState(false);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Good morning, Rahul 👋"
-        subtitle="Here's what's happening at Sharma Traders today."
+        title=""
         actions={
-          <>
-            <Button variant="outline" className="rounded-xl">
-              <Download className="mr-1 h-4 w-4" /> Export
+          <div className="flex w-full items-center gap-2">
+            <Button variant="outline" className="rounded-xl flex-1 px-2 text-xs sm:text-sm sm:px-4 sm:flex-none">
+              <Download className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" /> <span className="truncate">Export</span>
             </Button>
-            <Button className="rounded-xl" onClick={() => setIsNewInvoiceOpen(true)}>
-              <Plus className="mr-1 h-4 w-4" /> New Invoice
+            <Button variant="outline" size="icon" className="rounded-xl shrink-0" onClick={() => setIsGstCalculatorOpen(true)} title="GST Calculator">
+              <Calculator className="h-4 w-4" />
             </Button>
-          </>
+            <Button className="rounded-xl flex-1 px-2 text-xs sm:text-sm sm:px-4 sm:flex-none" onClick={() => setIsNewInvoiceOpen(true)}>
+              <Plus className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" /> <span className="truncate">New Invoice</span>
+            </Button>
+          </div>
         }
       />
 
@@ -120,6 +133,29 @@ export function MainDashboard() {
         <Kpi label="Invoices" value="248" delta="+8.1%" up icon={ReceiptText} tint="bg-accent-soft text-accent" />
         <Kpi label="Expenses" value={fmt(62600)} delta="-3.2%" up={false} icon={Wallet} tint="bg-secondary text-secondary-foreground" />
         <Kpi label="Net Profit" value={fmt(122800)} delta="+18.6%" up icon={PiggyBank} tint="bg-success-soft text-success" />
+      </div>
+
+      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-[var(--shadow-card)] border-0">
+        <h2 className="text-sm font-semibold mb-4 text-slate-800">Quick Actions</h2>
+        <div className="grid grid-cols-4 gap-y-6 gap-x-2">
+          {[
+            { label: "Sale", icon: ClipboardCheck, color: "text-red-500", bg: "bg-red-50/50", border: "border-red-100", link: "/sale/new" },
+            { label: "Purchase", icon: ShoppingBasket, color: "text-blue-600", bg: "bg-blue-50/50", border: "border-blue-100", link: "/purchase/new" },
+            { label: "Expenses", icon: ReceiptText, color: "text-blue-600", bg: "bg-blue-50/50", border: "border-blue-100", link: "/expenses" },
+            { label: "Estimate", icon: FileText, color: "text-emerald-600", bg: "bg-emerald-50/50", border: "border-emerald-100", link: "/sale/new" },
+            { label: "Customers", icon: UserCheck, color: "text-emerald-600", bg: "bg-emerald-50/50", border: "border-emerald-100", link: "/parties" },
+            { label: "Suppliers", icon: Truck, color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200", link: "/parties" },
+            { label: "Products", icon: Package, color: "text-blue-600", bg: "bg-blue-50/50", border: "border-blue-100", link: "/inventory" },
+            { label: "More", icon: MoreHorizontal, color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200", link: "/" },
+          ].map((action) => (
+            <Link key={action.label} to={action.link} className="flex flex-col items-center gap-2 group">
+              <div className={`flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full border ${action.border} ${action.bg} ${action.color} transition-transform group-hover:scale-105 shadow-sm`}>
+                <action.icon className="h-5 w-5 sm:h-6 sm:w-6" />
+              </div>
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-700">{action.label}</span>
+            </Link>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -303,6 +339,7 @@ export function MainDashboard() {
       </Card>
       
       <NewInvoiceDialog open={isNewInvoiceOpen} onOpenChange={setIsNewInvoiceOpen} />
+      <GstCalculatorDialog open={isGstCalculatorOpen} onOpenChange={setIsGstCalculatorOpen} />
     </div>
   );
 }
