@@ -10,6 +10,7 @@ import {
 import { ArrowRight, Phone, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { usePlatformSettings } from "@/lib/platform-settings";
+import api from "@/lib/api";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ export default function Register() {
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     const clean = form.phone.replace(/\D/g, "");
     if (!form.name.trim()) return toast.error("Please enter your full name");
@@ -38,11 +39,25 @@ export default function Register() {
     if (form.email && !/^\S+@\S+\.\S+$/.test(form.email))
       return toast.error("Please enter a valid email or leave it blank");
 
-    setLoading(true);
-    setTimeout(() => {
+    try {
+      setLoading(true);
+      await api.post('/auth/send-otp', { phone: clean, mode: 'register' });
       toast.success("OTP sent to +91 " + clean);
-      navigate(`/verify-otp?phone=${clean}&mode=register&name=${form.name}&business=${form.business}&email=${form.email}&address=${form.address}`);
-    }, 600);
+      navigate('/verify-otp', {
+        state: {
+          phone: clean,
+          mode: 'register',
+          name: form.name,
+          business: form.business,
+          email: form.email,
+          address: form.address
+        }
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to send OTP");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

@@ -48,7 +48,7 @@ function SubscriptionGuard({ children, feature }) {
 function SuperAdminGuard({ children }) {
   const { user, hydrated } = useMockAuth();
   if (!hydrated) return null;
-  if (!user || user.role !== "SuperAdmin") return <Navigate to="/login" replace />;
+  if (!user || user.role?.toLowerCase() !== "admin") return <Navigate to="/login" replace />;
   return children;
 }
 

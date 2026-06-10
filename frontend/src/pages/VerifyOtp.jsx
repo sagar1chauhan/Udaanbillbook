@@ -1,23 +1,34 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { AuthShell } from "@/components/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { mockAuth } from "@/lib/auth-store";
+import api from "@/lib/api";
 
 export default function VerifyOtp() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state || {};
   
   const search = {
-    phone: searchParams.get("phone") || "",
-    mode: searchParams.get("mode") || "login",
-    name: searchParams.get("name") || undefined,
-    business: searchParams.get("business") || undefined,
-    email: searchParams.get("email") || undefined,
+    phone: state.phone || "",
+    mode: state.mode || "login",
+    name: state.name || undefined,
+    business: state.business || undefined,
+    email: state.email || undefined,
+    address: state.address || undefined,
   };
+
+  useEffect(() => {
+    if (!state.phone) {
+      toast.error("Please enter your phone number first");
+      navigate('/login', { replace: true });
+    }
+  }, [state.phone, navigate]);
 
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [resend, setResend] = useState(30);
@@ -56,26 +67,39 @@ export default function VerifyOtp() {
     }
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     const code = digits.join("");
     if (code.length !== 6) return toast.error("Enter all 6 digits");
 
-    // Mock — assign role based on phone number for testing or if it's a new registration
-    const isSuperAdmin = search.phone === "1234567890";
-    const isAdminUser = search.phone === "9999999999" || search.phone === "9876543210" || search.mode === "register";
-    
-    const role = isSuperAdmin ? "SuperAdmin" : isAdminUser ? "Admin" : "Staff";
-    
-    mockAuth.signIn({
-      name: isSuperAdmin ? "Platform Owner" : search.name || (isAdminUser ? "Admin User" : "Staff User"),
-      business: isSuperAdmin ? "Udaan Platform" : search.business || "Sharma Traders",
-      phone: search.phone,
-      email: isSuperAdmin ? "superadmin@udaan.com" : search.email,
-      role: role,
-    });
-    toast.success(isSuperAdmin ? "SuperAdmin access granted!" : search.mode === "register" ? "Account created!" : "Signed in successfully");
-    navigate(isSuperAdmin ? "/superadmin" : "/");
+    try {
+      const res = await api.post('/auth/verify-otp', {
+        phone: search.phone,
+        otp: code,
+        mode: search.mode,
+        name: search.name,
+        business: search.business,
+        email: search.email
+      });
+
+      const user = res.data;
+      
+      // Still populate mockAuth to not break the rest of the frontend which relies on it for now.
+      mockAuth.signIn({
+        name: user.name,
+        business: user.businessName,
+        phone: user.phone,
+        email: user.email,
+        role: user.role,
+        token: user.token
+      });
+
+      toast.success(user.role === "admin" ? "SuperAdmin access granted!" : search.mode === "register" ? "Account created!" : "Signed in successfully");
+      navigate(user.role === "admin" ? "/superadmin" : "/");
+
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Invalid OTP");
+    }
   };
 
   const masked =

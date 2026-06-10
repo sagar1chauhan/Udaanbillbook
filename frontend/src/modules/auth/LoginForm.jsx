@@ -5,24 +5,35 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowRight, Phone, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import api from "@/lib/api";
 
 export function LoginForm() {
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     const clean = phone.replace(/\D/g, "");
     if (clean.length !== 10) {
       toast.error("Please enter a valid 10-digit mobile number");
       return;
     }
-    setLoading(true);
-    setTimeout(() => {
+    try {
+      setLoading(true);
+      await api.post('/auth/send-otp', { phone: clean, mode: 'login' });
       toast.success("OTP sent to +91 " + clean);
-      navigate(`/verify-otp?phone=${clean}&mode=login`);
-    }, 600);
+      navigate('/verify-otp', {
+        state: {
+          phone: clean,
+          mode: 'login'
+        }
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to send OTP");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

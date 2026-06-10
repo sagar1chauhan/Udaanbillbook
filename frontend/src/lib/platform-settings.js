@@ -12,7 +12,6 @@ const defaultSettings = {
     "Restaurant / Cafe",
     "Other",
   ],
-<<<<<<< HEAD
   gstSettings: {
     enableGst: true,
     enableHsn: true,
@@ -282,8 +281,6 @@ const defaultSettings = {
     paymentMode: false,
     printAcknowledgement: false,
   },
-=======
->>>>>>> ebb1112301e09f26035525fe6170fa528bfba5d8
 };
 
 const listeners = new Set();
@@ -292,7 +289,6 @@ function read() {
   if (typeof window === "undefined") return defaultSettings;
   try {
     const raw = window.localStorage.getItem(KEY);
-<<<<<<< HEAD
     if (!raw) return defaultSettings;
     const parsed = JSON.parse(raw);
     
@@ -308,9 +304,6 @@ function read() {
       partySettings: { ...defaultSettings.partySettings, ...parsed.partySettings },
       printSettings: { ...defaultSettings.printSettings, ...parsed.printSettings },
     };
-=======
-    return raw ? JSON.parse(raw) : defaultSettings;
->>>>>>> ebb1112301e09f26035525fe6170fa528bfba5d8
   } catch {
     return defaultSettings;
   }
@@ -326,7 +319,6 @@ export const platformSettings = {
   },
   update(updates) {
     const current = read();
-<<<<<<< HEAD
     const updated = {
       ...current,
       ...updates,
@@ -338,9 +330,6 @@ export const platformSettings = {
       partySettings: updates.partySettings ? { ...current.partySettings, ...updates.partySettings } : current.partySettings,
       printSettings: updates.printSettings ? { ...current.printSettings, ...updates.printSettings } : current.printSettings,
     };
-=======
-    const updated = { ...current, ...updates };
->>>>>>> ebb1112301e09f26035525fe6170fa528bfba5d8
     window.localStorage.setItem(KEY, JSON.stringify(updated));
     listeners.forEach((l) => l());
   },
@@ -363,7 +352,3 @@ export function usePlatformSettings() {
 
   return { settings, hydrated };
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> ebb1112301e09f26035525fe6170fa528bfba5d8

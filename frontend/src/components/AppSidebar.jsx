@@ -55,9 +55,9 @@ export function AppSidebar() {
   const { currentPlan, isFree, canAccessFeature } = useSubscription();
   const { setOpenMobile, isMobile } = useSidebar();
   
-  // Use actual user role from auth store, default to Staff if missing
-  const userRole = user?.role || "Staff"; 
-  const isAdmin = userRole === "Admin";
+  // Use actual user role from auth store, default to user if missing
+  const userRole = user?.role?.toLowerCase() || "user"; 
+  const isVendor = userRole === "vendor" || userRole === "admin"; // Admin also gets access just in case
 
   const closeSidebar = () => {
     if (isMobile) setOpenMobile(false);
@@ -66,8 +66,8 @@ export function AppSidebar() {
   // Filter sections based on permissions
   const staffAllowed = ["Dashboard", "Billing", "Inventory", "Parties", "Expenses", "Accounting"];
   const filteredMain = main.filter(item => {
-    if (isAdmin) return true;
-    if (userRole === "Staff" || userRole === "Viewer") return staffAllowed.includes(item.title);
+    if (isVendor) return true;
+    if (["staff", "viewer", "user"].includes(userRole)) return staffAllowed.includes(item.title);
     return false;
   });
 
@@ -123,7 +123,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {isAdmin && (
+        {isVendor && (
           <SidebarGroup>
             <SidebarGroupLabel>Administration</SidebarGroupLabel>
             <SidebarGroupContent>
