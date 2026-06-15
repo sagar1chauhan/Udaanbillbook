@@ -41,8 +41,8 @@ export default function Register() {
 
     try {
       setLoading(true);
-      await api.post('/auth/send-otp', { phone: clean, mode: 'register' });
-      toast.success("OTP sent to +91 " + clean);
+      const res = await api.post('/auth/send-otp', { phone: clean, mode: 'register' });
+      toast.success("OTP sent to +91 " + clean + ` (Demo Code: ${res.data.otp})`);
       navigate('/verify-otp', {
         state: {
           phone: clean,

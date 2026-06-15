@@ -3,11 +3,12 @@ import { Link } from "react-router-dom";
 import { AuthShell } from "@/components/AuthShell";
 import { LoginForm } from "@/modules/auth/LoginForm";
 
-export default function Login() {
+export default function Login({ role }) {
+  const isAdmin = role === "admin";
   return (
     <AuthShell
-      title="Welcome back"
-      subtitle="Sign in with your registered mobile number to continue."
+      title={isAdmin ? "Admin Login" : "Staff / User Login"}
+      subtitle={isAdmin ? "Sign in as Admin to manage business settings and full operations." : "Sign in to handle billing and inventory workflows."}
       footer={
         <>
           New to Udaan?{" "}
@@ -17,7 +18,7 @@ export default function Login() {
         </>
       }
     >
-      <LoginForm />
+      <LoginForm role={role} />
 
       <p className="mt-6 text-center text-xs text-muted-foreground">
         By continuing you agree to our{" "}

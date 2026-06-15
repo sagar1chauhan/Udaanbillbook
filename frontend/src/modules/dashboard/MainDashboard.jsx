@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import api from "@/lib/api";
 import {
   AreaChart,
   Area,
@@ -108,6 +109,27 @@ function Kpi({
 export function MainDashboard() {
   const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
   const [isGstCalculatorOpen, setIsGstCalculatorOpen] = useState(false);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const res = await api.get('/reports/dashboard');
+        setData(res.data);
+      } catch (error) {
+        console.error("Error loading dashboard metrics:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSummary();
+  }, []);
+
+  const totalSales = data?.sales?.totalSales || 0;
+  const invoiceCount = data?.sales?.invoiceCount || 0;
+  const totalExpenses = data?.expenses || 0;
+  const netProfit = data?.netProfit || 0;
 
   return (
     <div className="space-y-6">
@@ -129,10 +151,10 @@ export function MainDashboard() {
       />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-        <Kpi label="Total Sales" value={fmt(185400)} delta="+12.4%" up icon={IndianRupee} tint="bg-primary-soft text-primary" />
-        <Kpi label="Invoices" value="248" delta="+8.1%" up icon={ReceiptText} tint="bg-accent-soft text-accent" />
-        <Kpi label="Expenses" value={fmt(62600)} delta="-3.2%" up={false} icon={Wallet} tint="bg-secondary text-secondary-foreground" />
-        <Kpi label="Net Profit" value={fmt(122800)} delta="+18.6%" up icon={PiggyBank} tint="bg-success-soft text-success" />
+        <Kpi label="Total Sales" value={fmt(totalSales)} delta={`+${invoiceCount} Bills`} up icon={IndianRupee} tint="bg-primary-soft text-primary" />
+        <Kpi label="Invoices" value={invoiceCount.toString()} delta="Real-time" up icon={ReceiptText} tint="bg-accent-soft text-accent" />
+        <Kpi label="Expenses" value={fmt(totalExpenses)} delta="Total spent" up={false} icon={Wallet} tint="bg-secondary text-secondary-foreground" />
+        <Kpi label="Net Profit" value={fmt(netProfit)} delta="Calculated" up icon={PiggyBank} tint="bg-success-soft text-success" />
       </div>
 
       <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-[var(--shadow-card)] border-0">
@@ -163,15 +185,12 @@ export function MainDashboard() {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-base">Sales vs Expenses</CardTitle>
-              <p className="text-xs text-muted-foreground">Last 7 days</p>
+              <p className="text-xs text-muted-foreground">Monthly Overview</p>
             </div>
-            <Badge variant="secondary" className="gap-1 rounded-full">
-              <TrendingUp className="h-3 w-3 text-success" /> +12.4%
-            </Badge>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
-              <AreaChart data={salesData}>
+              <AreaChart data={data?.chartData || []}>
                 <defs>
                   <linearGradient id="gSales" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.35} />
@@ -209,15 +228,15 @@ export function MainDashboard() {
           <CardContent className="space-y-5">
             <div className="rounded-xl bg-gradient-to-br from-primary to-[oklch(0.55_0.18_150)] p-4 text-primary-foreground shadow-[var(--shadow-glow)]">
               <p className="text-xs opacity-80">Available balance</p>
-              <p className="mt-1 text-3xl font-bold tracking-tight">{fmt(348920)}</p>
+              <p className="mt-1 text-3xl font-bold tracking-tight">{fmt((data?.sales?.totalSales || 0) - (data?.expenses || 0))}</p>
               <div className="mt-3 flex gap-4 text-xs">
                 <div>
                   <p className="opacity-75">Inflow</p>
-                  <p className="font-semibold">{fmt(412300)}</p>
+                  <p className="font-semibold">{fmt(data?.sales?.totalSales || 0)}</p>
                 </div>
                 <div>
                   <p className="opacity-75">Outflow</p>
-                  <p className="font-semibold">{fmt(63380)}</p>
+                  <p className="font-semibold">{fmt(data?.expenses || 0)}</p>
                 </div>
               </div>
             </div>
@@ -225,16 +244,16 @@ export function MainDashboard() {
             <div>
               <div className="mb-2 flex items-center justify-between text-sm">
                 <span className="font-medium">Receivables</span>
-                <span className="font-semibold">{fmt(184500)}</span>
+                <span className="font-semibold">{fmt(data?.receivables || 0)}</span>
               </div>
-              <Progress value={72} className="h-2" />
+              <Progress value={(data?.receivables || 0) + (data?.payables || 0) === 0 ? 0 : Math.round(((data?.receivables || 0) / ((data?.receivables || 0) + (data?.payables || 0))) * 100)} className="h-2" />
             </div>
             <div>
               <div className="mb-2 flex items-center justify-between text-sm">
                 <span className="font-medium">Payables</span>
-                <span className="font-semibold">{fmt(48200)}</span>
+                <span className="font-semibold">{fmt(data?.payables || 0)}</span>
               </div>
-              <Progress value={28} className="h-2 [&>div]:bg-accent" />
+              <Progress value={(data?.receivables || 0) + (data?.payables || 0) === 0 ? 0 : Math.round(((data?.payables || 0) / ((data?.receivables || 0) + (data?.payables || 0))) * 100)} className="h-2 [&>div]:bg-accent" />
             </div>
           </CardContent>
         </Card>
@@ -248,28 +267,27 @@ export function MainDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
-              {topProducts.map((p, i) => (
-                <div
-                  key={p.name}
-                  className="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-secondary"
-                >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-sm font-bold text-primary">
-                    {i + 1}
+              {!data?.topProducts || data.topProducts.length === 0 ? (
+                <p className="text-xs text-muted-foreground p-4 text-center">No sales registered yet.</p>
+              ) : (
+                data.topProducts.map((p, i) => (
+                  <div
+                    key={p.name}
+                    className="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-secondary"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-sm font-bold text-primary">
+                      {i + 1}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">{p.name || "Unnamed Item"}</p>
+                      <p className="text-xs text-muted-foreground">{p.sold} sold</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold">{fmt(p.revenue)}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">{p.name}</p>
-                    <p className="text-xs text-muted-foreground">{p.sold} sold · {p.stock} in stock</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold">{fmt(p.revenue)}</p>
-                    {p.stock < 20 && (
-                      <Badge variant="outline" className="mt-0.5 border-destructive/30 bg-destructive/10 text-[10px] text-destructive">
-                        Low stock
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -278,37 +296,41 @@ export function MainDashboard() {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-base">Pending Payments</CardTitle>
-              <p className="text-xs text-muted-foreground">{fmt(81900)} total due</p>
+              <p className="text-xs text-muted-foreground">{fmt(data?.pendingPayments?.reduce((sum, p) => sum + p.amount, 0) || 0)} total due</p>
             </div>
             <TrendingDown className="h-4 w-4 text-accent" />
           </CardHeader>
           <CardContent className="space-y-2">
-            {pending.map((c) => (
-              <div key={c.name} className="flex items-center gap-3 rounded-xl border p-3">
-                <Avatar className="h-9 w-9">
-                  <AvatarFallback className="bg-secondary text-xs font-semibold">
-                    {c.name.split(" ").map((s) => s[0]).join("")}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{c.name}</p>
-                  <p className="text-xs text-muted-foreground">{c.days} days {c.status === "overdue" ? "overdue" : "to due"}</p>
+            {!data?.pendingPayments || data.pendingPayments.length === 0 ? (
+              <p className="text-xs text-muted-foreground p-4 text-center">No pending payments.</p>
+            ) : (
+              data.pendingPayments.map((c, i) => (
+                <div key={i} className="flex items-center gap-3 rounded-xl border p-3">
+                  <Avatar className="h-9 w-9">
+                    <AvatarFallback className="bg-secondary text-xs font-semibold">
+                      {c.name ? c.name.split(" ").map((s) => s[0]).join("") : "WC"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{c.name}</p>
+                    <p className="text-xs text-muted-foreground">{new Date(c.date).toLocaleDateString('en-IN')}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold">{fmt(c.amount)}</p>
+                    <Badge
+                      variant="outline"
+                      className={
+                        c.status === "unpaid"
+                          ? "border-destructive/30 bg-destructive/10 text-[10px] text-destructive"
+                          : "border-accent/30 bg-accent-soft text-[10px] text-accent-foreground"
+                      }
+                    >
+                      {c.status}
+                    </Badge>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold">{fmt(c.amount)}</p>
-                  <Badge
-                    variant="outline"
-                    className={
-                      c.status === "overdue"
-                        ? "border-destructive/30 bg-destructive/10 text-[10px] text-destructive"
-                        : "border-accent/30 bg-accent-soft text-[10px] text-accent-foreground"
-                    }
-                  >
-                    {c.status}
-                  </Badge>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
       </div>
@@ -320,19 +342,12 @@ export function MainDashboard() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={[
-              { m: "May", r: 184000 },
-              { m: "Jun", r: 212000 },
-              { m: "Jul", r: 198000 },
-              { m: "Aug", r: 246000 },
-              { m: "Sep", r: 274000 },
-              { m: "Oct", r: 312000 },
-            ]}>
+            <BarChart data={data?.chartData || []}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" />
-              <XAxis dataKey="m" stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+              <XAxis dataKey="d" stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
               <YAxis stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v / 1000}k`} />
               <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 12, fontSize: 12 }} formatter={(v) => fmt(v)} />
-              <Bar dataKey="r" fill="var(--color-primary)" radius={[8, 8, 0, 0]} maxBarSize={42} />
+              <Bar dataKey="sales" fill="var(--color-primary)" radius={[8, 8, 0, 0]} maxBarSize={42} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

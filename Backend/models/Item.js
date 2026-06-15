@@ -44,6 +44,12 @@ const itemSchema = new mongoose.Schema({
   lowStockWarning: {
     type: Number,
     default: 0,
+  },
+  batchNumber: {
+    type: String,
+  },
+  expiryDate: {
+    type: Date,
   }
 }, {
   timestamps: true
