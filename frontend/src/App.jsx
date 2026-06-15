@@ -81,7 +81,9 @@ export default function App() {
       <Routes>
         <Route element={<Layout />}>
           {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<Login role="staff" />} />
+          <Route path="/user/login" element={<Login role="staff" />} />
+          <Route path="/admin/login" element={<Login role="admin" />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
 

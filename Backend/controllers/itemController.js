@@ -17,7 +17,7 @@ const getItems = async (req, res) => {
 // @access  Private
 const createItem = async (req, res) => {
   try {
-    const { name, itemCode, hsnSac, category, unit, salePrice, purchasePrice, taxRate, stockQty, lowStockWarning } = req.body;
+    const { name, itemCode, hsnSac, category, unit, salePrice, purchasePrice, taxRate, stockQty, lowStockWarning, batchNumber, expiryDate } = req.body;
 
     if (!name) {
       return res.status(400).json({ message: 'Item name is required' });
@@ -34,7 +34,9 @@ const createItem = async (req, res) => {
       purchasePrice,
       taxRate,
       stockQty,
-      lowStockWarning
+      lowStockWarning,
+      batchNumber,
+      expiryDate
     });
 
     res.status(201).json(item);
@@ -92,9 +94,42 @@ const deleteItem = async (req, res) => {
   }
 };
 
+// @desc    Bulk create items
+// @route   POST /api/items/bulk
+// @access  Private
+const bulkCreateItems = async (req, res) => {
+  try {
+    const { items } = req.body;
+    if (!items || !Array.isArray(items)) {
+      return res.status(400).json({ message: 'Items array is required' });
+    }
+
+    const preparedItems = items.map(item => ({
+      user: req.user.id,
+      name: item.name,
+      itemCode: item.itemCode || `SKU-${Math.floor(100 + Math.random() * 900)}`,
+      category: item.category || 'General',
+      unit: item.unit || 'PCS',
+      salePrice: item.salePrice || 0,
+      purchasePrice: item.purchasePrice || 0,
+      taxRate: item.taxRate || 0,
+      stockQty: item.stockQty || 0,
+      lowStockWarning: item.lowStockWarning || 10,
+      batchNumber: item.batchNumber,
+      expiryDate: item.expiryDate
+    }));
+
+    const insertedItems = await Item.insertMany(preparedItems);
+    res.status(201).json(insertedItems);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getItems,
   createItem,
   updateItem,
-  deleteItem
+  deleteItem,
+  bulkCreateItems
 };

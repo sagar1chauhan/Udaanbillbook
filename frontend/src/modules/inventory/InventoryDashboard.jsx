@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import api from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,9 +42,11 @@ export function InventoryDashboard() {
   const { user } = useMockAuth();
   const isViewer = user?.role === "Viewer";
 
-  const [inventory, setInventory] = useState(products);
+  const [inventory, setInventory] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [cat, setCat] = useState("all");
   const [open, setOpen] = useState(false);
+  const [isBulkOpen, setIsBulkOpen] = useState(false);
   const cats = ["all", "Grocery", "Bakery", "Dairy", "Packaged"];
 
   // Stock adjustment dialog state
@@ -53,13 +56,59 @@ export function InventoryDashboard() {
   // Delete confirmation dialog state
   const [deleteDialog, setDeleteDialog] = useState({ open: false, product: null });
 
+  const fetchItems = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/items');
+      const mapped = res.data.map((item) => ({
+        _id: item._id,
+        name: item.name,
+        sku: item.itemCode || `SKU-${Math.floor(100 + Math.random() * 900)}`,
+        cat: item.category || 'General',
+        price: item.salePrice || 0,
+        stock: item.stockQty || 0,
+        min: item.lowStockWarning || 10,
+        batchNo: item.batchNumber || '',
+        expDate: item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : ''
+      }));
+      setInventory(mapped);
+    } catch (error) {
+      console.error("Failed to load inventory items:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
   const filtered = cat === "all" ? inventory : inventory.filter((p) => p.cat === cat);
   const lowCount = inventory.filter((p) => p.stock < p.min && p.stock > 0).length;
   const outOfStockCount = inventory.filter((p) => p.stock === 0).length;
   const totalValue = inventory.reduce((s, p) => s + p.price * p.stock, 0);
 
-  const handleAdd = (newP) => {
-    setInventory([newP, ...inventory]);
+  const handleAdd = async (payload) => {
+    try {
+      const backendPayload = {
+        name: payload.name,
+        itemCode: payload.sku,
+        category: payload.cat,
+        salePrice: payload.price,
+        purchasePrice: payload.price * 0.75,
+        stockQty: payload.stock,
+        lowStockWarning: payload.min,
+        batchNumber: payload.batchNo,
+        expiryDate: payload.expDate ? new Date(payload.expDate) : null
+      };
+
+      await api.post('/items', backendPayload);
+      toast.success(`${payload.name} saved to database`);
+      fetchItems();
+    } catch (error) {
+      console.error("Error creating item:", error);
+      toast.error("Failed to save product to database");
+    }
     setOpen(false);
   };
 
@@ -69,7 +118,7 @@ export function InventoryDashboard() {
     setStockDialog({ open: true, mode, product });
   };
 
-  const handleStockAdjust = () => {
+  const handleStockAdjust = async () => {
     const { mode, product } = stockDialog;
     const qty = Number(stockQty) || 0;
     if (qty <= 0) {
@@ -77,38 +126,48 @@ export function InventoryDashboard() {
       return;
     }
 
-    setInventory((prev) =>
-      prev.map((p) => {
-        if (p.sku !== product.sku) return p;
-        if (mode === "add") {
-          return { ...p, stock: p.stock + qty };
-        } else {
-          const newStock = Math.max(0, p.stock - qty);
-          return { ...p, stock: newStock };
-        }
-      })
-    );
+    const newStock = mode === "add" ? product.stock + qty : Math.max(0, product.stock - qty);
 
-    const label = mode === "add" ? "added to" : "removed from";
-    toast.success(`${qty} units ${label} ${product.name}`);
+    try {
+      await api.put(`/items/${product._id}`, {
+        stockQty: newStock
+      });
+      toast.success(`${qty} units adjusted successfully`);
+      fetchItems();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update stock");
+    }
     setStockDialog({ open: false, mode: null, product: null });
   };
 
-  const handleOutOfStock = (product) => {
-    setInventory((prev) =>
-      prev.map((p) => (p.sku === product.sku ? { ...p, stock: 0 } : p))
-    );
-    toast.warning(`${product.name} marked as Out of Stock`);
+  const handleOutOfStock = async (product) => {
+    try {
+      await api.put(`/items/${product._id}`, {
+        stockQty: 0
+      });
+      toast.warning(`${product.name} marked as Out of Stock`);
+      fetchItems();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to adjust stock");
+    }
   };
 
   const openDeleteDialog = (product) => {
     setDeleteDialog({ open: true, product });
   };
 
-  const handleDeleteProduct = () => {
+  const handleDeleteProduct = async () => {
     const { product } = deleteDialog;
-    setInventory((prev) => prev.filter((p) => p.sku !== product.sku));
-    toast.success(`${product.name} deleted from inventory`);
+    try {
+      await api.delete(`/items/${product._id}`);
+      toast.success(`${product.name} deleted successfully`);
+      fetchItems();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete product");
+    }
     setDeleteDialog({ open: false, product: null });
   };
 
@@ -119,7 +178,7 @@ export function InventoryDashboard() {
         subtitle={`${inventory.length} products · ${lowCount} low stock · ${outOfStockCount} out of stock`}
         actions={
           <>
-            <Button variant="outline" className="rounded-xl" onClick={() => toast.message("Upload .xlsx with product list")}>
+            <Button variant="outline" className="rounded-xl" onClick={() => setIsBulkOpen(true)}>
               <Upload className="mr-1 h-4 w-4" /> Bulk Upload
             </Button>
             {!isViewer && (
@@ -442,7 +501,135 @@ export function InventoryDashboard() {
           </div>
         </CardContent>
       </Card>
+      
+      <BulkUploadDialog open={isBulkOpen} onOpenChange={setIsBulkOpen} onUploadSuccess={fetchItems} />
     </div>
+  );
+}
+
+function BulkUploadDialog({ open, onOpenChange, onUploadSuccess }) {
+  const [text, setText] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleCsvUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      setText(evt.target.result);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleDownloadTemplate = () => {
+    const csvContent = "data:text/csv;charset=utf-8,Product Name,Sale Price,Purchase Price,Stock Qty,Category,Batch No,Expiry Date\nBasmati Rice 5kg,480,360,78,Grocery,B-102,2026-12-31\nSunflower Oil 1L,180,140,32,Grocery,B-103,2026-06-30\n";
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "udaan_products_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleProcess = async () => {
+    if (!text.trim()) {
+      toast.error("Please upload a file or paste data");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const lines = text.split("\n");
+      const headers = lines[0].split(",").map(h => h.trim().toLowerCase());
+      
+      const items = [];
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        
+        let cols = [];
+        if (lines[i].includes("\t")) {
+          cols = lines[i].split("\t").map(c => c.trim());
+        } else {
+          cols = lines[i].split(",").map(c => c.trim());
+        }
+
+        if (cols.length === 0 || !cols[0]) continue;
+
+        items.push({
+          name: cols[0],
+          salePrice: Number(cols[1]) || 0,
+          purchasePrice: Number(cols[2]) || 0,
+          stockQty: Number(cols[3]) || 0,
+          category: cols[4] || 'General',
+          batchNumber: cols[5] || '',
+          expiryDate: cols[6] ? new Date(cols[6]) : null
+        });
+      }
+
+      if (items.length === 0) {
+        toast.error("No valid products found in the data");
+        setLoading(false);
+        return;
+      }
+
+      await api.post('/items/bulk', { items });
+      toast.success(`Successfully imported ${items.length} products!`);
+      onUploadSuccess();
+      onOpenChange(false);
+      setText("");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to import products. Check format.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>Bulk Upload Products</DialogTitle>
+          <DialogDescription>
+            Import multiple items using a CSV file or by copying and pasting spreadsheet rows.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={handleDownloadTemplate} className="rounded-xl">
+              Download Template CSV
+            </Button>
+            <label className="inline-flex items-center justify-center rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/95 cursor-pointer">
+              Upload CSV File
+              <input type="file" accept=".csv" onChange={handleCsvUpload} className="hidden" />
+            </label>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="paste-data">Or Paste Spreadsheet Data (CSV or Tab-Separated Rows)</Label>
+            <Textarea
+              id="paste-data"
+              rows={8}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              className="rounded-xl font-mono text-xs"
+              placeholder="Product Name,Sale Price,Purchase Price,Stock Qty,Category,Batch No,Expiry Date&#10;Tata Salt 1kg,25,18,156,Grocery,B-542,2028-05-31"
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={handleProcess} disabled={loading} className="rounded-xl">
+            {loading ? "Importing..." : "Process Import"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -21,6 +21,7 @@ export default function VerifyOtp() {
     business: state.business || undefined,
     email: state.email || undefined,
     address: state.address || undefined,
+    role: state.role || undefined
   };
 
   useEffect(() => {
@@ -79,7 +80,8 @@ export default function VerifyOtp() {
         mode: search.mode,
         name: search.name,
         business: search.business,
-        email: search.email
+        email: search.email,
+        role: search.role
       });
 
       const user = res.data;
@@ -94,8 +96,8 @@ export default function VerifyOtp() {
         token: user.token
       });
 
-      toast.success(user.role === "admin" ? "SuperAdmin access granted!" : search.mode === "register" ? "Account created!" : "Signed in successfully");
-      navigate(user.role === "admin" ? "/superadmin" : "/");
+      toast.success(user.role === "admin" ? "Admin access granted!" : search.mode === "register" ? "Account created!" : "Signed in successfully");
+      navigate("/");
 
     } catch (error) {
       toast.error(error.response?.data?.message || "Invalid OTP");

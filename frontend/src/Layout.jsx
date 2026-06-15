@@ -7,7 +7,7 @@ import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { Toaster } from "@/components/ui/sonner";
 import { useMockAuth } from "@/lib/auth-store";
 
-const PUBLIC_ROUTES = ["/login", "/register", "/verify-otp"];
+const PUBLIC_ROUTES = ["/login", "/register", "/verify-otp", "/admin/login", "/user/login"];
 
 export default function Layout() {
   const location = useLocation();
