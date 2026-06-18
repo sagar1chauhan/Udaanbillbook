@@ -17,20 +17,49 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/PageHeader";
 import { CashInOutDialog } from "@/components/EntityDialogs";
 import { toast } from "sonner";
+import api from "@/lib/api";
 
-const fmt = (n) => "₹" + n.toLocaleString("en-IN");
+const fmt = (n) => "₹" + (n || 0).toLocaleString("en-IN");
 
-const INITIAL_ENTRIES = [
-  { desc: "Sales Invoice #INV-204", date: "Today, 2:30 PM", amount: 4500, type: "IN", party: "Anil Sweets", mode: "Cash" },
-  { desc: "Purchase Invoice #PUR-45", date: "Today, 11:15 AM", amount: 12000, type: "OUT", party: "Global Traders", mode: "Bank" },
-  { desc: "Electricity Bill", date: "Yesterday", amount: 2400, type: "OUT", party: "MSEB", mode: "Cash" },
-  { desc: "Payment Received", date: "Yesterday", amount: 18000, type: "IN", party: "Patel Stores", mode: "UPI" },
-  { desc: "Rent Payment", date: "01 May 2024", amount: 15000, type: "OUT", party: "Owner Name", mode: "Bank" },
-];
 
 export function AccountingDashboard() {
-  const [entries, setEntries] = useState(INITIAL_ENTRIES);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+
+  const fetchAccounting = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/reports/accounting');
+      setData(res.data);
+    } catch (err) {
+      toast.error("Failed to load accounting data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchAccounting();
+  }, []);
+
+  const handleCashInOut = async (newEntry) => {
+    try {
+      await api.post('/payments', {
+        type: newEntry.type === 'IN' ? 'Payment In' : 'Payment Out',
+        amount: newEntry.amount,
+        paymentMode: newEntry.mode,
+        description: newEntry.desc,
+        partyName: newEntry.party
+      });
+      toast.success("Transaction recorded");
+      fetchAccounting();
+    } catch (err) {
+      toast.error("Failed to record transaction");
+    }
+  };
+
+  if (loading || !data) return <div className="p-8 text-center text-muted-foreground">Loading Accounting Data...</div>;
 
   return (
     <div className="space-y-6">
@@ -52,7 +81,7 @@ export function AccountingDashboard() {
       <CashInOutDialog 
         open={open} 
         onOpenChange={setOpen} 
-        onAdd={(newEntry) => setEntries([newEntry, ...entries])} 
+        onAdd={handleCashInOut} 
       />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -61,7 +90,7 @@ export function AccountingDashboard() {
             <CardTitle className="text-xs font-bold uppercase opacity-80">Total Cash In Hand</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{fmt(45600 + entries.filter(e => e.type === 'IN' && e.mode === 'Cash').reduce((a,b) => a+b.amount, 0) - entries.filter(e => e.type === 'OUT' && e.mode === 'Cash').reduce((a,b) => a+b.amount, 0))}</div>
+            <div className="text-2xl font-bold">{fmt(data.cashInHand)}</div>
             <p className="text-[11px] opacity-70 mt-1 flex items-center gap-1">
               <ArrowUpCircle className="h-3 w-3" /> +₹2,400 today
             </p>
@@ -72,7 +101,7 @@ export function AccountingDashboard() {
             <CardTitle className="text-xs font-bold uppercase opacity-80">Total Bank Balance</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{fmt(1248500)}</div>
+            <div className="text-2xl font-bold">{fmt(data.bankBalance)}</div>
             <p className="text-[11px] opacity-70 mt-1">Across 3 bank accounts</p>
           </CardContent>
         </Card>
@@ -81,8 +110,8 @@ export function AccountingDashboard() {
             <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Total Receivables</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">{fmt(84200)}</div>
-            <p className="text-[11px] text-muted-foreground mt-1">Pending from 14 parties</p>
+            <div className="text-2xl font-bold text-success">{fmt(data.receivables)}</div>
+            <p className="text-[11px] text-muted-foreground mt-1">Pending from parties</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
@@ -90,8 +119,8 @@ export function AccountingDashboard() {
             <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Total Payables</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{fmt(32800)}</div>
-            <p className="text-[11px] text-muted-foreground mt-1">To be paid to 6 suppliers</p>
+            <div className="text-2xl font-bold text-destructive">{fmt(data.payables)}</div>
+            <p className="text-[11px] text-muted-foreground mt-1">To be paid to suppliers</p>
           </CardContent>
         </Card>
       </div>
@@ -116,7 +145,8 @@ export function AccountingDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-1">
-                {entries.map((item, i) => (
+                {data.entries.length === 0 && <p className="text-center text-sm text-muted-foreground py-4">No entries found.</p>}
+                {data.entries.map((item, i) => (
                   <div key={i} className="flex items-center gap-3 rounded-xl p-3 hover:bg-muted/30 transition-colors">
                     <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${item.type === 'IN' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
                       {item.type === 'IN' ? <ArrowUpCircle className="h-5 w-5" /> : <ArrowDownCircle className="h-5 w-5" />}
@@ -155,23 +185,23 @@ export function AccountingDashboard() {
                 <CardContent className="space-y-4">
                    <div className="flex items-center justify-between py-2 border-b">
                       <span className="text-sm">Total Revenue</span>
-                      <span className="font-bold text-success">{fmt(185400)}</span>
+                      <span className="font-bold text-success">{fmt(data.pnl.totalRevenue)}</span>
                    </div>
                    <div className="flex items-center justify-between py-2 border-b">
                       <span className="text-sm">Cost of Goods Sold</span>
-                      <span className="font-bold text-destructive">{fmt(112000)}</span>
+                      <span className="font-bold text-destructive">{fmt(data.pnl.cogs)}</span>
                    </div>
                    <div className="flex items-center justify-between py-2 border-b">
                       <span className="text-sm">Gross Profit</span>
-                      <span className="font-bold text-primary">{fmt(73400)}</span>
+                      <span className="font-bold text-primary">{fmt(data.pnl.grossProfit)}</span>
                    </div>
                    <div className="flex items-center justify-between py-2 border-b">
                       <span className="text-sm">Operating Expenses</span>
-                      <span className="font-bold text-destructive">{fmt(24600)}</span>
+                      <span className="font-bold text-destructive">{fmt(data.pnl.operatingExpenses)}</span>
                    </div>
                    <div className="flex items-center justify-between py-2 pt-4">
                       <span className="font-bold">Net Profit</span>
-                      <span className="text-xl font-black text-success">{fmt(48800)}</span>
+                      <span className="text-xl font-black text-success">{fmt(data.pnl.netProfit)}</span>
                    </div>
                    <Button className="w-full rounded-xl mt-2">View Detailed P&L</Button>
                 </CardContent>

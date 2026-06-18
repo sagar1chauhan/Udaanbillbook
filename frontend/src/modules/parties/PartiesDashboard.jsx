@@ -9,27 +9,48 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Search, Phone, MessageCircle, BookOpen, Filter } from "lucide-react";
+import { Plus, Search, Phone, MessageCircle, BookOpen, Filter, Trash2 } from "lucide-react";
+import api from "@/lib/api";
 import { toast } from "sonner";
 import { AddPartyDialog } from "@/components/EntityDialogs";
 
 const fmt = (n) => "₹" + Math.abs(n).toLocaleString("en-IN");
 
-const INITIAL_PARTIES = [
-  { name: "Anil Sweets", type: "Customer", phone: "+91 98xxxx 4521", balance: 24500 },
-  { name: "Patel Stores", type: "Customer", phone: "+91 98xxxx 7821", balance: 36200 },
-  { name: "Sharma Kirana", type: "Customer", phone: "+91 98xxxx 6611", balance: 12800 },
-  { name: "Green Mart", type: "Customer", phone: "+91 98xxxx 9032", balance: -4200 },
-  { name: "FreshFarm Supplies", type: "Supplier", phone: "+91 98xxxx 1144", balance: -22000 },
-  { name: "Mehta Foods", type: "Customer", phone: "+91 98xxxx 7456", balance: 18900 },
-  { name: "Ravi General Store", type: "Customer", phone: "+91 98xxxx 5510", balance: 14200 },
-  { name: "City Wholesale", type: "Supplier", phone: "+91 98xxxx 8800", balance: -48700 },
-];
+
 
 export function PartiesDashboard() {
-  const [parties, setParties] = useState(INITIAL_PARTIES);
+  const [parties, setParties] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState("all");
+
+  const fetchParties = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/parties');
+      setParties(res.data);
+    } catch (error) {
+      console.error("Failed to load parties:", error);
+      toast.error("Failed to load parties");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchParties();
+  }, []);
+
+  const handleAddParty = async (payload) => {
+    try {
+      const res = await api.post('/parties', payload);
+      toast.success(`${res.data.name} added to parties`);
+      fetchParties();
+    } catch (error) {
+      console.error("Failed to add party:", error);
+      toast.error(error.response?.data?.message || "Failed to add party");
+    }
+  };
 
   const totalReceivable = parties.filter((p) => p.balance > 0).reduce((s, p) => s + p.balance, 0);
   const totalPayable = parties.filter((p) => p.balance < 0).reduce((s, p) => s + Math.abs(p.balance), 0);
@@ -62,7 +83,7 @@ export function PartiesDashboard() {
       <AddPartyDialog 
         open={open} 
         onOpenChange={setOpen} 
-        onAdd={(newParty) => setParties([newParty, ...parties])} 
+        onAdd={handleAddParty} 
       />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
@@ -142,6 +163,19 @@ export function PartiesDashboard() {
                       </Button>
                       <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openLedger(p)}>
                         <BookOpen className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={async () => {
+                        if (confirm(`Delete ${p.name}?`)) {
+                          try {
+                            await api.delete(`/parties/${p._id}`);
+                            toast.success(`${p.name} deleted`);
+                            fetchParties();
+                          } catch (err) {
+                            toast.error("Failed to delete party");
+                          }
+                        }
+                      }}>
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </div>
