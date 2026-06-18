@@ -5,6 +5,7 @@ import { InvoiceProvider } from "./contexts/InvoiceContext";
 
 // Auth Pages
 import Login from "./pages/Login";
+import AdminLogin from "./pages/AdminLogin";
 import Register from "./pages/Register";
 import VerifyOtp from "./pages/VerifyOtp";
 
@@ -48,7 +49,7 @@ function SubscriptionGuard({ children, feature }) {
 function SuperAdminGuard({ children }) {
   const { user, hydrated } = useMockAuth();
   if (!hydrated) return null;
-  if (!user || user.role?.toLowerCase() !== "admin") return <Navigate to="/login" replace />;
+  if (!user || user.role?.toLowerCase() !== "admin") return <Navigate to="/admin/login" replace />;
   return children;
 }
 
@@ -83,7 +84,7 @@ export default function App() {
           {/* Public Routes */}
           <Route path="/login" element={<Login role="staff" />} />
           <Route path="/user/login" element={<Login role="staff" />} />
-          <Route path="/admin/login" element={<Login role="admin" />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
 

@@ -146,24 +146,42 @@ const loginEmail = async (req, res) => {
       // Auto-create demo users if email matches preset admin/staff
       if (email.toLowerCase() === 'admin@udaan.com') {
         const hashedPassword = await bcrypt.hash(password, 10);
-        user = await User.create({
-          name: 'Demo Admin',
-          phone: '9876543210',
-          email: 'admin@udaan.com',
-          password: hashedPassword,
-          businessName: 'Demo Business',
-          role: 'admin'
-        });
+        const existingPhoneUser = await User.findOne({ phone: '9876543210' });
+        if (existingPhoneUser) {
+          existingPhoneUser.email = 'admin@udaan.com';
+          existingPhoneUser.password = hashedPassword;
+          existingPhoneUser.role = 'admin';
+          await existingPhoneUser.save();
+          user = existingPhoneUser;
+        } else {
+          user = await User.create({
+            name: 'Demo Admin',
+            phone: '9876543210',
+            email: 'admin@udaan.com',
+            password: hashedPassword,
+            businessName: 'Demo Business',
+            role: 'admin'
+          });
+        }
       } else if (email.toLowerCase() === 'staff@udaan.com') {
         const hashedPassword = await bcrypt.hash(password, 10);
-        user = await User.create({
-          name: 'Demo Staff',
-          phone: '9123456789',
-          email: 'staff@udaan.com',
-          password: hashedPassword,
-          businessName: 'Demo Business',
-          role: 'staff'
-        });
+        const existingPhoneUser = await User.findOne({ phone: '9123456789' });
+        if (existingPhoneUser) {
+          existingPhoneUser.email = 'staff@udaan.com';
+          existingPhoneUser.password = hashedPassword;
+          existingPhoneUser.role = 'staff';
+          await existingPhoneUser.save();
+          user = existingPhoneUser;
+        } else {
+          user = await User.create({
+            name: 'Demo Staff',
+            phone: '9123456789',
+            email: 'staff@udaan.com',
+            password: hashedPassword,
+            businessName: 'Demo Business',
+            role: 'staff'
+          });
+        }
       } else {
         return res.status(404).json({ message: 'User not found. Use demo accounts or register first.' });
       }
