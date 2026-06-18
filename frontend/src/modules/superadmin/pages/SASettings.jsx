@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+// Trigger HMR cache reload
 import { Settings, Globe, Mail, CreditCard, Shield, Bell, Palette, ToggleLeft, ToggleRight, Save, Key, LayoutGrid, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { platformSettings, usePlatformSettings } from "@/lib/platform-settings";

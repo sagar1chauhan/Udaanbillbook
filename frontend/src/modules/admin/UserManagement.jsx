@@ -18,6 +18,7 @@ import {
   Eye,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -54,44 +55,13 @@ import { EditStaffDialog } from "./EditStaffDialog";
 import { ChangePermissionsDialog } from "./ChangePermissionsDialog";
 import { toast } from "sonner";
 
-const INITIAL_USERS = [
-  {
-    id: 1,
-    name: "Rahul Sharma",
-    email: "rahul@sharmatraders.com",
-    phone: "+91 98765 43210",
-    role: "Admin",
-    status: "Active",
-    joined: "20 Jan 2024",
-    avatar: "RS",
-  },
-  {
-    id: 2,
-    name: "Priya Singh",
-    email: "priya@sharmatraders.com",
-    phone: "+91 98765 12345",
-    role: "Staff",
-    status: "Active",
-    joined: "12 Feb 2024",
-    avatar: "PS",
-  },
-  {
-    id: 3,
-    name: "Amit Patel",
-    email: "amit@sharmatraders.com",
-    phone: "+91 98765 67890",
-    role: "Staff",
-    status: "Inactive",
-    joined: "05 Mar 2024",
-    avatar: "AP",
-  },
-];
 
 const roleIcons = { Admin: Shield, Staff: User, Viewer: Eye };
 
 export function UserManagement() {
   // --- State ---
-  const [staffList, setStaffList] = useState(INITIAL_USERS);
+  const [staffList, setStaffList] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Dialog states
@@ -109,29 +79,76 @@ export function UserManagement() {
   );
   const activeCount = staffList.filter((u) => u.status === "Active").length;
 
+  // --- API ---
+  const fetchStaff = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/auth/staff');
+      setStaffList(res.data.map(u => ({
+        id: u._id,
+        name: u.name,
+        email: u.email,
+        phone: u.phone,
+        role: u.role === 'admin' ? 'Admin' : 'Staff',
+        status: "Active",
+        joined: new Date(u.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+        avatar: u.name.split(' ').map(s=>s[0]).join('').substring(0, 2).toUpperCase(),
+        permissions: u.permissions || []
+      })));
+    } catch (err) {
+      toast.error("Failed to load staff list");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchStaff();
+  }, []);
+
   // --- Handlers ---
-  const handleAddStaff = (newStaff) => {
-    setStaffList((prev) => [...prev, newStaff]);
+  const handleAddStaff = async (newStaff) => {
+    try {
+      await api.post('/auth/staff', newStaff);
+      toast.success("Staff added successfully");
+      fetchStaff();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to add staff");
+    }
   };
 
-  const handleEditStaff = (updatedStaff) => {
-    setStaffList((prev) =>
-      prev.map((u) => (u.id === updatedStaff.id ? updatedStaff : u)),
-    );
+  const handleEditStaff = async (updatedStaff) => {
+    try {
+      await api.put(`/auth/staff/${updatedStaff.id}`, updatedStaff);
+      toast.success("Staff details updated");
+      fetchStaff();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update staff");
+    }
   };
 
-  const handlePermSave = (updatedStaff) => {
-    setStaffList((prev) =>
-      prev.map((u) => (u.id === updatedStaff.id ? updatedStaff : u)),
-    );
+  const handlePermSave = async (updatedStaff) => {
+    try {
+      await api.put(`/auth/staff/${updatedStaff.id}`, { permissions: updatedStaff.permissions });
+      toast.success("Permissions updated");
+      fetchStaff();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update permissions");
+    }
   };
 
-  const handleRemoveStaff = () => {
+  const handleRemoveStaff = async () => {
     if (!selectedStaff) return;
-    setStaffList((prev) => prev.filter((u) => u.id !== selectedStaff.id));
-    toast.success(`${selectedStaff.name} has been removed from staff`);
-    setDeleteDialogOpen(false);
-    setSelectedStaff(null);
+    try {
+      await api.delete(`/auth/staff/${selectedStaff.id}`);
+      toast.success(`${selectedStaff.name} has been removed from staff`);
+      fetchStaff();
+    } catch (err) {
+      toast.error("Failed to remove staff");
+    } finally {
+      setDeleteDialogOpen(false);
+      setSelectedStaff(null);
+    }
   };
 
   const handleExport = () => {

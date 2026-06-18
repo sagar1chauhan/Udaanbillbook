@@ -79,14 +79,16 @@ export function LoginForm({ role }) {
   return (
     <div className="space-y-4">
       <Tabs value={method} onValueChange={setMethod} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 rounded-xl mb-4">
-          <TabsTrigger value="mobile" className="rounded-lg text-xs font-semibold py-2">
-            Mobile OTP
-          </TabsTrigger>
-          <TabsTrigger value="email" className="rounded-lg text-xs font-semibold py-2">
-            Email & Password
-          </TabsTrigger>
-        </TabsList>
+        {role === "admin" && (
+          <TabsList className="grid w-full grid-cols-2 rounded-xl mb-4">
+            <TabsTrigger value="mobile" className="rounded-lg text-xs font-semibold py-2">
+              Mobile OTP
+            </TabsTrigger>
+            <TabsTrigger value="email" className="rounded-lg text-xs font-semibold py-2">
+              Email & Password
+            </TabsTrigger>
+          </TabsList>
+        )}
 
         <TabsContent value="mobile">
           <form onSubmit={onOtpSubmit} className="space-y-5">
@@ -152,7 +154,8 @@ export function LoginForm({ role }) {
           </form>
         </TabsContent>
 
-        <TabsContent value="email">
+        {role === "admin" && (
+          <TabsContent value="email">
           <form onSubmit={onEmailSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="email-input">Email address</Label>
@@ -226,6 +229,7 @@ export function LoginForm({ role }) {
             </div>
           </form>
         </TabsContent>
+        )}
       </Tabs>
     </div>
   );
