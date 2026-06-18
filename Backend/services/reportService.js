@@ -175,7 +175,104 @@ const getDashboardSummary = async (userId) => {
 
 const mongoose = require('mongoose');
 
+const getAccountingData = async (userId) => {
+  const objectId = new mongoose.Types.ObjectId(userId);
+
+  // Get Payments
+  const payments = await Payment.find({ user: objectId }).populate('party', 'name').lean();
+  
+  // Get Expenses
+  const expenses = await Expense.find({ user: objectId }).lean();
+  
+  // Get Invoices
+  const invoices = await Invoice.find({ user: objectId }).populate('party', 'name').lean();
+
+  let cashInHand = 0;
+  let bankBalance = 0;
+  let entries = [];
+
+  // Process Payments
+  payments.forEach(p => {
+    const isBank = ['Bank', 'UPI', 'Cheque'].includes(p.paymentMode);
+    const amount = p.amount;
+    
+    if (p.type === 'Payment In') {
+      if (isBank) bankBalance += amount; else cashInHand += amount;
+    } else {
+      if (isBank) bankBalance -= amount; else cashInHand -= amount;
+    }
+
+    entries.push({
+      desc: p.description || p.type,
+      date: p.date,
+      amount: amount,
+      type: p.type === 'Payment In' ? 'IN' : 'OUT',
+      party: p.partyName || p.party?.name || 'General',
+      mode: p.paymentMode
+    });
+  });
+
+  // Process Expenses
+  expenses.forEach(e => {
+    const isBank = ['Bank', 'UPI', 'Cheque'].includes(e.paymentMode);
+    if (isBank) bankBalance -= e.amount; else cashInHand -= e.amount;
+    
+    entries.push({
+      desc: e.category || 'Expense',
+      date: e.date,
+      amount: e.amount,
+      type: 'OUT',
+      party: e.merchant || 'General',
+      mode: e.paymentMode || 'Cash'
+    });
+  });
+
+  // Sort entries by date descending
+  entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  // Format dates for frontend
+  entries = entries.map(e => ({
+    ...e,
+    date: new Date(e.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+  }));
+
+  // Receivables & Payables
+  const receivablesResult = await Party.aggregate([
+    { $match: { user: objectId, balanceType: 'To Receive' } },
+    { $group: { _id: null, total: { $sum: '$balance' } } }
+  ]);
+
+  const payablesResult = await Party.aggregate([
+    { $match: { user: objectId, balanceType: 'To Pay' } },
+    { $group: { _id: null, total: { $sum: '$balance' } } }
+  ]);
+
+  // P&L
+  let totalRevenue = 0;
+  let cogs = 0; // Simplified
+  invoices.filter(i => i.type === 'Sale').forEach(i => totalRevenue += i.grandTotal);
+  invoices.filter(i => i.type === 'Purchase').forEach(i => cogs += i.grandTotal);
+  
+  const totalOpExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+
+  return {
+    cashInHand,
+    bankBalance,
+    receivables: receivablesResult[0]?.total || 0,
+    payables: payablesResult[0]?.total || 0,
+    entries,
+    pnl: {
+      totalRevenue,
+      cogs,
+      grossProfit: totalRevenue - cogs,
+      operatingExpenses: totalOpExpenses,
+      netProfit: (totalRevenue - cogs) - totalOpExpenses
+    }
+  };
+};
+
 module.exports = {
-  getDashboardSummary
+  getDashboardSummary,
+  getAccountingData
 };
 

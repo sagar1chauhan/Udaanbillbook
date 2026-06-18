@@ -213,9 +213,93 @@ const loginEmail = async (req, res) => {
   }
 };
 
+// @desc    Get all staff for the logged in Admin
+// @route   GET /api/auth/staff
+// @access  Private
+const getStaff = async (req, res) => {
+  try {
+    const staff = await User.find({ ownerId: req.user.id });
+    res.status(200).json(staff);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Add new staff
+// @route   POST /api/auth/staff
+// @access  Private
+const addStaff = async (req, res) => {
+  try {
+    const { name, phone, email, permissions } = req.body;
+    
+    let user = await User.findOne({ phone });
+    if (user) {
+      return res.status(400).json({ message: 'User with this phone already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash('123456', 10);
+
+    const staff = await User.create({
+      name,
+      phone,
+      email,
+      role: 'staff',
+      password: hashedPassword,
+      ownerId: req.user.id,
+      permissions: permissions || []
+    });
+
+    res.status(201).json(staff);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Update staff details and permissions
+// @route   PUT /api/auth/staff/:id
+// @access  Private
+const updateStaff = async (req, res) => {
+  try {
+    const staff = await User.findById(req.params.id);
+    if (!staff || staff.ownerId?.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Staff not found' });
+    }
+    
+    const updatedStaff = await User.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    res.status(200).json(updatedStaff);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete staff
+// @route   DELETE /api/auth/staff/:id
+// @access  Private
+const deleteStaff = async (req, res) => {
+  try {
+    const staff = await User.findById(req.params.id);
+    if (!staff || staff.ownerId?.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Staff not found' });
+    }
+    
+    await staff.deleteOne();
+    res.status(200).json({ id: req.params.id });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   sendOtp,
   verifyOtp,
   getMe,
-  loginEmail
+  loginEmail,
+  getStaff,
+  addStaff,
+  updateStaff,
+  deleteStaff
 };
