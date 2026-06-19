@@ -16,13 +16,13 @@ import { AddPartyDialog } from "@/components/EntityDialogs";
 
 const fmt = (n) => "₹" + Math.abs(n).toLocaleString("en-IN");
 
-
-
 export function PartiesDashboard() {
   const [parties, setParties] = useState([]);
+  const [partyTypes, setPartyTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState("all");
+  const [search, setSearch] = useState("");
 
   const fetchParties = async () => {
     try {
@@ -37,8 +37,18 @@ export function PartiesDashboard() {
     }
   };
 
+  const fetchPartyTypes = async () => {
+    try {
+      const res = await api.get('/party-types');
+      setPartyTypes(res.data || []);
+    } catch (error) {
+      console.error("Failed to load party types:", error);
+    }
+  };
+
   React.useEffect(() => {
     fetchParties();
+    fetchPartyTypes();
   }, []);
 
   const handleAddParty = async (payload) => {
@@ -46,24 +56,23 @@ export function PartiesDashboard() {
       const res = await api.post('/parties', payload);
       toast.success(`${res.data.name} added to parties`);
       fetchParties();
+      // Refresh types in case a new one was used
+      fetchPartyTypes();
     } catch (error) {
       console.error("Failed to add party:", error);
       toast.error(error.response?.data?.message || "Failed to add party");
     }
   };
 
-  const [search, setSearch] = useState("");
-
   const totalReceivable = parties.filter((p) => p.balance > 0).reduce((s, p) => s + p.balance, 0);
   const totalPayable = parties.filter((p) => p.balance < 0).reduce((s, p) => s + Math.abs(p.balance), 0);
 
   const filteredParties = parties.filter((p) => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || 
+    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
                           p.phone.includes(search);
     if (!matchesSearch) return false;
-    if (tab === "cust") return p.type === "Customer";
-    if (tab === "supp") return p.type === "Supplier";
-    return true;
+    if (tab === "all") return true;
+    return p.type === tab;
   });
 
   const callParty = (p) => {
@@ -85,10 +94,10 @@ export function PartiesDashboard() {
         }
       />
 
-      <AddPartyDialog 
-        open={open} 
-        onOpenChange={setOpen} 
-        onAdd={handleAddParty} 
+      <AddPartyDialog
+        open={open}
+        onOpenChange={setOpen}
+        onAdd={handleAddParty}
       />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
@@ -114,16 +123,19 @@ export function PartiesDashboard() {
             <Tabs value={tab} onValueChange={setTab} className="hidden sm:block w-full overflow-x-auto">
               <TabsList className="rounded-xl inline-flex min-w-max">
                 <TabsTrigger value="all" className="rounded-lg">All</TabsTrigger>
-                <TabsTrigger value="cust" className="rounded-lg">Customers</TabsTrigger>
-                <TabsTrigger value="supp" className="rounded-lg">Suppliers</TabsTrigger>
+                {partyTypes.map((t) => (
+                  <TabsTrigger key={t._id || t.name} value={t.name} className="rounded-lg capitalize">
+                    {t.name}s
+                  </TabsTrigger>
+                ))}
               </TabsList>
             </Tabs>
             <div className="flex w-full gap-2 sm:w-auto">
               <div className="relative flex-1 sm:flex-none">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input 
-                  placeholder="Search party…" 
-                  className="h-10 w-full rounded-xl pl-9 sm:w-64" 
+                <Input
+                  placeholder="Search party…"
+                  className="h-10 w-full rounded-xl pl-9 sm:w-64"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -136,8 +148,11 @@ export function PartiesDashboard() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48 rounded-xl">
                   <DropdownMenuItem onClick={() => setTab("all")} className="cursor-pointer">All</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTab("cust")} className="cursor-pointer">Customers</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTab("supp")} className="cursor-pointer">Suppliers</DropdownMenuItem>
+                  {partyTypes.map((t) => (
+                    <DropdownMenuItem key={t._id || t.name} onClick={() => setTab(t.name)} className="cursor-pointer capitalize">
+                      {t.name}s
+                    </DropdownMenuItem>
+                  ))}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -147,7 +162,7 @@ export function PartiesDashboard() {
             {filteredParties.map((p) => {
               const credit = p.balance >= 0;
               return (
-                <div key={p.name} className="flex items-center gap-3 rounded-2xl border bg-card p-3 transition-shadow hover:shadow-[var(--shadow-card)]">
+                <div key={p._id || p.name} className="flex items-center gap-3 rounded-2xl border bg-card p-3 transition-shadow hover:shadow-[var(--shadow-card)]">
                   <Avatar className="h-11 w-11">
                     <AvatarFallback className="bg-primary-soft text-sm font-semibold text-primary">
                       {p.name.split(" ").map((s) => s[0]).join("").slice(0, 2)}
@@ -192,6 +207,11 @@ export function PartiesDashboard() {
                 </div>
               );
             })}
+            {filteredParties.length === 0 && !loading && (
+              <div className="col-span-2 text-center text-muted-foreground text-sm py-8">
+                No parties found{tab !== "all" ? ` for type "${tab}"` : ""}.
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
