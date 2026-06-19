@@ -20,6 +20,7 @@ import { Plus, Trash2, FileDown, Share2, Eye, ArrowLeft, MoreVertical, Store, Us
 import { toast } from "sonner";
 import { downloadInvoicePdf } from "@/lib/invoice-pdf";
 import { usePlatformSettings } from "@/lib/platform-settings";
+import api from "@/lib/api";
 
 const fmt = (n) => "₹" + n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -57,6 +58,58 @@ export function NewInvoiceDialog({
       setActiveTab(isLite ? "party" : "business");
     }
   }, [open, isLite]);
+
+  // Backend Lists
+  const [partiesList, setPartiesList] = useState([]);
+  const [itemsList, setItemsList] = useState([]);
+  const [selectedPartyId, setSelectedPartyId] = useState(null);
+
+  useEffect(() => {
+    const fetchPartiesAndItems = async () => {
+      try {
+        const [partiesRes, itemsRes] = await Promise.all([
+          api.get("/parties"),
+          api.get("/items")
+        ]);
+        setPartiesList(partiesRes.data || []);
+        setItemsList(itemsRes.data || []);
+      } catch (err) {
+        console.error("Failed to fetch parties/items from backend:", err);
+      }
+    };
+    if (open) {
+      fetchPartiesAndItems();
+    }
+  }, [open]);
+
+  // Normalize backend lists with fallback to mock data
+  const partiesToShow = useMemo(() => {
+    if (partiesList && partiesList.length > 0) {
+      return partiesList.map(p => ({
+        _id: p._id,
+        name: p.name,
+        phone: p.phone || "",
+        address: p.address || "",
+        email: p.email || "",
+        gstin: p.gstin || "",
+      }));
+    }
+    return MOCK_PARTIES;
+  }, [partiesList]);
+
+  const productsToShow = useMemo(() => {
+    if (itemsList && itemsList.length > 0) {
+      return itemsList.map(item => ({
+        _id: item._id,
+        name: item.name,
+        price: item.salePrice || 0,
+        hsnSac: item.hsnSac || "",
+        gst: item.taxRate || 0,
+        unit: item.unit || "PCS"
+      }));
+    }
+    return MOCK_PRODUCTS;
+  }, [itemsList]);
 
   // Business Details
   const [businessName, setBusinessName] = useState("KESHAV TRAVELS");
@@ -112,6 +165,7 @@ export function NewInvoiceDialog({
 
   // Flat Transaction-wise Discount
   const [flatDiscountPercent, setFlatDiscountPercent] = useState(0);
+  const [receivedAmount, setReceivedAmount] = useState(0);
 
   // Reset/Set defaults when settings are loaded
   useEffect(() => {
@@ -234,22 +288,57 @@ export function NewInvoiceDialog({
     grandTotal: totals.grand,
   });
 
-  const onSave = () => {
+  const onSave = async () => {
+    if (!invoiceNumber.trim()) return toast.error("Invoice number is required");
     if (!party.trim()) return toast.error("Please enter party name");
-    if (!lines.some((l) => l.name.trim())) return toast.error("Add at least one item");
-    
-    if (onAdd) {
-      onAdd({
-        id: invoiceNumber || ("INV-" + Math.floor(2000 + Math.random() * 999)),
-        party: party,
-        date: invoiceDate || new Date().toLocaleDateString("en-IN"),
-        amount: totals.grand,
-        status: "Unpaid"
-      });
+    if (!lines.some((l) => l.name.trim() && l.qty > 0)) return toast.error("Add at least one item");
+
+    let parsedDate = new Date();
+    if (invoiceDate) {
+      if (invoiceDate.includes('/')) {
+        const parts = invoiceDate.split('/');
+        if (parts.length === 3) {
+          parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+        }
+      } else {
+        parsedDate = new Date(invoiceDate);
+      }
     }
 
-    toast.success("Invoice saved as draft");
-    onOpenChange(false);
+    const payload = {
+      invoiceNumber: invoiceNumber,
+      party: selectedPartyId || null,
+      partyName: party || "Walk-in Customer",
+      type: "Sale",
+      date: parsedDate,
+      items: lines.filter(l => l.name.trim() && l.qty > 0).map(l => ({
+        item: l.item || null,
+        name: l.name,
+        hsnSac: l.hsnSac || "",
+        qty: Number(l.qty) || 1,
+        rate: Number(l.rate) || 0,
+        discount: Number(l.discount) || 0,
+        gst: Number(l.gst) || 0
+      })),
+      subtotal: totals.subtotal,
+      discountAmount: totals.originalGrand * (flatDiscountPercent / 100),
+      taxableAmount: totals.subtotal,
+      gstAmount: totals.tax,
+      roundOff: totals.grand - totals.originalGrand,
+      grandTotal: totals.grand,
+      status: receivedAmount >= totals.grand ? "Paid" : (receivedAmount > 0 ? "Partial" : "Unpaid"),
+      receivedAmount: receivedAmount
+    };
+
+    try {
+      await api.post("/invoices", payload);
+      toast.success("Invoice created successfully!");
+      onOpenChange(false);
+      window.location.reload();
+    } catch (err) {
+      const errMsg = err.response?.data?.message || "Failed to save invoice";
+      toast.error(errMsg);
+    }
   };
 
   const onDownload = () => {
@@ -429,9 +518,10 @@ export function NewInvoiceDialog({
                   <Select
                     value={party}
                     onValueChange={(val) => {
-                      const p = MOCK_PARTIES.find(x => x.name === val);
+                      const p = partiesToShow.find(x => x.name === val);
                       setParty(val);
                       if (p) {
+                        setSelectedPartyId(p._id || null);
                         setPhone(p.phone);
                         setPartyAddress(p.address);
                         setPartyEmail(p.email);
@@ -441,13 +531,31 @@ export function NewInvoiceDialog({
                   >
                     <SelectTrigger className="h-12 sm:h-10 rounded-xl text-sm bg-gray-50 border-gray-200 focus:bg-white"><SelectValue placeholder="Select Party" /></SelectTrigger>
                     <SelectContent>
-                      {MOCK_PARTIES.map(p => (
-                        <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                      {partiesToShow.map(p => (
+                        <SelectItem key={p.name || p._id} value={p.name}>{p.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 ) : (
-                  <Input id="party-name" value={party} onChange={(e) => setParty(e.target.value)} className="h-12 sm:h-10 rounded-xl text-sm bg-gray-50 border-gray-200 focus:bg-white" />
+                  <Input
+                    id="party-name"
+                    value={party}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setParty(val);
+                      const matchingParty = partiesToShow.find(p => p.name.toLowerCase() === val.toLowerCase());
+                      if (matchingParty) {
+                        setSelectedPartyId(matchingParty._id || null);
+                        setPhone(matchingParty.phone);
+                        setPartyAddress(matchingParty.address);
+                        setPartyEmail(matchingParty.email);
+                        setPartyGstin(matchingParty.gstin);
+                      } else {
+                        setSelectedPartyId(null);
+                      }
+                    }}
+                    className="h-12 sm:h-10 rounded-xl text-sm bg-gray-50 border-gray-200 focus:bg-white"
+                  />
                 )}
               </div>
               {partySettings.phone && (
@@ -553,6 +661,10 @@ export function NewInvoiceDialog({
                   <Input id="inv-place" value={placeOfSupply} onChange={(e) => setPlaceOfSupply(e.target.value)} className="h-12 sm:h-10 rounded-xl text-sm bg-gray-50 border-gray-200 focus:bg-white" />
                 </div>
               )}
+              <div className="space-y-1 sm:space-y-1.5">
+                <Label htmlFor="inv-received">Received Amount (₹)</Label>
+                <Input id="inv-received" type="number" min={0} value={receivedAmount} onChange={(e) => setReceivedAmount(Number(e.target.value) || 0)} className="h-12 sm:h-10 rounded-xl text-sm bg-gray-50 border-gray-200 focus:bg-white" />
+              </div>
             </div>
             </div>
             <div className="flex justify-end pt-5">
@@ -612,29 +724,48 @@ export function NewInvoiceDialog({
                           <Select
                             value={l.name}
                             onValueChange={(val) => {
-                              const prod = MOCK_PRODUCTS.find(p => p.name === val);
+                              const prod = productsToShow.find(p => p.name === val);
                               update(i, {
                                 name: val,
+                                item: prod?._id || null,
                                 hsnSac: prod?.hsnSac || "",
                                 rate: prod?.price || 0,
+                                gst: prod?.gst || 0,
+                                unit: prod?.unit || "PCS"
                               });
                             }}
                           >
                             <SelectTrigger className="h-9 rounded-lg"><SelectValue placeholder="Select Product" /></SelectTrigger>
                             <SelectContent>
-                              {MOCK_PRODUCTS.map(p => (
-                                <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                              {productsToShow.map(p => (
+                                <SelectItem key={p.name || p._id} value={p.name}>{p.name}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                         ) : (
-                          <Input value={l.name} onChange={(e) => update(i, { name: e.target.value })} placeholder="Item description" className="h-9 rounded-lg" />
+                          <Input
+                            value={l.name}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              const prod = productsToShow.find(p => p.name.toLowerCase() === val.toLowerCase());
+                              update(i, {
+                                name: val,
+                                item: prod?._id || null,
+                                hsnSac: prod?.hsnSac || l.hsnSac || "",
+                                rate: prod?.price || l.rate || 0,
+                                gst: prod?.gst || l.gst || 0,
+                                unit: prod?.unit || l.unit || "PCS"
+                              });
+                            }}
+                            placeholder="Item description"
+                            className="h-9 rounded-lg"
+                          />
                         )}
                       </div>
 
                       {/* HSN Code */}
                       {hasHsn && (
-                        <div className="col-span-6 md:col-span-2">
+                        <div className="col-span-6 md:col-span-1">
                           <Label className="text-[11px] text-muted-foreground">HSN/SAC</Label>
                           <Input value={l.hsnSac || ""} onChange={(e) => update(i, { hsnSac: e.target.value })} placeholder="996601" className="h-9 rounded-lg" />
                         </div>
@@ -694,9 +825,9 @@ export function NewInvoiceDialog({
                       )}
 
                       {/* Line total indicator and delete button */}
-                      <div className="col-span-12 md:col-span-1 flex items-center justify-between md:justify-end gap-3 self-center pb-1">
-                        <div className="text-right text-xs font-bold md:hidden">Line Total:</div>
-                        <div className="text-right text-xs font-bold pr-1">{fmt(displayTotal)}</div>
+                      <div className="col-span-12 md:col-span-2 flex items-center justify-between md:justify-end gap-3 self-end pb-2">
+                        <div className="text-right text-xs font-semibold md:hidden">Line Total:</div>
+                        <div className="text-right text-sm font-bold text-gray-900 pr-1">{fmt(displayTotal)}</div>
                         <Button
                           type="button"
                           size="icon"

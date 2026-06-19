@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,9 +29,34 @@ const statusStyles = {
 };
 
 export function BillingDashboard() {
+  const { invoices, refreshInvoices } = useInvoices();
   const { user } = useMockAuth();
   const isViewer = user?.role === "Viewer";
-  const { invoices } = useInvoices();
+
+  useEffect(() => {
+    refreshInvoices();
+  }, []);
+
+  const stats = useMemo(() => {
+    let paid = 0;
+    let unpaid = 0;
+    let partial = 0;
+
+    invoices.forEach((inv) => {
+      const amt = Number(inv.amount) || 0;
+      if (inv.status === "Paid") paid += amt;
+      else if (inv.status === "Unpaid") unpaid += amt;
+      else if (inv.status === "Partial") partial += amt;
+    });
+
+    return {
+      total: invoices.length,
+      paid,
+      unpaid,
+      partial,
+      collectedThisMonth: paid,
+    };
+  }, [invoices]);
 
   const [tab, setTab] = useState("all");
   const filtered = tab === "all" ? invoices : invoices.filter((i) => i.status.toLowerCase() === tab);
@@ -65,7 +90,7 @@ export function BillingDashboard() {
     <div className="space-y-6">
       <PageHeader
         title="Billing & Invoices"
-        subtitle="248 invoices · ₹4,82,300 collected this month"
+        subtitle={`${stats.total} invoices · ${fmt(stats.collectedThisMonth)} collected`}
         actions={
           <>
             <Button variant="outline" className="rounded-xl" onClick={() => toast.success("Exporting invoices…")}>
@@ -91,10 +116,10 @@ export function BillingDashboard() {
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {[
-          { label: "Total Invoices", value: "248", tint: "bg-primary-soft text-primary" },
-          { label: "Paid", value: fmt(310400), tint: "bg-success-soft text-success" },
-          { label: "Unpaid", value: fmt(81900), tint: "bg-destructive/10 text-destructive" },
-          { label: "Partially Paid", value: fmt(42600), tint: "bg-accent-soft text-accent-foreground" },
+          { label: "Total Invoices", value: stats.total.toString(), tint: "bg-primary-soft text-primary" },
+          { label: "Paid", value: fmt(stats.paid), tint: "bg-success-soft text-success" },
+          { label: "Unpaid", value: fmt(stats.unpaid), tint: "bg-destructive/10 text-destructive" },
+          { label: "Partially Paid", value: fmt(stats.partial), tint: "bg-accent-soft text-accent-foreground" },
         ].map((s) => (
           <Card key={s.label} className="border-0 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
             <CardContent className="flex items-center gap-3 p-4">

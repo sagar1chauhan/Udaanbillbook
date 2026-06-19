@@ -52,10 +52,15 @@ export function PartiesDashboard() {
     }
   };
 
+  const [search, setSearch] = useState("");
+
   const totalReceivable = parties.filter((p) => p.balance > 0).reduce((s, p) => s + p.balance, 0);
   const totalPayable = parties.filter((p) => p.balance < 0).reduce((s, p) => s + Math.abs(p.balance), 0);
 
   const filteredParties = parties.filter((p) => {
+    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || 
+                          p.phone.includes(search);
+    if (!matchesSearch) return false;
     if (tab === "cust") return p.type === "Customer";
     if (tab === "supp") return p.type === "Supplier";
     return true;
@@ -116,7 +121,12 @@ export function PartiesDashboard() {
             <div className="flex w-full gap-2 sm:w-auto">
               <div className="relative flex-1 sm:flex-none">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="Search party…" className="h-10 w-full rounded-xl pl-9 sm:w-64" />
+                <Input 
+                  placeholder="Search party…" 
+                  className="h-10 w-full rounded-xl pl-9 sm:w-64" 
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

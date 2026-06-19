@@ -5,12 +5,20 @@ const Item = require('../models/Item');
 // @desc    Get all invoices for user
 // @route   GET /api/invoices
 // @access  Private
+// @desc    Get all invoices for user
 const getInvoices = async (req, res) => {
   try {
     const invoices = await Invoice.find({ user: req.user.id })
       .populate('party', 'name phone')
       .sort({ createdAt: -1 });
-    res.status(200).json(invoices);
+
+    const SentInvoice = require('../models/SentInvoice');
+    const sentInvoices = await SentInvoice.find({ user: req.user.id })
+      .populate('party', 'name phone')
+      .sort({ createdAt: -1 });
+
+    const combined = [...invoices, ...sentInvoices].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.status(200).json(combined);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -52,6 +60,47 @@ const createInvoice = async (req, res) => {
     // TODO: Add logic to update Item stock and Party balance
 
     res.status(201).json(invoice);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Create a new sent invoice (saved in SentInvoice collection)
+// @route   POST /api/invoices/send
+// @access  Private
+const createSentInvoice = async (req, res) => {
+  try {
+    const SentInvoice = require('../models/SentInvoice');
+    const { 
+      invoiceNumber, party, partyName, type, date, items, 
+      subtotal, discountAmount, taxableAmount, gstAmount, 
+      roundOff, grandTotal, status, receivedAmount 
+    } = req.body;
+
+    if (!invoiceNumber || !type || !items || items.length === 0) {
+      return res.status(400).json({ message: 'Missing required fields or items' });
+    }
+
+    const sentInvoice = await SentInvoice.create({
+      user: req.user.id,
+      invoiceNumber,
+      party,
+      partyName,
+      type,
+      date,
+      items,
+      subtotal,
+      discountAmount,
+      taxableAmount,
+      gstAmount,
+      roundOff,
+      grandTotal,
+      status,
+      receivedAmount,
+      isSent: true
+    });
+
+    res.status(201).json(sentInvoice);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -106,6 +155,7 @@ const deleteInvoice = async (req, res) => {
 module.exports = {
   getInvoices,
   createInvoice,
+  createSentInvoice,
   getInvoiceById,
   deleteInvoice
 };

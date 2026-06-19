@@ -4,12 +4,7 @@ const User = require('../models/User');
 
 const seedAdmin = async () => {
   try {
-    const adminExists = await User.findOne({
-      $or: [
-        { email: 'admin@udaan.com' },
-        { phone: '9876543210' }
-      ]
-    });
+    const adminExists = await User.findOne({ role: 'admin' });
 
     if (!adminExists) {
       const hashedPassword = await bcrypt.hash('123456', 10);

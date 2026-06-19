@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { useInvoices } from "@/contexts/InvoiceContext";
 import { toast } from "sonner";
+import api from "@/lib/api";
 
 const fmt = (n) => "₹" + Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -14,6 +15,7 @@ export default function NewSale() {
   const { addInvoice } = useInvoices();
 
   const [customer, setCustomer] = useState("Walk-in Customer");
+  const [receivedAmount, setReceivedAmount] = useState(0);
   const [lines, setLines] = useState([
     { name: "Item description", hsnSac: "", qty: 1, rate: 0, discount: 0, gst: 18 }
   ]);
@@ -63,24 +65,44 @@ export default function NewSale() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async (isSend = false) => {
     if (!lines.some(l => l.name.trim() !== "")) {
       toast.error("Please add at least one item.");
       return;
     }
 
-    const newInv = {
-      id: "INV-" + Math.floor(1000 + Math.random() * 9000),
-      party: customer,
-      date: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
-      amount: totals.grand,
-      status: "Unpaid",
-      type: "Sale"
+    const payload = {
+      invoiceNumber: "INV-" + Math.floor(1000 + Math.random() * 9000),
+      party: null,
+      partyName: customer || "Walk-in Customer",
+      type: "Sale",
+      date: new Date(),
+      items: lines.filter(l => l.name.trim() !== "").map(l => ({
+        name: l.name,
+        qty: Number(l.qty) || 1,
+        rate: Number(l.rate) || 0,
+        discount: Number(l.discount) || 0,
+        gst: Number(l.gst) || 0
+      })),
+      subtotal: totals.subtotal,
+      discountAmount: totals.discountAmount,
+      taxableAmount: totals.taxableAmount,
+      gstAmount: totals.gstAmount,
+      roundOff: totals.roundOff,
+      grandTotal: totals.grand,
+      status: receivedAmount >= totals.grand ? "Paid" : (receivedAmount > 0 ? "Partial" : "Unpaid"),
+      receivedAmount: receivedAmount
     };
 
-    addInvoice(newInv);
-    toast.success("Sale invoice created successfully!");
-    navigate("/billing");
+    try {
+      const endpoint = isSend ? "/invoices/send" : "/invoices";
+      await api.post(endpoint, payload);
+      addInvoice(); // Trigger refresh in context
+      toast.success(isSend ? "Sale invoice saved & sent successfully!" : "Sale invoice created successfully!");
+      navigate("/billing");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to save sale invoice");
+    }
   };
 
   return (
@@ -197,6 +219,16 @@ export default function NewSale() {
               <span className="text-slate-500">Round Off</span>
               <span className="font-semibold text-slate-500">{totals.roundOff.toFixed(2)}</span>
             </div>
+            <div className="flex justify-between items-center text-[13px] pt-2">
+              <span className="text-slate-500 font-medium">Received Amount (₹)</span>
+              <Input
+                type="number"
+                min={0}
+                value={receivedAmount}
+                onChange={(e) => setReceivedAmount(Number(e.target.value) || 0)}
+                className="w-32 h-8 text-right font-semibold rounded-lg bg-slate-50 border-slate-200 focus-visible:bg-white"
+              />
+            </div>
           </div>
           
           <Separator className="mb-4" />
@@ -210,10 +242,10 @@ export default function NewSale() {
 
       {/* Floating Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:justify-center">
-        <Button variant="outline" className="flex-1 rounded-full h-12 text-[14px] font-semibold border-slate-300 md:max-w-xs" onClick={handleSave}>
+        <Button variant="outline" className="flex-1 rounded-full h-12 text-[14px] font-semibold border-slate-300 md:max-w-xs" onClick={() => handleSave(false)}>
           SAVE
         </Button>
-        <Button className="flex-[2] rounded-full h-12 text-[14px] font-semibold bg-emerald-500 hover:bg-emerald-600 md:max-w-xs" onClick={handleSave}>
+        <Button className="flex-[2] rounded-full h-12 text-[14px] font-semibold bg-emerald-500 hover:bg-emerald-600 md:max-w-xs" onClick={() => handleSave(true)}>
           <Send className="mr-2 h-4 w-4" />
           SAVE & SEND
         </Button>

@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Invoice = require('../models/Invoice');
 const Expense = require('../models/Expense');
 const Payment = require('../models/Payment');
@@ -172,8 +173,6 @@ const getDashboardSummary = async (userId) => {
     chartData
   };
 };
-
-const mongoose = require('mongoose');
 
 const getAccountingData = async (userId) => {
   const objectId = new mongoose.Types.ObjectId(userId);
