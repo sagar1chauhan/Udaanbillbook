@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ShieldAlert, AlertTriangle, Eye, Globe, Monitor, Clock, CheckCircle2 } from "lucide-react";
+import { ShieldAlert, AlertTriangle, Eye, Globe, Monitor, Clock } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -123,27 +123,6 @@ export function SecurityCenter() {
               })}
             </tbody>
           </table>
-        </div>
-      </div>
-
-      {/* System Health */}
-      <div className="rounded-2xl border border-white/8 p-5" style={{ background: "oklch(0.19 0.035 257)" }}>
-        <h3 className="text-sm font-semibold text-white mb-4">System Health</h3>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { name: "API Gateway", status: "Operational", uptime: "99.99%" },
-            { name: "Database Cluster", status: "Operational", uptime: "99.98%" },
-            { name: "Payment Processing", status: "Operational", uptime: "99.95%" },
-            { name: "CDN / Static Assets", status: "Operational", uptime: "100%" },
-          ].map((service) => (
-            <div key={service.name} className="flex items-center gap-3 rounded-xl bg-white/3 border border-white/5 p-3.5">
-              <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-white truncate">{service.name}</p>
-                <p className="text-[10px] text-emerald-400">{service.status} · {service.uptime}</p>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </div>

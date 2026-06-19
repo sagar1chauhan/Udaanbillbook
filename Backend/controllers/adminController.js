@@ -777,6 +777,76 @@ const updatePlatformSettingsData = async (req, res) => {
   }
 };
 
+// @desc    Get currently logged in admin's profile (SuperAdmin only)
+// @route   GET /api/admin/profile
+// @access  Private
+const getAdminProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Update currently logged in admin's profile (SuperAdmin only)
+// @route   PUT /api/admin/profile
+// @access  Private
+const updateAdminProfile = async (req, res) => {
+  try {
+    const { name, email, phone, businessName, currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // If phone is being changed, check if it's already taken
+    if (phone && phone !== user.phone) {
+      const phoneExists = await User.findOne({ phone });
+      if (phoneExists) {
+        return res.status(400).json({ message: 'Phone number already registered by another user' });
+      }
+      user.phone = phone;
+    }
+
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (businessName !== undefined) user.businessName = businessName;
+
+    // Handle password change if requested
+    if (newPassword) {
+      if (user.password) {
+        if (!currentPassword) {
+          return res.status(400).json({ message: 'Please provide current password to update password' });
+        }
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch && user.password !== currentPassword) {
+          return res.status(400).json({ message: 'Incorrect current password' });
+        }
+      }
+      user.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    await user.save();
+    
+    // Return updated details without password
+    const updatedUser = {
+      _id: user._id,
+      name: user.name,
+      phone: user.phone,
+      email: user.email,
+      businessName: user.businessName,
+      role: user.role
+    };
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getAllUsers,
   updateUserStatus,
@@ -794,5 +864,7 @@ module.exports = {
   updateAdminTicketStatus,
   getAdminActivityData,
   getPlatformSettingsData,
-  updatePlatformSettingsData
+  updatePlatformSettingsData,
+  getAdminProfile,
+  updateAdminProfile
 };

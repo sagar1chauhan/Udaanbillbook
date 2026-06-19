@@ -17,7 +17,9 @@ const {
   updateAdminTicketStatus,
   getAdminActivityData,
   getPlatformSettingsData,
-  updatePlatformSettingsData
+  updatePlatformSettingsData,
+  getAdminProfile,
+  updateAdminProfile
 } = require('../controllers/adminController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
@@ -42,5 +44,7 @@ router.put('/tickets/:id', updateAdminTicketStatus);
 router.get('/activity', getAdminActivityData);
 router.get('/settings', getPlatformSettingsData);
 router.put('/settings', updatePlatformSettingsData);
+router.get('/profile', getAdminProfile);
+router.put('/profile', updateAdminProfile);
 
 module.exports = router;

@@ -33,9 +33,10 @@ const seedAdmin = async () => {
         adminExists.email = 'admin@udaan.com';
         updated = true;
       }
-      // Always ensure password is set to '123456'
-      adminExists.password = await bcrypt.hash('123456', 10);
-      updated = true;
+      if (!adminExists.subscription || adminExists.subscription.plan !== 'None') {
+        adminExists.subscription = { plan: 'None', status: 'inactive' };
+        updated = true;
+      }
       if (updated) {
         await adminExists.save();
         console.log('Admin user credentials aligned/updated.');

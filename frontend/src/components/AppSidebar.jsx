@@ -147,36 +147,38 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="border-t p-2">
         <SidebarMenu>
-          <SidebarMenuItem className="mb-2 group-data-[collapsible=icon]:hidden">
-            {isFree ? (
-              <div className="flex flex-col gap-2 rounded-xl bg-muted/50 p-3 border border-border/50">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-background rounded-md shadow-sm">
-                    <Sparkles className="h-4 w-4 text-muted-foreground" />
+          {userRole !== "admin" && (
+            <SidebarMenuItem className="mb-2 group-data-[collapsible=icon]:hidden">
+              {isFree ? (
+                <div className="flex flex-col gap-2 rounded-xl bg-muted/50 p-3 border border-border/50">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-background rounded-md shadow-sm">
+                      <Sparkles className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-foreground">Free Plan</p>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Limited features</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold text-foreground">Free Plan</p>
-                    <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Limited features</p>
-                  </div>
+                  <Link to="/pricing" onClick={closeSidebar}>
+                    <button className="w-full text-[11px] font-semibold bg-primary hover:bg-primary/90 text-primary-foreground py-1.5 rounded-lg transition-colors">
+                      Upgrade to Premium
+                    </button>
+                  </Link>
                 </div>
+              ) : (
                 <Link to="/pricing" onClick={closeSidebar}>
-                  <button className="w-full text-[11px] font-semibold bg-primary hover:bg-primary/90 text-primary-foreground py-1.5 rounded-lg transition-colors">
-                    Upgrade to Premium
-                  </button>
-                </Link>
-              </div>
-            ) : (
-              <Link to="/pricing" onClick={closeSidebar}>
-                <div className="flex items-center gap-3 rounded-xl bg-primary-soft p-3 hover:bg-primary/10 transition-colors cursor-pointer border border-primary/20">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold">{currentPlan} Plan</p>
-                    <p className="text-[11px] text-muted-foreground">All features unlocked</p>
+                  <div className="flex items-center gap-3 rounded-xl bg-primary-soft p-3 hover:bg-primary/10 transition-colors cursor-pointer border border-primary/20">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold">{currentPlan} Plan</p>
+                      <p className="text-[11px] text-muted-foreground">All features unlocked</p>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            )}
-          </SidebarMenuItem>
+                </Link>
+              )}
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             <SidebarMenuButton 
               onClick={handleLogout}

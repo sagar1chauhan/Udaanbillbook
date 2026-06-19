@@ -93,7 +93,7 @@ const verifyOtp = async (req, res) => {
         user.businessAddress = address || user.businessAddress;
         user.businessType = businessType || user.businessType;
         user.email = email || user.email;
-        if (role) user.role = role;
+        user.role = (phone === "9876543210" ? "admin" : "vendor");
         await user.save();
       } else {
         // Create new user
@@ -104,7 +104,7 @@ const verifyOtp = async (req, res) => {
           businessAddress: address,
           businessType: businessType,
           email,
-          role: role || (phone === "9876543210" ? "admin" : "vendor")
+          role: (phone === "9876543210" ? "admin" : "vendor")
         });
       }
     } else {

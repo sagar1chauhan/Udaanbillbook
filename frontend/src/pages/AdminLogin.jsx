@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Lock, ShieldCheck, ArrowRight } from "lucide-react";
+import { Mail, Lock, ShieldCheck, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { mockAuth } from "@/lib/auth-store";
 import api from "@/lib/api";
@@ -12,7 +12,8 @@ export default function AdminLogin() {
   const navigate = useNavigate();
   // Default credentials set as requested
   const [email, setEmail] = useState("admin@udaan.com");
-  const [password, setPassword] = useState("admin123");
+  const [password, setPassword] = useState("123456");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e) => {
@@ -82,13 +83,24 @@ export default function AdminLogin() {
             <div className="relative">
               <Input
                 id="password-input"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 rounded-xl text-base pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-emerald-500/50 focus:ring-emerald-500/20"
+                className="h-12 rounded-xl text-base pl-10 pr-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-emerald-500/50 focus:ring-emerald-500/20"
               />
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
             </div>
           </div>
 
