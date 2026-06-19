@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Building2, CreditCard, TrendingUp,
   ShieldAlert, Users, BarChart3, Settings, LogOut,
   ChevronLeft, ChevronRight, Bell, Ticket, Activity,
-  Sparkles, Crown
+  Sparkles, Crown, LayoutGrid
 } from "lucide-react";
 import { mockAuth } from "@/lib/auth-store";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ const menuGroups = [
       { title: "Subscriptions", url: "/superadmin/subscriptions", icon: CreditCard },
       { title: "Revenue", url: "/superadmin/revenue", icon: TrendingUp },
       { title: "Users", url: "/superadmin/users", icon: Users },
+      { title: "Categories", url: "/superadmin/categories", icon: LayoutGrid },
     ],
   },
   {

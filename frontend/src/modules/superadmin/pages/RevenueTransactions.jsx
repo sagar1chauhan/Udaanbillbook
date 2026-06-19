@@ -1,19 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Download, Filter, TrendingUp, ArrowUpRight, CreditCard } from "lucide-react";
-import { transactions, fmt } from "../data/mockData";
+import { fmt } from "../data/mockData";
 import { toast } from "sonner";
+import api from "@/lib/api";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
-
-const revenueBreakdown = [
-  { month: "Jan", silver: 189000, gold: 156000, enterprise: 78000 },
-  { month: "Feb", silver: 198000, gold: 165000, enterprise: 82000 },
-  { month: "Mar", silver: 205000, gold: 172000, enterprise: 84000 },
-  { month: "Apr", silver: 210000, gold: 180000, enterprise: 85000 },
-  { month: "May", silver: 215000, gold: 189000, enterprise: 86000 },
-  { month: "Jun", silver: 219298, gold: 193752, enterprise: 86327 },
-];
 
 const statusStyles = {
   Success: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
@@ -40,10 +32,38 @@ function CustomTooltip({ active, payload, label }) {
 
 export function RevenueTransactions() {
   const [tab, setTab] = useState("overview");
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState({
+    totalRevenue: 0,
+    successRate: 100,
+    totalTransactions: 0,
+    revenueBreakdown: [],
+    transactions: []
+  });
 
-  const totalRevenue = 1842500;
-  const successRate = 94.2;
-  const totalTransactions = transactions.length;
+  useEffect(() => {
+    const fetchRevenueData = async () => {
+      try {
+        const res = await api.get("/admin/revenue");
+        setData(res.data);
+      } catch (error) {
+        toast.error("Failed to load revenue data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRevenueData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-[400px] items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+      </div>
+    );
+  }
+
+  const { totalRevenue, successRate, totalTransactions, revenueBreakdown, transactions } = data;
 
   return (
     <div className="space-y-6">

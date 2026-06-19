@@ -1,40 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BarChart3, TrendingUp, Users, ArrowUpRight, Target, Activity } from "lucide-react";
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { toast } from "sonner";
+import api from "@/lib/api";
 import { fmt } from "../data/mockData";
-
-const userEngagement = [
-  { day: "Mon", dau: 3200, mau: 6800 }, { day: "Tue", dau: 3500, mau: 6900 },
-  { day: "Wed", dau: 4100, mau: 7100 }, { day: "Thu", dau: 3800, mau: 7000 },
-  { day: "Fri", dau: 4500, mau: 7200 }, { day: "Sat", dau: 2800, mau: 6500 },
-  { day: "Sun", dau: 2200, mau: 6200 },
-];
-
-const conversionFunnel = [
-  { stage: "Visitors", value: 42500, fill: "#3b82f6" },
-  { stage: "Signups", value: 8412, fill: "#8b5cf6" },
-  { stage: "Trial", value: 3240, fill: "#f59e0b" },
-  { stage: "Paid", value: 1923, fill: "#10b981" },
-];
-
-const featureUsage = [
-  { feature: "Billing", usage: 92 }, { feature: "Parties", usage: 85 },
-  { feature: "Inventory", usage: 78 }, { feature: "Reports", usage: 68 },
-  { feature: "Expenses", usage: 64 }, { feature: "GST", usage: 52 },
-  { feature: "Accounting", usage: 45 },
-];
-
-const geoData = [
-  { city: "Mumbai", biz: 482, rev: 892400 }, { city: "Delhi", biz: 396, rev: 724300 },
-  { city: "Bangalore", biz: 354, rev: 658200 }, { city: "Pune", biz: 298, rev: 542100 },
-  { city: "Hyderabad", biz: 264, rev: 468900 }, { city: "Ahmedabad", biz: 218, rev: 382400 },
-];
-
-const forecastData = [
-  { m: "Jan", actual: 1245000 }, { m: "Feb", actual: 1380000 }, { m: "Mar", actual: 1520000 },
-  { m: "Apr", actual: 1410000 }, { m: "May", actual: 1680000 }, { m: "Jun", actual: 1842500 },
-  { m: "Jul", forecast: 1950000 }, { m: "Aug", forecast: 2080000 }, { m: "Sep", forecast: 2240000 },
-];
 
 function Tip({ active, payload, label }) {
   if (!active || !payload) return null;
@@ -47,7 +16,34 @@ function Tip({ active, payload, label }) {
 }
 
 export function PlatformAnalytics() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const res = await api.get("/admin/analytics");
+        setData(res.data);
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to load analytics data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAnalytics();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+      </div>
+    );
+  }
+
+  const { geoData, featureUsage, userEngagement, conversionFunnel, forecastData, kpis } = data;
   const totalBiz = geoData.reduce((s, g) => s + g.biz, 0);
+
   return (
     <div className="space-y-6">
       <div>
@@ -58,10 +54,10 @@ export function PlatformAnalytics() {
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         {[
-          { l: "Daily Active Users", v: "4,512", d: "+8.3%", icon: Users },
-          { l: "Session Duration", v: "12m 34s", d: "+14.2%", icon: Activity },
-          { l: "Conversion Rate", v: "4.53%", d: "+0.8%", icon: Target },
-          { l: "Churn Rate", v: "2.1%", d: "-0.4%", icon: TrendingUp },
+          { l: "Daily Active Users", v: kpis.dau.toLocaleString(), d: "+8.3%", icon: Users },
+          { l: "Session Duration", v: kpis.sessionDuration, d: "+14.2%", icon: Activity },
+          { l: "Conversion Rate", v: kpis.conversionRate, d: "+0.8%", icon: Target },
+          { l: "Churn Rate", v: kpis.churnRate, d: "-0.4%", icon: TrendingUp },
         ].map((k) => (
           <div key={k.l} className="rounded-2xl border border-white/8 p-4 md:p-5 transition-all hover:-translate-y-1" style={{ background: "oklch(0.19 0.035 257)" }}>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{k.l}</p>
@@ -85,7 +81,7 @@ export function PlatformAnalytics() {
                 <div key={s.stage}>
                   <div className="flex justify-between mb-1">
                     <span className="text-xs font-semibold text-white">{s.stage}</span>
-                    <span className="text-xs text-slate-400">{s.value.toLocaleString()}{i > 0 && <span className="ml-2 text-emerald-400 font-semibold">{((s.value / conversionFunnel[i-1].value)*100).toFixed(1)}%</span>}</span>
+                    <span className="text-xs text-slate-400">{s.value.toLocaleString()}{i > 0 && <span className="ml-2 text-emerald-400 font-semibold">{((s.value / (conversionFunnel[i-1].value || 1))*100).toFixed(1)}%</span>}</span>
                   </div>
                   <div className="h-3 rounded-full bg-white/5 overflow-hidden">
                     <div className="h-full rounded-full" style={{ width: `${pct}%`, background: s.fill }} />
@@ -166,8 +162,8 @@ export function PlatformAnalytics() {
                   <td className="px-4 py-3 text-sm font-semibold text-emerald-400">{fmt(g.rev)}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-16 rounded-full bg-white/5 overflow-hidden"><div className="h-full rounded-full bg-blue-500" style={{ width: `${(g.biz/totalBiz)*100}%` }} /></div>
-                      <span className="text-xs text-slate-400">{((g.biz/totalBiz)*100).toFixed(1)}%</span>
+                      <div className="h-1.5 w-16 rounded-full bg-white/5 overflow-hidden"><div className="h-full rounded-full bg-blue-500" style={{ width: `${(g.biz/(totalBiz || 1))*100}%` }} /></div>
+                      <span className="text-xs text-slate-400">{((g.biz/(totalBiz || 1))*100).toFixed(1)}%</span>
                     </div>
                   </td>
                 </tr>

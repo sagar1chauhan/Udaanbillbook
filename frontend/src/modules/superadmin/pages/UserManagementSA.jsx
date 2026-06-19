@@ -1,17 +1,7 @@
-import React, { useState } from "react";
-import { Search, Users, Ban, CheckCircle2, Eye, Mail, Phone, Monitor, Clock, Shield } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Search, Users, Ban, CheckCircle2, Eye, Mail, Phone, Monitor, Clock, Shield, X } from "lucide-react";
 import { toast } from "sonner";
-
-const allUsers = [
-  { id: 1, name: "Rahul Sharma", email: "rahul@sharmatraders.com", phone: "+91 98765 43210", business: "Sharma Traders", role: "Admin", status: "Active", lastLogin: "2 min ago", device: "Chrome / Windows", sessions: 3 },
-  { id: 2, name: "Priya Singh", email: "priya@greenmart.com", phone: "+91 98765 12345", business: "Green Mart", role: "Admin", status: "Active", lastLogin: "15 min ago", device: "Safari / iOS", sessions: 1 },
-  { id: 3, name: "Amit Patel", email: "amit@patelelectronics.com", phone: "+91 98765 67890", business: "Patel Electronics", role: "Admin", status: "Active", lastLogin: "1 hr ago", device: "Chrome / Android", sessions: 2 },
-  { id: 4, name: "Vikram Reddy", email: "vikram@krishna.com", phone: "+91 98765 99999", business: "Krishna Stores", role: "Admin", status: "Banned", lastLogin: "5 days ago", device: "Firefox / Windows", sessions: 0 },
-  { id: 5, name: "Meera Nair", email: "meera@quickbites.com", phone: "+91 98765 22222", business: "Quick Bites Cafe", role: "Staff", status: "Active", lastLogin: "30 min ago", device: "Chrome / macOS", sessions: 1 },
-  { id: 6, name: "Suresh Gupta", email: "suresh@guptasons.com", phone: "+91 98765 11111", business: "Gupta & Sons", role: "Admin", status: "Active", lastLogin: "3 hrs ago", device: "Edge / Windows", sessions: 1 },
-  { id: 7, name: "Deepak Joshi", email: "deepak@royalfabrics.com", phone: "+91 98765 33333", business: "Royal Fabrics", role: "Staff", status: "Active", lastLogin: "45 min ago", device: "Chrome / Android", sessions: 2 },
-  { id: 8, name: "Anita Desai", email: "anita@freshfarm.com", phone: "+91 98765 44444", business: "Fresh Farm Dairy", role: "Admin", status: "Active", lastLogin: "1 day ago", device: "Safari / iOS", sessions: 1 },
-];
+import api from "@/lib/api";
 
 const statusStyles = {
   Active: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
@@ -19,29 +9,71 @@ const statusStyles = {
 };
 
 export function UserManagementSA() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const filtered = allUsers.filter(u =>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase()) ||
-    u.business.toLowerCase().includes(search.toLowerCase())
-  );
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get("/admin/users");
+      setUsers(response.data);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to fetch users");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleToggleStatus = async (user) => {
+    const newStatus = user.status === "Active" || !user.status ? "Banned" : "Active";
+    try {
+      await api.put(`/admin/users/${user._id}/status`, { status: newStatus });
+      toast.success(`${user.name} status updated to ${newStatus}`);
+      setUsers(prev => prev.map(u => u._id === user._id ? { ...u, status: newStatus } : u));
+      if (selectedUser && selectedUser._id === user._id) {
+        setSelectedUser(prev => ({ ...prev, status: newStatus }));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update status");
+    }
+  };
+
+  const filtered = users.filter(u => {
+    const nameMatch = (u.name || "").toLowerCase().includes(search.toLowerCase());
+    const emailMatch = (u.email || "").toLowerCase().includes(search.toLowerCase());
+    const bizMatch = (u.businessName || u.business || "").toLowerCase().includes(search.toLowerCase());
+    return nameMatch || emailMatch || bizMatch;
+  });
+
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2"><Users className="h-6 w-6 text-emerald-400" /> User Management</h1>
-          <p className="text-sm text-slate-500 mt-1">{allUsers.length} users across all businesses</p>
+          <p className="text-sm text-slate-500 mt-1">{users.length} users across all businesses</p>
         </div>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
-          { l: "Total Users", v: allUsers.length, icon: Users, c: "blue" },
-          { l: "Active Now", v: allUsers.filter(u => u.status === "Active").length, icon: CheckCircle2, c: "emerald" },
-          { l: "Banned", v: allUsers.filter(u => u.status === "Banned").length, icon: Ban, c: "rose" },
-          { l: "Admins", v: allUsers.filter(u => u.role === "Admin").length, icon: Shield, c: "purple" },
+          { l: "Total Users", v: users.length, icon: Users, c: "blue" },
+          { l: "Active Now", v: users.filter(u => u.status !== "Banned").length, icon: CheckCircle2, c: "emerald" },
+          { l: "Banned", v: users.filter(u => u.status === "Banned").length, icon: Ban, c: "rose" },
+          { l: "Admins", v: users.filter(u => u.role === "admin" || u.role === "Admin").length, icon: Shield, c: "purple" },
         ].map(k => (
           <div key={k.l} className="rounded-2xl border border-white/8 p-4" style={{ background: "oklch(0.19 0.035 257)" }}>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{k.l}</p>
@@ -70,43 +102,43 @@ export function UserManagementSA() {
             </thead>
             <tbody>
               {filtered.map(u => (
-                <tr key={u.id} className="border-b border-white/5 hover:bg-white/3 transition-colors">
+                <tr key={u._id || u.id} className="border-b border-white/5 hover:bg-white/3 transition-colors">
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-xs font-bold text-blue-400">
-                        {u.name.split(" ").map(w => w[0]).join("")}
+                        {(u.name || "U").split(" ").map(w => w[0]).join("")}
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-white">{u.name}</p>
                         <div className="flex items-center gap-3 text-[11px] text-slate-500">
-                          <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{u.email}</span>
+                          <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{u.email || u.phone}</span>
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3.5 text-xs text-slate-300">{u.business}</td>
+                  <td className="px-4 py-3.5 text-xs text-slate-300">{u.businessName || u.business || "N/A"}</td>
                   <td className="px-4 py-3.5">
-                    <span className={`text-[11px] font-semibold ${u.role === "Admin" ? "text-purple-400" : "text-slate-400"}`}>{u.role}</span>
+                    <span className={`text-[11px] font-semibold capitalize ${u.role === "admin" || u.role === "Admin" ? "text-purple-400" : "text-slate-400"}`}>{u.role || "vendor"}</span>
                   </td>
                   <td className="px-4 py-3.5">
-                    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${statusStyles[u.status] || ""}`}>
-                      <span className={`h-1.5 w-1.5 rounded-full ${u.status === "Active" ? "bg-emerald-400" : "bg-rose-400"}`} />
-                      {u.status}
+                    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${statusStyles[u.status || "Active"] || ""}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${u.status !== "Banned" ? "bg-emerald-400" : "bg-rose-400"}`} />
+                      {u.status || "Active"}
                     </span>
                   </td>
                   <td className="px-4 py-3.5">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500"><Clock className="h-3 w-3" />{u.lastLogin}</div>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500"><Clock className="h-3 w-3" />{u.lastLogin || (u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "N/A")}</div>
                   </td>
                   <td className="px-4 py-3.5">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500"><Monitor className="h-3 w-3" />{u.device}</div>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500"><Monitor className="h-3 w-3" />{u.device || "Chrome / Windows"}</div>
                   </td>
                   <td className="px-4 py-3.5">
                     <div className="flex gap-1">
-                      <button className="rounded-lg p-1.5 text-slate-500 hover:text-white hover:bg-white/10 transition-colors" title="View"><Eye className="h-3.5 w-3.5" /></button>
-                      {u.status === "Active" ? (
-                        <button className="rounded-lg p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors" title="Ban" onClick={() => toast.warning(`${u.name} banned`)}><Ban className="h-3.5 w-3.5" /></button>
+                      <button className="rounded-lg p-1.5 text-slate-500 hover:text-white hover:bg-white/10 transition-colors" title="View" onClick={() => setSelectedUser(u)}><Eye className="h-3.5 w-3.5" /></button>
+                      {u.status !== "Banned" ? (
+                        <button className="rounded-lg p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors" title="Ban" onClick={() => handleToggleStatus(u)}><Ban className="h-3.5 w-3.5" /></button>
                       ) : (
-                        <button className="rounded-lg p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors" title="Unban" onClick={() => toast.success(`${u.name} unbanned`)}><CheckCircle2 className="h-3.5 w-3.5" /></button>
+                        <button className="rounded-lg p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors" title="Unban" onClick={() => handleToggleStatus(u)}><CheckCircle2 className="h-3.5 w-3.5" /></button>
                       )}
                     </div>
                   </td>
@@ -116,6 +148,93 @@ export function UserManagementSA() {
           </table>
         </div>
       </div>
+
+      {/* User Details Modal */}
+      {selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-lg rounded-2xl border border-white/10 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200" style={{ background: "oklch(0.19 0.035 257)" }}>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/8">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Users className="h-5 w-5 text-emerald-400" /> User Details
+              </h3>
+              <button 
+                onClick={() => setSelectedUser(null)}
+                className="rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/15 text-lg font-bold text-blue-400">
+                  {selectedUser.name.split(" ").map(w => w[0]).join("")}
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-white">{selectedUser.name}</h4>
+                  <p className="text-xs text-slate-400 capitalize">{selectedUser.role || "Vendor"}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Phone Number</p>
+                  <p className="text-white font-medium">{selectedUser.phone}</p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Email Address</p>
+                  <p className="text-white font-medium">{selectedUser.email || "N/A"}</p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Business Name</p>
+                  <p className="text-white font-medium">{selectedUser.businessName || "N/A"}</p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Business Type</p>
+                  <p className="text-white font-medium">{selectedUser.businessType || "N/A"}</p>
+                </div>
+
+                <div className="space-y-1 sm:col-span-2">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Business Address</p>
+                  <p className="text-white font-medium">{selectedUser.businessAddress || "N/A"}</p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Account Status</p>
+                  <div>
+                    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${statusStyles[selectedUser.status || "Active"] || ""}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${selectedUser.status !== "Banned" ? "bg-emerald-400" : "bg-rose-400"}`} />
+                      {selectedUser.status || "Active"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Registered On</p>
+                  <p className="text-white font-medium">
+                    {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : "N/A"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-white/8 flex justify-end">
+              <button 
+                onClick={() => setSelectedUser(null)}
+                className="rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 px-4 py-2 text-sm font-semibold transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

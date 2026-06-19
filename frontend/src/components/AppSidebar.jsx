@@ -13,6 +13,7 @@ import {
   UserCog,
   LogOut,
   Lock,
+  Ticket,
 } from "lucide-react";
 import {
   Sidebar,
@@ -45,6 +46,7 @@ const main = [
 
 const adminItems = [
   { title: "Staff Management", url: "/admin/users", icon: UserCog },
+  { title: "Support", url: "/tickets", icon: Ticket },
   { title: "Settings", url: "/settings", icon: Settings }
 ];
 
@@ -164,7 +166,7 @@ export function AppSidebar() {
                 </Link>
               </div>
             ) : (
-              <Link to="/settings" onClick={closeSidebar}>
+              <Link to="/pricing" onClick={closeSidebar}>
                 <div className="flex items-center gap-3 rounded-xl bg-primary-soft p-3 hover:bg-primary/10 transition-colors cursor-pointer border border-primary/20">
                   <Sparkles className="h-5 w-5 text-primary" />
                   <div className="flex-1">

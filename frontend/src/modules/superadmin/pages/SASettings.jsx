@@ -1,76 +1,102 @@
 import React, { useState, useEffect } from "react";
-// Trigger HMR cache reload
-import { Settings, Globe, Mail, CreditCard, Shield, Bell, Palette, ToggleLeft, ToggleRight, Save, Key, LayoutGrid, Plus, X } from "lucide-react";
+import { Settings, Globe, Mail, CreditCard, Save, Key } from "lucide-react";
 import { toast } from "sonner";
-import { platformSettings, usePlatformSettings } from "@/lib/platform-settings";
+import api from "@/lib/api";
 
 const staticSections = [
   {
     title: "Platform Settings",
     icon: Globe,
     settings: [
-      { label: "Platform Name", type: "text", value: "Udaan My BillBook", key: "platformName" },
-      { label: "Platform URL", type: "text", value: "https://udaan.mybillbook.com", key: "platformUrl" },
-      { label: "Support Email", type: "text", value: "support@udaan.com", key: "supportEmail" },
-      { label: "Maintenance Mode", type: "toggle", value: false, key: "maintenance" },
+      { label: "Platform Name", type: "text", key: "platformName" },
+      { label: "Platform URL", type: "text", key: "platformUrl" },
+      { label: "Support Email", type: "text", key: "supportEmail" },
+      { label: "Maintenance Mode", type: "toggle", key: "maintenance" },
     ],
   },
   {
     title: "SMTP Configuration",
     icon: Mail,
     settings: [
-      { label: "SMTP Host", type: "text", value: "smtp.gmail.com", key: "smtpHost" },
-      { label: "SMTP Port", type: "text", value: "587", key: "smtpPort" },
-      { label: "Sender Email", type: "text", value: "noreply@udaan.com", key: "senderEmail" },
-      { label: "Email Notifications", type: "toggle", value: true, key: "emailEnabled" },
+      { label: "SMTP Host", type: "text", key: "smtpHost" },
+      { label: "SMTP Port", type: "text", key: "smtpPort" },
+      { label: "Sender Email", type: "text", key: "senderEmail" },
+      { label: "Email Notifications", type: "toggle", key: "emailEnabled" },
     ],
   },
   {
     title: "Payment Gateway",
     icon: CreditCard,
     settings: [
-      { label: "Gateway Provider", type: "text", value: "Razorpay", key: "gateway" },
-      { label: "API Key", type: "password", value: "rzp_live_xxxxxxxxxxxx", key: "gatewayKey" },
-      { label: "Webhook URL", type: "text", value: "https://api.udaan.com/webhooks/razorpay", key: "webhook" },
-      { label: "Test Mode", type: "toggle", value: false, key: "testMode" },
+      { label: "Gateway Provider", type: "text", key: "gateway" },
+      { label: "API Key", type: "password", key: "gatewayKey" },
+      { label: "Webhook URL", type: "text", key: "webhook" },
+      { label: "Test Mode", type: "toggle", key: "testMode" },
     ],
   },
 ];
 
 export function SASettings() {
-  const { settings, hydrated } = usePlatformSettings();
   const [values, setValues] = useState({});
-  const [bizTypes, setBizTypes] = useState([]);
-  const [newType, setNewType] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await api.get("/admin/settings");
+      const data = res.data;
+      setValues({
+        platformName: data.platformName || "Udaan My BillBook",
+        platformUrl: data.platformUrl || "https://udaan.mybillbook.com",
+        supportEmail: data.supportEmail || "support@udaan.com",
+        maintenance: !!data.maintenance,
+        smtpHost: data.smtpHost || "smtp.gmail.com",
+        smtpPort: data.smtpPort || "587",
+        senderEmail: data.senderEmail || "noreply@udaan.com",
+        emailEnabled: !!data.emailEnabled,
+        gateway: data.gateway || "Razorpay",
+        gatewayKey: data.gatewayKey || "rzp_live_xxxxxxxxxxxx",
+        webhook: data.webhook || "https://api.udaan.com/webhooks/razorpay",
+        testMode: !!data.testMode,
+      });
+    } catch (error) {
+      toast.error("Failed to load settings from server");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (hydrated) {
-      const init = {};
-      staticSections.forEach(s => s.settings.forEach(set => { init[set.key] = set.value; }));
-      setValues(init);
-      setBizTypes(settings.businessTypes || []);
-    }
-  }, [hydrated, settings]);
+    fetchSettings();
+  }, []);
 
   const update = (key, val) => setValues(prev => ({ ...prev, [key]: val }));
 
-  const addBizType = () => {
-    if (!newType.trim()) return;
-    if (bizTypes.includes(newType.trim())) return toast.error("Category already exists");
-    setBizTypes([...bizTypes, newType.trim()]);
-    setNewType("");
+  const onSave = async () => {
+    try {
+      setSaving(true);
+      // Retrieve current platform settings to preserve businessTypes array
+      const current = await api.get("/admin/settings");
+      const payload = {
+        ...values,
+        businessTypes: current.data.businessTypes || []
+      };
+      await api.put("/admin/settings", payload);
+      toast.success("Settings saved successfully!");
+    } catch (error) {
+      toast.error("Failed to save settings to server");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const removeBizType = (type) => {
-    setBizTypes(bizTypes.filter(t => t !== type));
-  };
-
-  const onSave = () => {
-    platformSettings.update({ businessTypes: bizTypes });
-    toast.success("Settings and categories saved successfully!");
-  };
-
-  if (!hydrated) return null;
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -79,11 +105,11 @@ export function SASettings() {
           <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
             <Settings className="h-6 w-6 text-emerald-400" /> Platform Settings
           </h1>
-          <p className="text-sm text-slate-500 mt-1">Configure platform-wide settings, business categories, and integrations.</p>
+          <p className="text-sm text-slate-500 mt-1">Configure platform-wide settings and integrations.</p>
         </div>
-        <button onClick={onSave}
-          className="flex items-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 text-sm font-semibold transition-colors">
-          <Save className="h-4 w-4" /> Save Changes
+        <button onClick={onSave} disabled={saving}
+          className="flex items-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white px-4 py-2.5 text-sm font-semibold transition-colors">
+          <Save className="h-4 w-4" /> {saving ? "Saving..." : "Save Changes"}
         </button>
       </div>
 
@@ -125,42 +151,6 @@ export function SASettings() {
         </div>
 
         <div className="space-y-4">
-          {/* Business Categories Management */}
-          <div className="rounded-2xl border border-white/8 overflow-hidden" style={{ background: "oklch(0.19 0.035 257)" }}>
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-white/8">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/15">
-                <LayoutGrid className="h-4 w-4 text-amber-400" />
-              </div>
-              <h3 className="text-sm font-semibold text-white">Business Categories</h3>
-            </div>
-            <div className="p-5 space-y-4">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="New category name..."
-                  value={newType}
-                  onChange={e => setNewType(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && addBizType()}
-                  className="flex-1 h-10 rounded-xl px-3 text-sm bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-                />
-                <button onClick={addBizType} className="h-10 w-10 flex items-center justify-center rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 transition-colors">
-                  <Plus className="h-5 w-5" />
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {bizTypes.map(type => (
-                  <div key={type} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-slate-300">
-                    {type}
-                    <button onClick={() => removeBizType(type)} className="hover:text-red-400 transition-colors">
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <p className="text-[10px] text-slate-500">These categories appear on the registration page.</p>
-            </div>
-          </div>
-
           {/* API Keys */}
           <div className="rounded-2xl border border-white/8 p-5" style={{ background: "oklch(0.19 0.035 257)" }}>
             <div className="flex items-center gap-3 mb-4">
@@ -187,4 +177,3 @@ export function SASettings() {
     </div>
   );
 }
-

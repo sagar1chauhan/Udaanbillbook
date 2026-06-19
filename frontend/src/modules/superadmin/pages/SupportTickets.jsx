@@ -1,16 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Ticket, Clock, MessageSquare, AlertCircle, CheckCircle2, User, Search } from "lucide-react";
 import { toast } from "sonner";
-
-const tickets = [
-  { id: "TKT-892", subject: "Invoice generation failing for bulk orders", business: "Sharma Traders", priority: "High", status: "Open", created: "2 hrs ago", assignee: "Support Team", messages: 4 },
-  { id: "TKT-891", subject: "GST report not matching with actual data", business: "Green Mart", priority: "Critical", status: "Open", created: "4 hrs ago", assignee: "Tax Team", messages: 7 },
-  { id: "TKT-890", subject: "Cannot add new staff members", business: "Patel Electronics", priority: "Medium", status: "In Progress", created: "1 day ago", assignee: "Dev Team", messages: 3 },
-  { id: "TKT-889", subject: "Payment gateway timeout errors", business: "Royal Fabrics", priority: "High", status: "In Progress", created: "1 day ago", assignee: "Payments Team", messages: 8 },
-  { id: "TKT-888", subject: "Request for custom invoice template", business: "Quick Bites Cafe", priority: "Low", status: "Open", created: "2 days ago", assignee: "Unassigned", messages: 2 },
-  { id: "TKT-887", subject: "Data export not including all fields", business: "Fresh Farm Dairy", priority: "Medium", status: "Resolved", created: "3 days ago", assignee: "Dev Team", messages: 5 },
-  { id: "TKT-886", subject: "Subscription upgrade billing issue", business: "Gupta & Sons", priority: "High", status: "Resolved", created: "4 days ago", assignee: "Billing Team", messages: 6 },
-];
+import api from "@/lib/api";
 
 const priorityStyles = {
   Critical: "bg-rose-500/15 text-rose-400 border-rose-500/30",
@@ -20,12 +11,50 @@ const priorityStyles = {
 };
 
 const statusStyles = {
-  Open: "bg-amber-500/15 text-amber-400", "In Progress": "bg-blue-500/15 text-blue-400", Resolved: "bg-emerald-500/15 text-emerald-400",
+  Open: "bg-amber-500/15 text-amber-400", 
+  "In Progress": "bg-blue-500/15 text-blue-400", 
+  Resolved: "bg-emerald-500/15 text-emerald-400",
 };
 
 export function SupportTickets() {
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
+
+  const fetchTickets = async () => {
+    try {
+      const res = await api.get("/admin/tickets");
+      setTickets(res.data);
+    } catch (error) {
+      toast.error("Failed to load support tickets");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTickets();
+  }, []);
+
+  const handleUpdateTicket = async (ticketId, updates) => {
+    try {
+      await api.put(`/admin/tickets/${ticketId}`, updates);
+      toast.success("Ticket updated successfully");
+      fetchTickets();
+    } catch (error) {
+      toast.error("Failed to update ticket");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+      </div>
+    );
+  }
+
   const filtered = tickets.filter(t => {
     const matchesFilter = filter === "All" || t.status === filter;
     const matchesSearch = t.subject.toLowerCase().includes(search.toLowerCase()) || t.business.toLowerCase().includes(search.toLowerCase());
@@ -75,19 +104,41 @@ export function SupportTickets() {
       {/* Tickets List */}
       <div className="space-y-3">
         {filtered.map(t => (
-          <div key={t.id} className="rounded-2xl border border-white/8 p-4 hover:border-emerald-500/20 transition-all cursor-pointer" style={{ background: "oklch(0.19 0.035 257)" }}>
+          <div key={t.id} className="rounded-2xl border border-white/8 p-4 hover:border-emerald-500/20 transition-all" style={{ background: "oklch(0.19 0.035 257)" }}>
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <code className="text-[10px] text-slate-500 font-mono">{t.id}</code>
-                  <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold ${priorityStyles[t.priority]}`}>{t.priority}</span>
-                  <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusStyles[t.status]}`}>{t.status}</span>
+                  <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold ${priorityStyles[t.priority] || ""}`}>{t.priority}</span>
+                  <select 
+                    value={t.status}
+                    onChange={(e) => handleUpdateTicket(t.id, { status: e.target.value })}
+                    className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold bg-[#181d2a] border border-white/10 text-white focus:outline-none cursor-pointer`}
+                  >
+                    <option value="Open">Open</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                  </select>
                 </div>
                 <p className="text-sm font-semibold text-white truncate">{t.subject}</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">{t.business} · {t.created}</p>
+                {t.description && <p className="text-xs text-slate-400 mt-1">{t.description}</p>}
+                <p className="text-[11px] text-slate-500 mt-1">{t.business} · {t.created}</p>
               </div>
-              <div className="flex items-center gap-4 shrink-0">
-                <div className="flex items-center gap-1.5 text-xs text-slate-500"><User className="h-3 w-3" />{t.assignee}</div>
+              <div className="flex items-center gap-4 shrink-0 self-start">
+                <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                  <User className="h-3 w-3" />
+                  <select 
+                    value={t.assignee}
+                    onChange={(e) => handleUpdateTicket(t.id, { assignee: e.target.value })}
+                    className="bg-[#181d2a] border border-white/10 rounded-md px-1.5 py-0.5 text-xs text-white focus:outline-none cursor-pointer"
+                  >
+                    <option value="Unassigned">Unassigned</option>
+                    <option value="Support Team">Support Team</option>
+                    <option value="Tax Team">Tax Team</option>
+                    <option value="Dev Team">Dev Team</option>
+                    <option value="Billing Team">Billing Team</option>
+                  </select>
+                </div>
                 <div className="flex items-center gap-1.5 text-xs text-slate-500"><MessageSquare className="h-3 w-3" />{t.messages}</div>
               </div>
             </div>

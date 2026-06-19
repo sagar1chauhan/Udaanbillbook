@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  Search, Filter, MoreHorizontal, Building2, Eye, Pause,
-  Play, Trash2, ExternalLink, Download, LayoutGrid, List
+  Search, Filter, MoreHorizontal, Building2, Eye, Ban, CheckCircle2,
+  Play, Trash2, ExternalLink, Download, LayoutGrid, List, X
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { businesses, fmt } from "../data/mockData";
+import { fmt } from "../data/mockData";
 import { toast } from "sonner";
+import api from "@/lib/api";
 
 const statusStyles = {
   Active: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
@@ -22,18 +23,76 @@ const planStyles = {
 };
 
 export function BusinessManagement() {
+  const [businesses, setBusinesses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [viewMode, setViewMode] = useState("table");
+  const [selectedBiz, setSelectedBiz] = useState(null);
+
+  const fetchBusinesses = async () => {
+    try {
+      const response = await api.get("/admin/businesses");
+      const mapped = response.data.map(b => ({
+        ...b,
+        status: b.status === "Banned" ? "Suspended" : b.status
+      }));
+      setBusinesses(mapped);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to fetch businesses");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBusinesses();
+  }, []);
+
+  const handleToggleStatus = async (biz) => {
+    const newStatus = biz.status === "Active" || !biz.status ? "Suspended" : "Active";
+    const apiStatus = newStatus === "Suspended" ? "Banned" : "Active";
+    try {
+      await api.put(`/admin/users/${biz.id}/status`, { status: apiStatus });
+      toast.success(`${biz.name} status updated to ${newStatus}`);
+      setBusinesses(prev => prev.map(b => b.id === biz.id ? { ...b, status: newStatus } : b));
+      if (selectedBiz && selectedBiz.id === biz.id) {
+        setSelectedBiz(prev => ({ ...prev, status: newStatus }));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update status");
+    }
+  };
+
+  const handleImpersonate = async (biz) => {
+    try {
+      const response = await api.post(`/admin/impersonate/${biz.id}`);
+      window.localStorage.setItem("Udaan.auth", JSON.stringify(response.data));
+      toast.success(`Impersonating ${biz.owner} / ${biz.name}`);
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 800);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to start impersonation");
+    }
+  };
 
   const filtered = businesses.filter((b) => {
     const matchesSearch =
-      b.name.toLowerCase().includes(search.toLowerCase()) ||
-      b.owner.toLowerCase().includes(search.toLowerCase()) ||
-      b.city.toLowerCase().includes(search.toLowerCase());
+      (b.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (b.owner || "").toLowerCase().includes(search.toLowerCase()) ||
+      (b.city || "").toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "All" || b.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -109,7 +168,7 @@ export function BusinessManagement() {
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-xs font-bold text-blue-400">
-                          {biz.name.split(" ").map((w) => w[0]).join("").slice(0, 2)}
+                          {(biz.name || "B").split(" ").map((w) => w[0]).join("").slice(0, 2)}
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-white truncate">{biz.name}</p>
@@ -139,22 +198,22 @@ export function BusinessManagement() {
                     </td>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-1">
-                        <button className="rounded-lg p-1.5 text-slate-500 hover:text-white hover:bg-white/10 transition-colors" title="View Details">
+                        <button className="rounded-lg p-1.5 text-slate-500 hover:text-white hover:bg-white/10 transition-colors" title="View Details" onClick={() => setSelectedBiz(biz)}>
                           <Eye className="h-3.5 w-3.5" />
                         </button>
                         {biz.status === "Active" ? (
-                          <button className="rounded-lg p-1.5 text-slate-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors" title="Suspend"
-                            onClick={() => toast.warning(`${biz.name} suspended`)}>
-                            <Pause className="h-3.5 w-3.5" />
+                          <button className="rounded-lg p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors" title="Suspend"
+                            onClick={() => handleToggleStatus(biz)}>
+                            <Ban className="h-3.5 w-3.5" />
                           </button>
                         ) : (
                           <button className="rounded-lg p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors" title="Activate"
-                            onClick={() => toast.success(`${biz.name} activated`)}>
-                            <Play className="h-3.5 w-3.5" />
+                            onClick={() => handleToggleStatus(biz)}>
+                            <CheckCircle2 className="h-3.5 w-3.5" />
                           </button>
                         )}
                         <button className="rounded-lg p-1.5 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 transition-colors" title="Impersonate"
-                          onClick={() => toast.info(`Impersonating ${biz.owner}...`)}>
+                          onClick={() => handleImpersonate(biz)}>
                           <ExternalLink className="h-3.5 w-3.5" />
                         </button>
                       </div>
@@ -168,7 +227,7 @@ export function BusinessManagement() {
           <div className="flex items-center justify-between border-t border-white/8 px-4 py-3">
             <span className="text-xs text-slate-500">Showing {filtered.length} of {businesses.length} businesses</span>
             <div className="flex gap-1">
-              {[1, 2, 3].map((p) => (
+              {[1].map((p) => (
                 <button key={p} className={`h-8 w-8 rounded-lg text-xs font-semibold transition-all ${p === 1 ? "bg-emerald-500/15 text-emerald-400" : "text-slate-500 hover:bg-white/5"}`}>
                   {p}
                 </button>
@@ -186,7 +245,7 @@ export function BusinessManagement() {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/15 text-sm font-bold text-blue-400">
-                    {biz.name.split(" ").map((w) => w[0]).join("").slice(0, 2)}
+                    {(biz.name || "B").split(" ").map((w) => w[0]).join("").slice(0, 2)}
                   </div>
                   <div>
                     <p className="text-sm font-bold text-white">{biz.name}</p>
@@ -217,14 +276,127 @@ export function BusinessManagement() {
                 </div>
               </div>
               <div className="flex items-center gap-2 pt-3 border-t border-white/8">
-                <button className="flex-1 rounded-xl py-2 text-xs font-semibold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors">View Details</button>
+                <button className="flex-1 rounded-xl py-2 text-xs font-semibold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors" onClick={() => setSelectedBiz(biz)}>View Details</button>
                 <button className="rounded-xl py-2 px-3 text-xs text-slate-400 bg-white/5 hover:bg-white/10 transition-colors"
-                  onClick={() => toast.info(`Impersonating ${biz.owner}...`)}>
+                  onClick={() => handleImpersonate(biz)}>
                   <ExternalLink className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Business Details Modal */}
+      {selectedBiz && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-lg rounded-2xl border border-white/10 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200" style={{ background: "oklch(0.19 0.035 257)" }}>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/8">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-emerald-400" /> Business Details
+              </h3>
+              <button 
+                onClick={() => setSelectedBiz(null)}
+                className="rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/15 text-lg font-bold text-blue-400">
+                  {(selectedBiz.name || "B").split(" ").map((w) => w[0]).join("").slice(0, 2)}
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-white">{selectedBiz.name}</h4>
+                  <p className="text-xs text-slate-400">{selectedBiz.owner}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Business Name</p>
+                  <p className="text-white font-medium">{selectedBiz.name}</p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Owner / Contact</p>
+                  <p className="text-white font-medium">{selectedBiz.owner}</p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Phone</p>
+                  <p className="text-white font-medium">{selectedBiz.phone}</p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Email</p>
+                  <p className="text-white font-medium">{selectedBiz.email || "N/A"}</p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Active Plan</p>
+                  <div>
+                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${planStyles[selectedBiz.plan] || ""}`}>
+                      {selectedBiz.plan}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Revenue Generated</p>
+                  <p className="text-emerald-400 font-bold">{fmt(selectedBiz.revenue)}</p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Business Type</p>
+                  <p className="text-white font-medium">{selectedBiz.type || "Retail Shop"}</p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">City / Address</p>
+                  <p className="text-white font-medium">{selectedBiz.city || "N/A"}</p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Last Active</p>
+                  <p className="text-white font-medium">{selectedBiz.lastActive || "N/A"}</p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Status</p>
+                  <div>
+                    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${statusStyles[selectedBiz.status] || ""}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${selectedBiz.status === "Active" ? "bg-emerald-400" : selectedBiz.status === "Suspended" ? "bg-rose-400" : "bg-amber-400"}`} />
+                      {selectedBiz.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-white/8 flex justify-end gap-2">
+              <button 
+                onClick={() => {
+                  setSelectedBiz(null);
+                  handleImpersonate(selectedBiz);
+                }}
+                className="rounded-xl bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 text-sm font-semibold transition-colors flex items-center gap-1.5"
+              >
+                <ExternalLink className="h-4 w-4" /> Impersonate
+              </button>
+              <button 
+                onClick={() => setSelectedBiz(null)}
+                className="rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 px-4 py-2 text-sm font-semibold transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
