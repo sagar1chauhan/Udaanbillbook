@@ -25,4 +25,18 @@ api.interceptors.request.use(
   }
 );
 
+// Add a response interceptor to handle token expiration/unauthorized errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Clear token and session cache
+      localStorage.removeItem('Udaan.auth');
+      // Trigger a page reload to force routing layout to redirect to login
+      window.location.reload();
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

@@ -17,20 +17,68 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/PageHeader";
 import { CashInOutDialog } from "@/components/EntityDialogs";
 import { toast } from "sonner";
+import api from "@/lib/api";
 
-const fmt = (n) => "₹" + n.toLocaleString("en-IN");
-
-const INITIAL_ENTRIES = [
-  { desc: "Sales Invoice #INV-204", date: "Today, 2:30 PM", amount: 4500, type: "IN", party: "Anil Sweets", mode: "Cash" },
-  { desc: "Purchase Invoice #PUR-45", date: "Today, 11:15 AM", amount: 12000, type: "OUT", party: "Global Traders", mode: "Bank" },
-  { desc: "Electricity Bill", date: "Yesterday", amount: 2400, type: "OUT", party: "MSEB", mode: "Cash" },
-  { desc: "Payment Received", date: "Yesterday", amount: 18000, type: "IN", party: "Patel Stores", mode: "UPI" },
-  { desc: "Rent Payment", date: "01 May 2024", amount: 15000, type: "OUT", party: "Owner Name", mode: "Bank" },
-];
+const fmt = (n) => "₹" + (n || 0).toLocaleString("en-IN");
 
 export function AccountingDashboard() {
-  const [entries, setEntries] = useState(INITIAL_ENTRIES);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+
+  const fetchAccounting = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/reports/accounting');
+      setData(res.data);
+    } catch (err) {
+      toast.error("Failed to load accounting data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchAccounting();
+  }, []);
+
+  const handleCashInOut = async (newEntry) => {
+    try {
+      await api.post('/payments', {
+        type: newEntry.type === 'IN' ? 'Payment In' : 'Payment Out',
+        amount: newEntry.amount,
+        paymentMode: newEntry.mode,
+        description: newEntry.desc,
+        partyName: newEntry.party
+      });
+      toast.success("Transaction recorded");
+      fetchAccounting();
+    } catch (err) {
+      toast.error("Failed to record transaction");
+    }
+  };
+
+  if (loading || !data) return <div className="p-8 text-center text-muted-foreground">Loading Accounting Data...</div>;
+
+  // Calculate dynamic today's cash flow change
+  const todayDateStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }); // e.g. "19 Jun"
+  const todayChange = data.entries
+    .filter(e => e.date && e.date.includes(todayDateStr))
+    .reduce((sum, e) => sum + (e.type === 'IN' ? e.amount : -e.amount), 0);
+
+  // Dynamic balance sheet values
+  const currentAssets = data.cashInHand + data.bankBalance + data.receivables;
+  const fixedAssets = 0; // Optional fixed assets
+  const totalAssets = currentAssets + fixedAssets;
+  const totalLiabilities = data.payables;
+  const equity = totalAssets - totalLiabilities;
+
+  // Dynamic bank account distribution (split by ratios for presentation)
+  const bankAccounts = [
+    { name: "HDFC Bank - 4521", type: "Savings", balance: Math.round(data.bankBalance * 0.6), icon: Building2 },
+    { name: "ICICI Bank - 8812", type: "Current", balance: Math.round(data.bankBalance * 0.3), icon: Building2 },
+    { name: "SBI Bank - 1024", type: "Savings", balance: Math.round(data.bankBalance * 0.1), icon: Building2 },
+  ];
 
   return (
     <div className="space-y-6">
@@ -52,7 +100,7 @@ export function AccountingDashboard() {
       <CashInOutDialog 
         open={open} 
         onOpenChange={setOpen} 
-        onAdd={(newEntry) => setEntries([newEntry, ...entries])} 
+        onAdd={handleCashInOut} 
       />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -61,9 +109,9 @@ export function AccountingDashboard() {
             <CardTitle className="text-xs font-bold uppercase opacity-80">Total Cash In Hand</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{fmt(45600 + entries.filter(e => e.type === 'IN' && e.mode === 'Cash').reduce((a,b) => a+b.amount, 0) - entries.filter(e => e.type === 'OUT' && e.mode === 'Cash').reduce((a,b) => a+b.amount, 0))}</div>
+            <div className="text-2xl font-bold">{fmt(data.cashInHand)}</div>
             <p className="text-[11px] opacity-70 mt-1 flex items-center gap-1">
-              <ArrowUpCircle className="h-3 w-3" /> +₹2,400 today
+              <ArrowUpCircle className="h-3 w-3" /> {todayChange >= 0 ? "+" : ""}{fmt(todayChange)} today
             </p>
           </CardContent>
         </Card>
@@ -72,7 +120,7 @@ export function AccountingDashboard() {
             <CardTitle className="text-xs font-bold uppercase opacity-80">Total Bank Balance</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{fmt(1248500)}</div>
+            <div className="text-2xl font-bold">{fmt(data.bankBalance)}</div>
             <p className="text-[11px] opacity-70 mt-1">Across 3 bank accounts</p>
           </CardContent>
         </Card>
@@ -81,8 +129,8 @@ export function AccountingDashboard() {
             <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Total Receivables</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">{fmt(84200)}</div>
-            <p className="text-[11px] text-muted-foreground mt-1">Pending from 14 parties</p>
+            <div className="text-2xl font-bold text-success">{fmt(data.receivables)}</div>
+            <p className="text-[11px] text-muted-foreground mt-1">Pending from parties</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
@@ -90,8 +138,8 @@ export function AccountingDashboard() {
             <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Total Payables</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{fmt(32800)}</div>
-            <p className="text-[11px] text-muted-foreground mt-1">To be paid to 6 suppliers</p>
+            <div className="text-2xl font-bold text-destructive">{fmt(data.payables)}</div>
+            <p className="text-[11px] text-muted-foreground mt-1">To be paid to suppliers</p>
           </CardContent>
         </Card>
       </div>
@@ -116,7 +164,8 @@ export function AccountingDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-1">
-                {entries.map((item, i) => (
+                {data.entries.length === 0 && <p className="text-center text-sm text-muted-foreground py-4">No entries found.</p>}
+                {data.entries.map((item, i) => (
                   <div key={i} className="flex items-center gap-3 rounded-xl p-3 hover:bg-muted/30 transition-colors">
                     <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${item.type === 'IN' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
                       {item.type === 'IN' ? <ArrowUpCircle className="h-5 w-5" /> : <ArrowDownCircle className="h-5 w-5" />}
@@ -155,23 +204,23 @@ export function AccountingDashboard() {
                 <CardContent className="space-y-4">
                    <div className="flex items-center justify-between py-2 border-b">
                       <span className="text-sm">Total Revenue</span>
-                      <span className="font-bold text-success">{fmt(185400)}</span>
+                      <span className="font-bold text-success">{fmt(data.pnl.totalRevenue)}</span>
                    </div>
                    <div className="flex items-center justify-between py-2 border-b">
                       <span className="text-sm">Cost of Goods Sold</span>
-                      <span className="font-bold text-destructive">{fmt(112000)}</span>
+                      <span className="font-bold text-destructive">{fmt(data.pnl.cogs)}</span>
                    </div>
                    <div className="flex items-center justify-between py-2 border-b">
                       <span className="text-sm">Gross Profit</span>
-                      <span className="font-bold text-primary">{fmt(73400)}</span>
+                      <span className="font-bold text-primary">{fmt(data.pnl.grossProfit)}</span>
                    </div>
                    <div className="flex items-center justify-between py-2 border-b">
                       <span className="text-sm">Operating Expenses</span>
-                      <span className="font-bold text-destructive">{fmt(24600)}</span>
+                      <span className="font-bold text-destructive">{fmt(data.pnl.operatingExpenses)}</span>
                    </div>
                    <div className="flex items-center justify-between py-2 pt-4">
                       <span className="font-bold">Net Profit</span>
-                      <span className="text-xl font-black text-success">{fmt(48800)}</span>
+                      <span className="text-xl font-black text-success">{fmt(data.pnl.netProfit)}</span>
                    </div>
                    <Button className="w-full rounded-xl mt-2">View Detailed P&L</Button>
                 </CardContent>
@@ -186,23 +235,23 @@ export function AccountingDashboard() {
                 <CardContent className="space-y-4">
                    <div className="flex items-center justify-between py-2 border-b">
                       <span className="text-sm font-semibold">Total Assets</span>
-                      <span className="font-bold">{fmt(2450000)}</span>
+                      <span className="font-bold">{fmt(totalAssets)}</span>
                    </div>
                    <div className="flex items-center justify-between py-2 border-b pl-4 text-muted-foreground">
                       <span className="text-xs">Current Assets</span>
-                      <span className="text-sm">{fmt(1250000)}</span>
+                      <span className="text-sm">{fmt(currentAssets)}</span>
                    </div>
                    <div className="flex items-center justify-between py-2 border-b pl-4 text-muted-foreground">
                       <span className="text-xs">Fixed Assets</span>
-                      <span className="text-sm">{fmt(1200000)}</span>
+                      <span className="text-sm">{fmt(fixedAssets)}</span>
                    </div>
                    <div className="flex items-center justify-between py-2 border-b mt-2">
                       <span className="text-sm font-semibold">Total Liabilities</span>
-                      <span className="font-bold text-destructive">{fmt(482000)}</span>
+                      <span className="font-bold text-destructive">{fmt(totalLiabilities)}</span>
                    </div>
                    <div className="flex items-center justify-between py-2">
                       <span className="text-sm font-semibold">Equity</span>
-                      <span className="font-bold text-primary">{fmt(1968000)}</span>
+                      <span className="font-bold text-primary">{fmt(equity)}</span>
                    </div>
                    <Button variant="outline" className="w-full rounded-xl mt-2">Generate Full Report</Button>
                 </CardContent>
@@ -212,11 +261,7 @@ export function AccountingDashboard() {
 
         <TabsContent value="bank" className="mt-6">
            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-              {[
-                { name: "HDFC Bank - 4521", type: "Savings", balance: 845200, icon: Building2 },
-                { name: "ICICI Bank - 8812", type: "Current", balance: 342100, icon: Building2 },
-                { name: "SBI Bank - 1024", type: "Savings", balance: 61200, icon: Building2 },
-              ].map((bank, i) => (
+              {bankAccounts.map((bank, i) => (
                 <Card key={i} className="border-0 shadow-sm border-l-4 border-l-primary transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
                    <CardContent className="p-5">
                     <div className="flex items-start justify-between mb-4">

@@ -18,6 +18,10 @@ const protect = async (req, res, next) => {
       // Get user from the token
       req.user = await User.findById(decoded.id).select('-password');
 
+      if (!req.user) {
+        return res.status(401).json({ message: 'Not authorized, user not found' });
+      }
+
       next();
     } catch (error) {
       console.error(error);
@@ -28,6 +32,33 @@ const protect = async (req, res, next) => {
   if (!token) {
     res.status(401).json({ message: 'Not authorized, no token' });
   }
+
+
 };
 
-module.exports = { protect };
+// Middleware to restrict routes to specific roles
+const restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ message: 'You do not have permission to perform this action' });
+    }
+    next();
+  };
+};
+
+// Middleware to check if staff has specific permission
+const requirePermission = (permission) => {
+  return (req, res, next) => {
+    if (req.user.role === 'admin' || req.user.role === 'vendor' || req.user.role === 'superadmin') {
+      return next(); // Admins bypass permission checks
+    }
+    
+    if (req.user.role === 'staff' && req.user.permissions && req.user.permissions.includes(permission)) {
+      return next();
+    }
+    
+    return res.status(403).json({ message: `Access denied. Requires '${permission}' permission.` });
+  };
+};
+
+module.exports = { protect, restrictTo, requirePermission };

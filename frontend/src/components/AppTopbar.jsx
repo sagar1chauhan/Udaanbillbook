@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Bell, Search, Plus, LogOut, Settings as SettingsIcon, User, Menu } from "lucide-react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, Link, useLocation, useSearchParams } from "react-router-dom";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 const logo = "/udaan-logo-removebg-preview.png";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,19 @@ import { useMockAuth, mockAuth } from "@/lib/auth-store";
 import { toast } from "sonner";
 
 export function AppTopbar() {
-  const [open, setOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const open = searchParams.get("create-invoice") === "true";
+  const setOpen = (val) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (val) {
+        next.set("create-invoice", "true");
+      } else {
+        next.delete("create-invoice");
+      }
+      return next;
+    });
+  };
   const { user } = useMockAuth();
   const navigate = useNavigate();
   const { toggleSidebar } = useSidebar();

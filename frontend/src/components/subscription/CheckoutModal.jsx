@@ -6,38 +6,45 @@ import { mockAuth, useMockAuth } from "@/lib/auth-store";
 import { toast } from "sonner";
 import { PLANS } from "@/hooks/useSubscription";
 
+import api from "@/lib/api";
+
 export function CheckoutModal({ isOpen, onClose, selectedPlan, planPrice }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const { user } = useMockAuth();
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     setIsProcessing(true);
     
-    // Simulate payment gateway delay (e.g. Razorpay/Stripe)
-    setTimeout(() => {
-      setIsProcessing(false);
-      setIsSuccess(true);
+    try {
+      // Update subscription in database
+      const res = await api.post("/auth/subscribe", { planName: selectedPlan });
       
-      // Update global user state with new subscription
-      mockAuth.updateUser({
-        subscription: {
-          plan: selectedPlan,
-          status: "active",
-          validUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString() // 1 year from now
-        }
-      });
-      
-      toast.success(`Successfully upgraded to ${selectedPlan} Plan!`);
-      
-      // Auto close after success
+      // Simulate payment gateway delay (e.g. Razorpay/Stripe)
       setTimeout(() => {
-        setIsSuccess(false);
-        onClose();
-        // optionally refresh or reload to apply full UI changes
-      }, 2000);
+        setIsProcessing(false);
+        setIsSuccess(true);
+        
+        // Update global user state with new subscription
+        mockAuth.updateUser({
+          subscription: res.data.subscription
+        });
+        
+        toast.success(`Successfully upgraded to ${selectedPlan} Plan!`);
+        
+        // Auto close after success
+        setTimeout(() => {
+          setIsSuccess(false);
+          onClose();
+          // Force reload to apply subscription limits and permissions
+          window.location.reload();
+        }, 2000);
 
-    }, 2000);
+      }, 1500);
+    } catch (error) {
+      setIsProcessing(false);
+      toast.error(error.response?.data?.message || "Payment subscription failed");
+    }
   };
 
   const handleCancel = () => {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthShell } from "@/components/AuthShell";
 import { Button } from "@/components/ui/button";
@@ -9,13 +9,18 @@ import {
 } from "@/components/ui/select";
 import { ArrowRight, Phone, MapPin } from "lucide-react";
 import { toast } from "sonner";
-import { usePlatformSettings } from "@/lib/platform-settings";
 import api from "@/lib/api";
 
 export default function Register() {
   const navigate = useNavigate();
-  const { settings } = usePlatformSettings();
-  const businessTypes = settings.businessTypes;
+  const [businessTypes, setBusinessTypes] = useState([
+    "Retail Shop",
+    "Wholesale / Distribution",
+    "Manufacturing",
+    "Services",
+    "Restaurant / Cafe",
+    "Other"
+  ]);
 
   const [form, setForm] = useState({
     name: "",
@@ -26,6 +31,21 @@ export default function Register() {
     email: "",
   });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchPublicSettings = async () => {
+      try {
+        const res = await api.get("/auth/settings");
+        if (res.data.businessTypes && res.data.businessTypes.length > 0) {
+          setBusinessTypes(res.data.businessTypes);
+          setForm(f => ({ ...f, type: res.data.businessTypes[0] }));
+        }
+      } catch (error) {
+        console.error("Failed to load business types", error);
+      }
+    };
+    fetchPublicSettings();
+  }, []);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -50,7 +70,8 @@ export default function Register() {
           name: form.name,
           business: form.business,
           email: form.email,
-          address: form.address
+          address: form.address,
+          businessType: form.type
         }
       });
     } catch (error) {

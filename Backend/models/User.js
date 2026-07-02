@@ -31,10 +31,41 @@ const userSchema = new mongoose.Schema({
   otpExpires: {
     type: Date,
   },
+  lastLogin: {
+    type: Date,
+  },
+  device: {
+    type: String,
+  },
   role: {
     type: String,
-    enum: ['user', 'vendor', 'admin'],
+    enum: ['user', 'vendor', 'admin', 'staff'],
     default: 'vendor'
+  },
+  status: {
+    type: String,
+    enum: ['Active', 'Banned'],
+    default: 'Active'
+  },
+  permissions: [{
+    type: String
+  }],
+  ownerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  subscription: {
+    plan: {
+      type: String,
+      default: 'Free'
+    },
+    status: {
+      type: String,
+      default: 'active'
+    },
+    validUntil: {
+      type: Date
+    }
   }
 }, {
   timestamps: true

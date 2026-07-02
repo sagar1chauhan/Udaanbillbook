@@ -1,7 +1,8 @@
-import React from "react";
-import { CreditCard, TrendingUp, Users, Check, Star, Edit2, Archive } from "lucide-react";
-import { subscriptionPlans, fmt } from "../data/mockData";
+import React, { useState, useEffect } from "react";
+import { CreditCard, TrendingUp, Users, Check, Star, Edit2, Archive, X, Plus } from "lucide-react";
+import { fmt } from "../data/mockData";
 import { toast } from "sonner";
+import api from "@/lib/api";
 
 const planAccents = {
   Free: { bg: "bg-slate-500/15", text: "text-slate-400", border: "border-slate-500/30", glow: "bg-slate-500" },
@@ -11,8 +12,113 @@ const planAccents = {
 };
 
 export function SubscriptionManager() {
-  const totalMRR = subscriptionPlans.reduce((sum, p) => sum + p.monthlyRevenue, 0);
-  const totalSubscribers = subscriptionPlans.reduce((sum, p) => sum + p.activeSubscribers, 0);
+  const [subscriptionPlans, setSubscriptionPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const [editingPlan, setEditingPlan] = useState(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    price: "",
+    features: "",
+    popular: false,
+    platforms: "Mobile + Desktop",
+    description: ""
+  });
+
+  const fetchPlans = async () => {
+    try {
+      const response = await api.get("/admin/subscriptions");
+      setSubscriptionPlans(response.data);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to fetch plans");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPlans();
+  }, []);
+
+  const handleOpenCreate = () => {
+    setEditingPlan(null);
+    setFormData({
+      name: "",
+      price: "",
+      features: "",
+      popular: false,
+      platforms: "Mobile + Desktop",
+      description: ""
+    });
+    setIsOpen(true);
+  };
+
+  const handleOpenEdit = (plan) => {
+    setEditingPlan(plan);
+    setFormData({
+      name: plan.name,
+      price: plan.price.toString(),
+      features: plan.features.join("\n"),
+      popular: plan.popular,
+      platforms: plan.platforms,
+      description: plan.description || ""
+    });
+    setIsOpen(true);
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!formData.name.trim() || formData.price === "") {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    const payload = {
+      name: formData.name.trim(),
+      price: Number(formData.price),
+      features: formData.features.split("\n").map(f => f.trim()).filter(Boolean),
+      popular: formData.popular,
+      platforms: formData.platforms,
+      description: formData.description.trim()
+    };
+
+    try {
+      if (editingPlan) {
+        await api.put(`/admin/subscriptions/${editingPlan.id}`, payload);
+        toast.success("Plan updated successfully");
+      } else {
+        await api.post("/admin/subscriptions", payload);
+        toast.success("Plan created successfully");
+      }
+      setIsOpen(false);
+      fetchPlans();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to save plan");
+    }
+  };
+
+  const handleDelete = async (planId) => {
+    if (window.confirm("Are you sure you want to delete/archive this plan?")) {
+      try {
+        await api.delete(`/admin/subscriptions/${planId}`);
+        toast.success("Plan deleted/archived successfully");
+        fetchPlans();
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to delete plan");
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+      </div>
+    );
+  }
+
+  const totalMRR = subscriptionPlans.reduce((sum, p) => sum + (p.monthlyRevenue || 0), 0);
+  const totalSubscribers = subscriptionPlans.reduce((sum, p) => sum + (p.activeSubscribers || 0), 0);
   const arr = totalMRR * 12;
 
   return (
@@ -23,9 +129,9 @@ export function SubscriptionManager() {
           <h1 className="text-2xl font-bold text-white tracking-tight">Subscription Manager</h1>
           <p className="text-sm text-slate-500 mt-1">Manage pricing plans, track MRR, and monitor subscriber health.</p>
         </div>
-        <button className="rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 text-sm font-semibold transition-colors"
-          onClick={() => toast.info("Create plan modal coming soon")}>
-          + Create Plan
+        <button className="rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 text-sm font-semibold transition-colors flex items-center gap-1.5"
+          onClick={handleOpenCreate}>
+          <Plus className="h-4 w-4" /> Create Plan
         </button>
       </div>
 
@@ -70,11 +176,11 @@ export function SubscriptionManager() {
                   </span>
                   <div className="flex gap-1">
                     <button className="rounded-lg p-1.5 text-slate-500 hover:text-white hover:bg-white/10 transition-colors" title="Edit"
-                      onClick={() => toast.info(`Editing ${plan.name} plan`)}>
+                      onClick={() => handleOpenEdit(plan)}>
                       <Edit2 className="h-3.5 w-3.5" />
                     </button>
-                    <button className="rounded-lg p-1.5 text-slate-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors" title="Archive"
-                      onClick={() => toast.warning(`${plan.name} plan archived`)}>
+                    <button className="rounded-lg p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors" title="Delete"
+                      onClick={() => handleDelete(plan.id)}>
                       <Archive className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -124,6 +230,109 @@ export function SubscriptionManager() {
           );
         })}
       </div>
+
+      {/* Create / Edit Plan Modal Overlay */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-white/10 p-6 shadow-2xl relative overflow-hidden"
+            style={{ background: "oklch(0.19 0.035 257)" }}
+          >
+            <button className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+              onClick={() => setIsOpen(false)}>
+              <X className="h-5 w-5" />
+            </button>
+            <h2 className="text-xl font-bold text-white mb-4">
+              {editingPlan ? `Edit Plan: ${editingPlan.name}` : "Create New Plan"}
+            </h2>
+            <form onSubmit={handleSave} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Plan Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Premium"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 mb-1">Price (₹ / month) *</label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    placeholder="e.g. 299"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 mb-1">Platforms</label>
+                  <select
+                    className="w-full bg-[#181d2a] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                    value={formData.platforms}
+                    onChange={(e) => setFormData({ ...formData, platforms: e.target.value })}
+                  >
+                    <option value="Mobile Only">Mobile Only</option>
+                    <option value="Mobile + Desktop">Mobile + Desktop</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Description</label>
+                <input
+                  type="text"
+                  placeholder="Brief description of the plan"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Features (One per line) *</label>
+                <textarea
+                  rows={4}
+                  required
+                  placeholder="Unlimited Invoices&#10;Advanced GST Reports&#10;Desktop Access"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 font-mono"
+                  value={formData.features}
+                  onChange={(e) => setFormData({ ...formData, features: e.target.value })}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="popular"
+                  className="rounded bg-white/5 border-white/10 text-emerald-500 focus:ring-emerald-500"
+                  checked={formData.popular}
+                  onChange={(e) => setFormData({ ...formData, popular: e.target.checked })}
+                />
+                <label htmlFor="popular" className="text-xs font-semibold text-slate-300 select-none cursor-pointer">
+                  Mark as Most Popular plan
+                </label>
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 text-sm font-semibold transition-colors"
+                >
+                  Save Plan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

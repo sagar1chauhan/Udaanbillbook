@@ -16,7 +16,6 @@ const partySchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['Customer', 'Supplier'],
     required: true,
   },
   gstin: {

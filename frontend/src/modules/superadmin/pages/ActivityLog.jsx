@@ -1,23 +1,17 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Activity, Building2, CreditCard, AlertTriangle, Ticket, Users, ShieldAlert, Settings, ArrowUpRight } from "lucide-react";
+import { toast } from "sonner";
+import api from "@/lib/api";
 
-const activities = [
-  { action: "New Business Registered", detail: "Fresh Farm Dairy — Anita Desai (Ahmedabad)", time: "2 min ago", type: "business", icon: Building2 },
-  { action: "Subscription Upgraded", detail: "Sharma Traders: Silver → Gold plan", time: "15 min ago", type: "subscription", icon: CreditCard },
-  { action: "Payment Failed", detail: "Quick Bites Cafe — ₹2,388 (UPI timeout)", time: "1 hr ago", type: "payment", icon: AlertTriangle },
-  { action: "Business Suspended", detail: "Gupta & Sons — Policy violation detected", time: "3 hrs ago", type: "security", icon: ShieldAlert },
-  { action: "Support Ticket Opened", detail: "#TKT-892 — Invoice generation issue", time: "5 hrs ago", type: "support", icon: Ticket },
-  { action: "New User Added", detail: "Staff: Priya Singh → Green Mart", time: "6 hrs ago", type: "user", icon: Users },
-  { action: "New Business Registered", detail: "Krishna Stores — Vikram Reddy (Hyderabad)", time: "8 hrs ago", type: "business", icon: Building2 },
-  { action: "Plan Downgraded", detail: "Patel Electronics: Gold → Silver", time: "12 hrs ago", type: "subscription", icon: CreditCard },
-  { action: "Suspicious Login Detected", detail: "Unknown IP 103.24.56.78 → vikram@krishna.com", time: "14 hrs ago", type: "security", icon: ShieldAlert },
-  { action: "Settings Updated", detail: "SuperAdmin changed SMTP configuration", time: "1 day ago", type: "settings", icon: Settings },
-  { action: "Support Ticket Resolved", detail: "#TKT-887 — Data export issue fixed", time: "1 day ago", type: "support", icon: Ticket },
-  { action: "Subscription Renewed", detail: "Royal Fabrics — Gold plan (₹2,988)", time: "2 days ago", type: "subscription", icon: CreditCard },
-  { action: "Business Reactivated", detail: "Gupta & Sons — Suspension lifted", time: "2 days ago", type: "business", icon: Building2 },
-  { action: "New Business Registered", detail: "Metro Fresh — Sanjay Mehta (Chennai)", time: "3 days ago", type: "business", icon: Building2 },
-  { action: "Payment Refunded", detail: "Gupta & Sons — ₹2,988 (Card refund)", time: "3 days ago", type: "payment", icon: AlertTriangle },
-];
+const typeIcons = {
+  business: Building2,
+  subscription: CreditCard,
+  payment: AlertTriangle,
+  security: ShieldAlert,
+  support: Ticket,
+  user: Users,
+  settings: Settings
+};
 
 const typeStyles = {
   business: { bg: "bg-blue-500/15", text: "text-blue-400", dot: "bg-blue-400" },
@@ -30,7 +24,32 @@ const typeStyles = {
 };
 
 export function ActivityLog() {
-  const today = activities.filter(a => a.time.includes("min") || a.time.includes("hr"));
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchActivityLogs = async () => {
+      try {
+        const res = await api.get("/admin/activity");
+        setActivities(res.data);
+      } catch (error) {
+        toast.error("Failed to load activity logs");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchActivityLogs();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+      </div>
+    );
+  }
+
+  const today = activities.filter(a => a.time.includes("min") || a.time.includes("hr") || a.time.toLowerCase().includes("now"));
   const earlier = activities.filter(a => a.time.includes("day"));
 
   const renderSection = (title, items) => (
@@ -42,7 +61,7 @@ export function ActivityLog() {
       <div className="space-y-1">
         {items.map((item, i) => {
           const style = typeStyles[item.type] || typeStyles.business;
-          const Icon = item.icon;
+          const Icon = typeIcons[item.type] || Building2;
           return (
             <div key={i} className="flex items-start gap-3 rounded-xl p-3 hover:bg-white/3 transition-colors group">
               <div className="relative mt-0.5">
@@ -65,6 +84,7 @@ export function ActivityLog() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
           <Activity className="h-6 w-6 text-emerald-400" /> Activity Log

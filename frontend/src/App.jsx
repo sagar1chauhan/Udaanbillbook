@@ -5,6 +5,7 @@ import { InvoiceProvider } from "./contexts/InvoiceContext";
 
 // Auth Pages
 import Login from "./pages/Login";
+import AdminLogin from "./pages/AdminLogin";
 import Register from "./pages/Register";
 import VerifyOtp from "./pages/VerifyOtp";
 
@@ -22,6 +23,7 @@ import { PartiesDashboard } from "./modules/parties/PartiesDashboard";
 import { ReportsDashboard } from "./modules/reports/ReportsDashboard";
 import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
+import UserTickets from "./pages/UserTickets";
 import { useSubscription } from "./hooks/useSubscription";
 import { useMockAuth } from "./lib/auth-store";
 
@@ -37,6 +39,7 @@ import { UserManagementSA } from "./modules/superadmin/pages/UserManagementSA";
 import { SupportTickets } from "./modules/superadmin/pages/SupportTickets";
 import { ActivityLog } from "./modules/superadmin/pages/ActivityLog";
 import { SASettings } from "./modules/superadmin/pages/SASettings";
+import { BusinessCategories } from "./modules/superadmin/pages/BusinessCategories";
 
 function SubscriptionGuard({ children, feature }) {
   const { canAccessFeature, hydrated } = useSubscription();
@@ -48,7 +51,7 @@ function SubscriptionGuard({ children, feature }) {
 function SuperAdminGuard({ children }) {
   const { user, hydrated } = useMockAuth();
   if (!hydrated) return null;
-  if (!user || user.role?.toLowerCase() !== "admin") return <Navigate to="/login" replace />;
+  if (!user || user.role?.toLowerCase() !== "admin") return <Navigate to="/admin/login" replace />;
   return children;
 }
 
@@ -83,7 +86,7 @@ export default function App() {
           {/* Public Routes */}
           <Route path="/login" element={<Login role="staff" />} />
           <Route path="/user/login" element={<Login role="staff" />} />
-          <Route path="/admin/login" element={<Login role="admin" />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
 
@@ -101,6 +104,7 @@ export default function App() {
           <Route path="/reports" element={<SubscriptionGuard feature="reports"><ReportsDashboard /></SubscriptionGuard>} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/tickets" element={<UserTickets />} />
 
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
@@ -118,6 +122,7 @@ export default function App() {
           <Route path="/superadmin/tickets" element={<SupportTickets />} />
           <Route path="/superadmin/activity" element={<ActivityLog />} />
           <Route path="/superadmin/settings" element={<SASettings />} />
+          <Route path="/superadmin/categories" element={<BusinessCategories />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Building2, CreditCard, TrendingUp, Users, Clock,
   AlertTriangle, Ticket, ArrowUpRight, ArrowDownRight,
@@ -8,11 +8,9 @@ import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
-import {
-  platformKPIs, revenueChartData, businessGrowthData,
-  subscriptionDistribution, dailySignups, recentActivities,
-  businesses, transactions, fmt
-} from "../data/mockData";
+import { toast } from "sonner";
+import api from "@/lib/api";
+import { fmt } from "../data/mockData";
 
 /* ──────── KPI Card ──────── */
 function KpiCard({ label, value, delta, up, icon: Icon, gradient, iconBg }) {
@@ -93,7 +91,39 @@ function CustomTooltip({ active, payload, label }) {
 
 /* ──────── Main Dashboard ──────── */
 export function SADashboard() {
-  const kpis = platformKPIs;
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const res = await api.get("/admin/dashboard");
+        setData(res.data);
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to load dashboard data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+      </div>
+    );
+  }
+
+  const kpis = data.platformKPIs;
+  const revenueChartData = data.revenueChartData;
+  const businessGrowthData = data.businessGrowthData;
+  const subscriptionDistribution = data.subscriptionDistribution;
+  const dailySignups = data.dailySignups;
+  const businesses = data.businesses;
+  const transactions = data.transactions;
+  const recentActivities = data.recentActivities;
 
   return (
     <div className="space-y-6">
@@ -247,7 +277,7 @@ export function SADashboard() {
               .sort((a, b) => b.revenue - a.revenue)
               .slice(0, 5)
               .map((biz, i) => (
-                <div key={biz.id} className="flex items-center gap-3 rounded-xl p-2.5 hover:bg-white/5 transition-colors">
+                <div key={biz.id || biz._id} className="flex items-center gap-3 rounded-xl p-2.5 hover:bg-white/5 transition-colors">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/15 text-xs font-bold text-blue-400">
                     {i + 1}
                   </div>

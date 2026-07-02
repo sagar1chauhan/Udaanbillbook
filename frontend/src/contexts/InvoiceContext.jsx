@@ -1,24 +1,49 @@
-import React, { createContext, useContext, useState } from "react";
-
-const INITIAL_INVOICES = [
-  { id: "INV-2041", party: "Anil Sweets", date: "28 Apr 2026", amount: 24500, status: "Unpaid", type: "Sale" },
-  { id: "INV-2040", party: "Sharma Kirana", date: "27 Apr 2026", amount: 12800, status: "Partial", type: "Sale" },
-  { id: "PUR-1001", party: "S.K. Traders", date: "26 Apr 2026", amount: 8400, status: "Paid", type: "Purchase" },
-  { id: "INV-2038", party: "Patel Stores", date: "25 Apr 2026", amount: 36200, status: "Unpaid", type: "Sale" },
-  { id: "PUR-1002", party: "Global Fabrics", date: "24 Apr 2026", amount: 18900, status: "Paid", type: "Purchase" },
-];
+import React, { createContext, useContext, useState, useEffect } from "react";
+import api from "@/lib/api";
 
 const InvoiceContext = createContext();
 
 export function InvoiceProvider({ children }) {
-  const [invoices, setInvoices] = useState(INITIAL_INVOICES);
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchInvoices = async () => {
+    const authData = localStorage.getItem('Udaan.auth');
+    if (!authData) return;
+    setLoading(true);
+    try {
+      const res = await api.get("/invoices");
+      // Normalize invoices from backend
+      const normalized = (res.data || []).map(inv => ({
+        id: inv.invoiceNumber || `INV-${inv._id.substring(18).toUpperCase()}`,
+        party: inv.partyName || (inv.party && inv.party.name) || "Walk-in Customer",
+        date: new Date(inv.date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
+        amount: inv.grandTotal || 0,
+        status: inv.status || "Unpaid",
+        type: inv.type || "Sale"
+      }));
+      setInvoices(normalized);
+    } catch (err) {
+      console.error("Failed to fetch invoices:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
+
+  const refreshInvoices = () => {
+    fetchInvoices();
+  };
 
   const addInvoice = (invoice) => {
-    setInvoices((prev) => [invoice, ...prev]);
+    refreshInvoices();
   };
 
   return (
-    <InvoiceContext.Provider value={{ invoices, addInvoice }}>
+    <InvoiceContext.Provider value={{ invoices, loading, refreshInvoices, addInvoice }}>
       {children}
     </InvoiceContext.Provider>
   );

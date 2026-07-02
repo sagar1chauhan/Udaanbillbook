@@ -18,20 +18,24 @@ const FEATURE_ACCESS = {
   accounting: [PLANS.GOLD, PLANS.ENTERPRISE], // Advanced accounting in Gold+
   gst: [PLANS.GOLD, PLANS.ENTERPRISE], // GST in Gold+
   reports: [PLANS.SILVER, PLANS.GOLD, PLANS.ENTERPRISE], // Standard reports in Silver+
-  admin: [PLANS.GOLD, PLANS.ENTERPRISE], // Staff management in Gold+
+  admin: [PLANS.FREE, PLANS.SILVER, PLANS.GOLD, PLANS.ENTERPRISE], // Staff management in all plans
 };
 
 export function useSubscription() {
   const { user, hydrated } = useMockAuth();
   
+  const isAdmin = user?.role?.toLowerCase() === "admin";
+  
   // Default to Free plan if no subscription object exists
-  const currentPlan = user?.subscription?.plan || PLANS.FREE;
-  const planStatus = user?.subscription?.status || "active";
+  const currentPlan = isAdmin ? "None" : (user?.subscription?.plan || PLANS.FREE);
+  const planStatus = isAdmin ? "inactive" : (user?.subscription?.status || "active");
 
-  const isFree = currentPlan === PLANS.FREE;
-  const isPremium = currentPlan !== PLANS.FREE && planStatus === "active";
+  const isFree = !isAdmin && currentPlan === PLANS.FREE;
+  const isPremium = !isAdmin && currentPlan !== PLANS.FREE && planStatus === "active";
 
   const canAccessFeature = (featureName) => {
+    if (isAdmin) return true; // Admins have bypass access to all features
+    
     const allowedPlans = FEATURE_ACCESS[featureName.toLowerCase()];
     if (!allowedPlans) return true; // If feature isn't defined, allow access
     
