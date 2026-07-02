@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { sendOtp, verifyOtp, getMe, loginEmail, getStaff, addStaff, updateStaff, deleteStaff } = require('../controllers/authController');
+const { sendOtp, verifyOtp, getMe, loginEmail, getStaff, addStaff, updateStaff, deleteStaff, getPlans, subscribeUser, getPublicSettings, getUserTickets, createUserTicket } = require('../controllers/authController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
 router.post('/send-otp', sendOtp);
