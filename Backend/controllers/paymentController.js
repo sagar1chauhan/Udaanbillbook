@@ -7,7 +7,9 @@ const Invoice = require('../models/Invoice');
 // @access  Private
 const getPayments = async (req, res) => {
   try {
-    const payments = await Payment.find({ user: req.user.id })
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
+    const payments = await Payment.find({ user: ownerId })
       .populate('party', 'name phone')
       .sort({ date: -1 });
     res.status(200).json(payments);
@@ -21,6 +23,8 @@ const getPayments = async (req, res) => {
 // @access  Private
 const createPayment = async (req, res) => {
   try {
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
     const { party, partyName, type, amount, paymentMode, date, referenceNumber, description, associatedInvoices } = req.body;
 
     if (!type || !amount) {
@@ -28,7 +32,7 @@ const createPayment = async (req, res) => {
     }
 
     const payment = await Payment.create({
-      user: req.user.id,
+      user: ownerId,
       party,
       partyName,
       type,
@@ -40,7 +44,33 @@ const createPayment = async (req, res) => {
       associatedInvoices
     });
 
-    // TODO: Update associated invoices status and Party balance based on payment
+    // Update Party balance based on payment
+    if (party) {
+      const dbParty = await Party.findById(party);
+      if (dbParty) {
+        let currentMathBalance = dbParty.balanceType === 'To Receive' ? dbParty.balance : -dbParty.balance;
+        
+        let amountChange = 0;
+        if (type === 'Payment In') {
+          amountChange = -amount;
+        } else if (type === 'Payment Out') {
+          amountChange = amount;
+        }
+
+        const newMathBalance = currentMathBalance + amountChange;
+        dbParty.balance = Math.abs(newMathBalance);
+        dbParty.balanceType = newMathBalance >= 0 ? 'To Receive' : 'To Pay';
+        await dbParty.save();
+      }
+    }
+
+    // Update associated invoices status
+    if (associatedInvoices && associatedInvoices.length > 0) {
+      await Invoice.updateMany(
+        { _id: { $in: associatedInvoices } },
+        { $set: { status: 'Paid' } }
+      );
+    }
 
     res.status(201).json(payment);
   } catch (error) {

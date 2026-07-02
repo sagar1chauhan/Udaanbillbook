@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,27 +36,43 @@ export function BillingDashboard() {
   const [tab, setTab] = useState("all");
   const filtered = tab === "all" ? invoices : invoices.filter((i) => i.status.toLowerCase() === tab);
 
+  const stats = useMemo(() => {
+    let totalInvoices = invoices.length;
+    let paidAmount = 0;
+    let unpaidAmount = 0;
+    let partialAmount = 0;
+
+    invoices.forEach(inv => {
+      const amount = inv.grandTotal || inv.amount || 0;
+      if (inv.status === 'Paid') paidAmount += amount;
+      if (inv.status === 'Unpaid') unpaidAmount += amount;
+      if (inv.status === 'Partial') partialAmount += amount;
+    });
+
+    return { totalInvoices, paidAmount, unpaidAmount, partialAmount };
+  }, [invoices]);
+
   const downloadOne = (inv) => {
     downloadInvoicePdf({
-      number: inv.id,
-      date: inv.date,
+      number: inv.invoiceNumber || inv.id,
+      date: new Date(inv.date).toLocaleDateString(),
       business: {
         name: "Sharma Traders",
         address: "Shop 12, MG Road, Indore, MP 452001",
         gstin: "23ABCDE1234F1Z5",
         phone: "+91 98765 43210",
       },
-      party: { name: inv.party },
+      party: { name: inv.partyName || inv.party },
       lines: [
-        { name: "Items as per challan", qty: 1, rate: inv.amount / 1.18, gst: 18 },
+        { name: "Items as per challan", qty: 1, rate: (inv.grandTotal || inv.amount) / 1.18, gst: 18 },
       ],
     });
-    toast.success(`${inv.id} downloaded`);
+    toast.success(`${inv.invoiceNumber || inv.id} downloaded`);
   };
 
   const shareWA = (inv) => {
     const msg = encodeURIComponent(
-      `Hi ${inv.party}, your invoice ${inv.id} of ₹${inv.amount.toLocaleString("en-IN")} is ready.`,
+      `Hi ${inv.partyName || inv.party}, your invoice ${inv.invoiceNumber || inv.id} of ₹${(inv.grandTotal || inv.amount).toLocaleString("en-IN")} is ready.`
     );
     window.open(`https://wa.me/?text=${msg}`, "_blank");
   };
@@ -65,7 +81,7 @@ export function BillingDashboard() {
     <div className="space-y-6">
       <PageHeader
         title="Billing & Invoices"
-        subtitle="248 invoices · ₹4,82,300 collected this month"
+        subtitle={`${stats.totalInvoices} invoices · ${fmt(stats.paidAmount)} collected`}
         actions={
           <>
             <Button variant="outline" className="rounded-xl" onClick={() => toast.success("Exporting invoices…")}>
@@ -91,10 +107,10 @@ export function BillingDashboard() {
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {[
-          { label: "Total Invoices", value: "248", tint: "bg-primary-soft text-primary" },
-          { label: "Paid", value: fmt(310400), tint: "bg-success-soft text-success" },
-          { label: "Unpaid", value: fmt(81900), tint: "bg-destructive/10 text-destructive" },
-          { label: "Partially Paid", value: fmt(42600), tint: "bg-accent-soft text-accent-foreground" },
+          { label: "Total Invoices", value: stats.totalInvoices.toString(), tint: "bg-primary-soft text-primary" },
+          { label: "Paid", value: fmt(stats.paidAmount), tint: "bg-success-soft text-success" },
+          { label: "Unpaid", value: fmt(stats.unpaidAmount), tint: "bg-destructive/10 text-destructive" },
+          { label: "Partially Paid", value: fmt(stats.partialAmount), tint: "bg-accent-soft text-accent-foreground" },
         ].map((s) => (
           <Card key={s.label} className="border-0 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
             <CardContent className="flex items-center gap-3 p-4">
@@ -157,16 +173,18 @@ export function BillingDashboard() {
               </TableHeader>
               <TableBody>
                 {filtered.map((inv) => (
-                  <TableRow key={inv.id} className="border-b last:border-0">
-                    <TableCell className="font-semibold">{inv.id}</TableCell>
+                  <TableRow key={inv._id || inv.id} className="border-b last:border-0">
+                    <TableCell className="font-semibold">{inv.invoiceNumber || inv.id}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={inv.type === 'Sale' ? 'border-red-200 bg-red-50 text-red-700' : 'border-blue-200 bg-blue-50 text-blue-700'}>
                         {inv.type || 'Sale'}
                       </Badge>
                     </TableCell>
-                    <TableCell>{inv.party}</TableCell>
-                    <TableCell className="hidden text-muted-foreground md:table-cell">{inv.date}</TableCell>
-                    <TableCell className="text-right font-semibold">{fmt(inv.amount)}</TableCell>
+                    <TableCell>{inv.partyName || inv.party}</TableCell>
+                    <TableCell className="hidden text-muted-foreground md:table-cell">
+                      {inv.date ? new Date(inv.date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }) : ""}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">{fmt(inv.grandTotal || inv.amount)}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={`rounded-full ${statusStyles[inv.status]}`}>
                         {inv.status}

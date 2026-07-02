@@ -63,24 +63,42 @@ export default function NewSale() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!lines.some(l => l.name.trim() !== "")) {
       toast.error("Please add at least one item.");
       return;
     }
 
-    const newInv = {
-      id: "INV-" + Math.floor(1000 + Math.random() * 9000),
-      party: customer,
-      date: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
-      amount: totals.grand,
+    const payload = {
+      invoiceNumber: "INV-" + Math.floor(1000 + Math.random() * 9000),
+      partyName: customer,
+      type: "Sale",
+      date: new Date().toISOString(),
+      items: lines.map(l => ({
+        name: l.name || "Item",
+        hsnSac: l.hsnSac,
+        qty: Number(l.qty) || 1,
+        rate: Number(l.rate) || 0,
+        discount: Number(l.discount) || 0,
+        gst: Number(l.gst) || 0
+      })),
+      subtotal: totals.subtotal,
+      discountAmount: totals.discountAmount,
+      taxableAmount: totals.taxableAmount,
+      gstAmount: totals.gstAmount,
+      roundOff: totals.roundOff,
+      grandTotal: totals.grand,
       status: "Unpaid",
-      type: "Sale"
+      receivedAmount: 0
     };
 
-    addInvoice(newInv);
-    toast.success("Sale invoice created successfully!");
-    navigate("/billing");
+    try {
+      await addInvoice(payload);
+      toast.success("Sale invoice created successfully!");
+      navigate("/billing");
+    } catch (error) {
+      // Error handled in context
+    }
   };
 
   return (

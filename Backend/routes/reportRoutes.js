@@ -1,20 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const { getDashboardSummary, getAccountingData } = require('../services/reportService');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, requirePermission } = require('../middleware/authMiddleware');
 
-router.get('/dashboard', protect, async (req, res) => {
+router.get('/dashboard', protect, requirePermission('view_reports'), async (req, res) => {
   try {
-    const summary = await getDashboardSummary(req.user.id);
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+    const summary = await getDashboardSummary(ownerId);
     res.status(200).json(summary);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-router.get('/accounting', protect, async (req, res) => {
+router.get('/accounting', protect, requirePermission('view_reports'), async (req, res) => {
   try {
-    const data = await getAccountingData(req.user.id);
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+    const data = await getAccountingData(ownerId);
     res.status(200).json(data);
   } catch (error) {
     res.status(500).json({ message: error.message });

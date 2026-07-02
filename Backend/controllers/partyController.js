@@ -5,7 +5,9 @@ const Party = require('../models/Party');
 // @access  Private
 const getParties = async (req, res) => {
   try {
-    const parties = await Party.find({ user: req.user.id }).sort({ createdAt: -1 });
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
+    const parties = await Party.find({ user: ownerId }).sort({ createdAt: -1 });
     res.status(200).json(parties);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -17,6 +19,8 @@ const getParties = async (req, res) => {
 // @access  Private
 const createParty = async (req, res) => {
   try {
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
     const { name, phone, type, gstin, address, balance, balanceType } = req.body;
 
     if (!name || !phone || !type) {
@@ -24,7 +28,7 @@ const createParty = async (req, res) => {
     }
 
     const party = await Party.create({
-      user: req.user.id,
+      user: ownerId,
       name,
       phone,
       type,
@@ -45,6 +49,8 @@ const createParty = async (req, res) => {
 // @access  Private
 const updateParty = async (req, res) => {
   try {
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
     const party = await Party.findById(req.params.id);
 
     if (!party) {
@@ -52,7 +58,7 @@ const updateParty = async (req, res) => {
     }
 
     // Make sure the logged in user matches the party user
-    if (party.user.toString() !== req.user.id) {
+    if (party.user.toString() !== ownerId) {
       return res.status(401).json({ message: 'User not authorized' });
     }
 
@@ -73,13 +79,15 @@ const updateParty = async (req, res) => {
 // @access  Private
 const deleteParty = async (req, res) => {
   try {
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
     const party = await Party.findById(req.params.id);
 
     if (!party) {
       return res.status(404).json({ message: 'Party not found' });
     }
 
-    if (party.user.toString() !== req.user.id) {
+    if (party.user.toString() !== ownerId) {
       return res.status(401).json({ message: 'User not authorized' });
     }
 

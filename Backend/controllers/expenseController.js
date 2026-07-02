@@ -5,7 +5,9 @@ const Expense = require('../models/Expense');
 // @access  Private
 const getExpenses = async (req, res) => {
   try {
-    const expenses = await Expense.find({ user: req.user.id }).sort({ date: -1 });
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
+    const expenses = await Expense.find({ user: ownerId }).sort({ date: -1 });
     res.status(200).json(expenses);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -17,6 +19,8 @@ const getExpenses = async (req, res) => {
 // @access  Private
 const createExpense = async (req, res) => {
   try {
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
     const { category, amount, date, paymentMode, referenceNumber, description } = req.body;
 
     if (!category || !amount) {
@@ -24,7 +28,7 @@ const createExpense = async (req, res) => {
     }
 
     const expense = await Expense.create({
-      user: req.user.id,
+      user: ownerId,
       category,
       amount,
       date,
