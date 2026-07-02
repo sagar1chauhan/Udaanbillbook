@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Trash2 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
@@ -366,6 +367,18 @@ export function AddPartyDialog({
     }
   };
 
+  const handleDeleteType = async (typeId) => {
+    try {
+      await api.delete(`/party-types/${typeId}`);
+      toast.success("Party type deleted");
+      const updatedTypes = await api.get('/party-types');
+      setPartyTypes(updatedTypes.data || []);
+      set("type", "Customer");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete party type");
+    }
+  };
+
   if (!partySettings) return null;
 
   return (
@@ -378,20 +391,46 @@ export function AddPartyDialog({
 
         {showAddType ? (
           <div className="space-y-4 py-2">
-            <h4 className="font-semibold text-sm">Add Party Type</h4>
-            <div className="space-y-1.5">
-              <Label htmlFor="new-type-name">Type Name</Label>
+            <h4 className="font-semibold text-sm">Manage Party Types</h4>
+            
+            {/* List of current types */}
+            <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+              <Label>Existing Types</Label>
+              <div className="space-y-1.5">
+                {partyTypes.map((t) => {
+                  const isDefault = ["Customer", "Supplier"].includes(t.name);
+                  return (
+                    <div key={t._id || t.name} className="flex justify-between items-center bg-slate-50 p-2 rounded-lg border border-slate-100 text-xs">
+                      <span className="font-semibold text-slate-800 capitalize">{t.name}</span>
+                      {!isDefault && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteType(t._id)}
+                          className="text-red-500 hover:text-red-700 p-1"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {isDefault && <span className="text-[10px] text-slate-400 font-medium italic">Default</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-1.5 pt-2 border-t border-dashed">
+              <Label htmlFor="new-type-name">Add New Type</Label>
               <Input
                 id="new-type-name"
                 value={newTypeName}
                 onChange={(e) => setNewTypeName(e.target.value)}
-                className="h-10 rounded-xl"
+                className="h-10 rounded-xl text-sm"
                 placeholder="e.g. Distributor"
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setShowAddType(false)}>Cancel</Button>
-              <Button type="button" onClick={handleCreateType} className="rounded-xl">Save Type</Button>
+              <Button type="button" variant="ghost" onClick={() => setShowAddType(false)}>Back</Button>
+              <Button type="button" onClick={handleCreateType} className="rounded-xl">Add Type</Button>
             </div>
           </div>
         ) : (

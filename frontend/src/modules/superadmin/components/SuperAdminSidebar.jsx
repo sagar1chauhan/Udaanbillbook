@@ -13,32 +13,32 @@ const menuGroups = [
   {
     label: "Overview",
     items: [
-      { title: "Dashboard", url: "/superadmin", icon: LayoutDashboard },
-      { title: "Analytics", url: "/superadmin/analytics", icon: BarChart3 },
+      { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+      { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
     ],
   },
   {
     label: "Management",
     items: [
-      { title: "Businesses", url: "/superadmin/businesses", icon: Building2 },
-      { title: "Subscriptions", url: "/superadmin/subscriptions", icon: CreditCard },
-      { title: "Revenue", url: "/superadmin/revenue", icon: TrendingUp },
-      { title: "Users", url: "/superadmin/users", icon: Users },
-      { title: "Categories", url: "/superadmin/categories", icon: LayoutGrid },
+      { title: "Businesses", url: "/admin/businesses", icon: Building2 },
+      { title: "Subscriptions", url: "/admin/subscriptions", icon: CreditCard },
+      { title: "Revenue", url: "/admin/revenue", icon: TrendingUp },
+      { title: "Users", url: "/admin/users", icon: Users },
+      { title: "Categories", url: "/admin/categories", icon: LayoutGrid },
     ],
   },
   {
     label: "Operations",
     items: [
-      { title: "Security", url: "/superadmin/security", icon: ShieldAlert },
-      { title: "Tickets", url: "/superadmin/tickets", icon: Ticket },
-      { title: "Activity", url: "/superadmin/activity", icon: Activity },
+      { title: "Security", url: "/admin/security", icon: ShieldAlert },
+      { title: "Tickets", url: "/admin/tickets", icon: Ticket },
+      { title: "Activity", url: "/admin/activity", icon: Activity },
     ],
   },
   {
     label: "System",
     items: [
-      { title: "Settings", url: "/superadmin/settings", icon: Settings },
+      { title: "Settings", url: "/admin/settings", icon: Settings },
     ],
   },
 ];
@@ -49,8 +49,8 @@ export function SuperAdminSidebar() {
   const [collapsed, setCollapsed] = useState(false);
 
   const isActive = (url) =>
-    url === "/superadmin"
-      ? location.pathname === "/superadmin"
+    url === "/admin"
+      ? location.pathname === "/admin"
       : location.pathname.startsWith(url);
 
   const handleLogout = () => {
@@ -77,7 +77,7 @@ export function SuperAdminSidebar() {
         {!collapsed && (
           <div className="flex flex-col overflow-hidden">
             <span className="text-sm font-bold text-white tracking-tight">Udaan</span>
-            <span className="text-[10px] text-emerald-400/80 font-medium">SuperAdmin Console</span>
+            <span className="text-[10px] text-emerald-400/80 font-medium">Admin Console</span>
           </div>
         )}
       </div>

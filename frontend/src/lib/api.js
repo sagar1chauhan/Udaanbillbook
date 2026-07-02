@@ -30,6 +30,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
+      console.error('API 401 Unauthorized error at:', error.config?.url, error.response?.data);
       // Clear token and session cache
       localStorage.removeItem('Udaan.auth');
       // Trigger a page reload to force routing layout to redirect to login

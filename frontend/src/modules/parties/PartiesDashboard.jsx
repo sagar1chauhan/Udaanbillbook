@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,17 @@ export function PartiesDashboard() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState("all");
-  const [search, setSearch] = useState("");
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get("q") || "";
+  const setSearch = (val) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (val) next.set("q", val);
+      else next.delete("q");
+      return next;
+    });
+  };
 
   const fetchParties = async () => {
     try {
@@ -46,9 +57,14 @@ export function PartiesDashboard() {
     }
   };
 
+  const fetchedRef = React.useRef(false);
+
   React.useEffect(() => {
-    fetchParties();
-    fetchPartyTypes();
+    if (!fetchedRef.current) {
+      fetchedRef.current = true;
+      fetchParties();
+      fetchPartyTypes();
+    }
   }, []);
 
   const handleAddParty = async (payload) => {

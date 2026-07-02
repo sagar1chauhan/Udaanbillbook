@@ -4,11 +4,12 @@ import { AuthShell } from "@/components/AuthShell";
 import { LoginForm } from "@/modules/auth/LoginForm";
 
 export default function Login({ role }) {
-  const isAdmin = role === "admin";
+  const title = "Staff / Vendor Login";
+  const subtitle = "Sign in to handle billing and inventory workflows.";
   return (
     <AuthShell
-      title={isAdmin ? "Admin Login" : "Staff / Vendor Login"}
-      subtitle={isAdmin ? "Sign in as Admin to manage business settings and full operations." : "Sign in to handle billing and inventory workflows."}
+      title={title}
+      subtitle={subtitle}
       footer={
         <>
           New to Udaan?{" "}

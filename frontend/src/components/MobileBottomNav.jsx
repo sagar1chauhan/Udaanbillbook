@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, ReceiptText, Boxes, Users, MoreHorizontal } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useMockAuth } from "@/lib/auth-store";
 
 const navItems = [
   { title: "Home", url: "/", icon: LayoutDashboard },
@@ -13,8 +14,20 @@ export function MobileBottomNav() {
   const location = useLocation();
   const path = location.pathname;
   const { toggleSidebar } = useSidebar();
+  const { user } = useMockAuth();
 
-  const isActive = (url) => (url === "/" ? path === "/" : path.startsWith(url));
+  const userRole = user?.role?.toLowerCase() || "user";
+  const rolePrefix = (userRole === "staff" || userRole === "viewer") ? "/staff" : "/vendor";
+
+  const getRoleUrl = (url) => {
+    if (url === "/") return "/";
+    return `${rolePrefix}${url}`;
+  };
+
+  const isActive = (url) => {
+    const targetUrl = getRoleUrl(url);
+    return targetUrl === "/" ? path === "/" : path.startsWith(targetUrl);
+  };
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-background/95 backdrop-blur-md border-t border-border/50 pb-safe pb-2 pt-2 px-1 shadow-[0_-4px_24px_rgba(0,0,0,0.05)]">
@@ -23,7 +36,7 @@ export function MobileBottomNav() {
         return (
           <Link
             key={item.title}
-            to={item.url}
+            to={getRoleUrl(item.url)}
             className={`flex flex-col items-center justify-center gap-1 min-w-[64px] rounded-xl py-1 transition-colors ${
               active ? "text-primary" : "text-muted-foreground hover:text-foreground"
             }`}

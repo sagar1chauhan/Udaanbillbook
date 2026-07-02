@@ -44,14 +44,31 @@ import { BusinessCategories } from "./modules/superadmin/pages/BusinessCategorie
 function SubscriptionGuard({ children, feature }) {
   const { canAccessFeature, hydrated } = useSubscription();
   if (!hydrated) return null;
-  if (!canAccessFeature(feature)) return <Navigate to="/pricing" replace />;
+  if (!canAccessFeature(feature)) return <Navigate to="/vendor/pricing" replace />;
   return children;
 }
 
 function SuperAdminGuard({ children }) {
   const { user, hydrated } = useMockAuth();
+  
+  console.log("[SuperAdminGuard] rendering:", { hydrated, user, localStorageAuth: localStorage.getItem("Udaan.auth"), localStorageAdminAuth: localStorage.getItem("Udaan.admin_auth") });
+
   if (!hydrated) return null;
-  if (!user || user.role?.toLowerCase() !== "admin") return <Navigate to="/admin/login" replace />;
+  
+  // Auto-restore backed up admin session if vendor impersonation is active and they navigated back to admin console
+  const adminAuth = localStorage.getItem("Udaan.admin_auth");
+  if (adminAuth && (!user || user.role?.toLowerCase() !== "admin")) {
+    console.log("[SuperAdminGuard] restoring admin auth session...");
+    localStorage.setItem("Udaan.auth", adminAuth);
+    localStorage.removeItem("Udaan.admin_auth");
+    window.location.reload();
+    return null;
+  }
+
+  if (!user || user.role?.toLowerCase() !== "admin") {
+    console.log("[SuperAdminGuard] Access Denied, redirecting to /admin/login because:", { hasUser: !!user, role: user?.role });
+    return <Navigate to="/admin/login" replace />;
+  }
   return children;
 }
 
@@ -77,6 +94,21 @@ function NotFound() {
   );
 }
 
+function RootRedirect() {
+  const { user, hydrated } = useMockAuth();
+  if (!hydrated) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  
+  const role = user.role?.toLowerCase();
+  if (role === "admin") {
+    return <Navigate to="/admin" replace />;
+  }
+  if (role === "staff" || role === "viewer") {
+    return <Navigate to="/staff/dashboard" replace />;
+  }
+  return <Navigate to="/vendor/dashboard" replace />;
+}
+
 export default function App() {
   return (
     <InvoiceProvider>
@@ -84,45 +116,49 @@ export default function App() {
       <Routes>
         <Route element={<Layout />}>
           {/* Public Routes */}
-          <Route path="/login" element={<Login role="staff" />} />
-          <Route path="/user/login" element={<Login role="staff" />} />
+          <Route path="/login" element={<Login role="vendor" />} />
+          <Route path="/vendor" element={<Navigate to="/login" replace />} />
+          <Route path="/staff" element={<Navigate to="/login" replace />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
 
           {/* Protected Business Routes */}
-          <Route path="/" element={<MainDashboard />} />
-          <Route path="/accounting" element={<SubscriptionGuard feature="accounting"><AccountingDashboard /></SubscriptionGuard>} />
-          <Route path="/admin/users" element={<SubscriptionGuard feature="admin"><UserManagement /></SubscriptionGuard>} />
-          <Route path="/billing" element={<BillingDashboard />} />
-          <Route path="/sale/new" element={<NewSale />} />
-          <Route path="/purchase/new" element={<NewPurchase />} />
-          <Route path="/expenses" element={<SubscriptionGuard feature="expenses"><ExpensesDashboard /></SubscriptionGuard>} />
-          <Route path="/gst" element={<SubscriptionGuard feature="gst"><GstDashboard /></SubscriptionGuard>} />
-          <Route path="/inventory" element={<SubscriptionGuard feature="inventory"><InventoryDashboard /></SubscriptionGuard>} />
-          <Route path="/parties" element={<PartiesDashboard />} />
-          <Route path="/reports" element={<SubscriptionGuard feature="reports"><ReportsDashboard /></SubscriptionGuard>} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/tickets" element={<UserTickets />} />
+          <Route path="/:roleType/dashboard" element={<MainDashboard />} />
+          <Route path="/:roleType/accounting" element={<SubscriptionGuard feature="accounting"><AccountingDashboard /></SubscriptionGuard>} />
+          <Route path="/:roleType/staff-management" element={<SubscriptionGuard feature="admin"><UserManagement /></SubscriptionGuard>} />
+          <Route path="/:roleType/billing" element={<BillingDashboard />} />
+          <Route path="/:roleType/sale/new" element={<NewSale />} />
+          <Route path="/:roleType/purchase/new" element={<NewPurchase />} />
+          <Route path="/:roleType/expenses" element={<SubscriptionGuard feature="expenses"><ExpensesDashboard /></SubscriptionGuard>} />
+          <Route path="/:roleType/gst" element={<SubscriptionGuard feature="gst"><GstDashboard /></SubscriptionGuard>} />
+          <Route path="/:roleType/inventory" element={<SubscriptionGuard feature="inventory"><InventoryDashboard /></SubscriptionGuard>} />
+          <Route path="/:roleType/parties" element={<PartiesDashboard />} />
+          <Route path="/:roleType/reports" element={<SubscriptionGuard feature="reports"><ReportsDashboard /></SubscriptionGuard>} />
+          <Route path="/:roleType/settings" element={<Settings />} />
+          <Route path="/:roleType/pricing" element={<Pricing />} />
+          <Route path="/:roleType/tickets" element={<UserTickets />} />
+
+          {/* Root Redirect based on role */}
+          <Route path="/" element={<RootRedirect />} />
 
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
         </Route>
 
-        {/* ====== SuperAdmin Routes (completely separate layout) ====== */}
+        {/* ====== Admin Routes (completely separate layout) ====== */}
         <Route element={<SuperAdminGuard><SuperAdminLayout /></SuperAdminGuard>}>
-          <Route path="/superadmin" element={<SADashboard />} />
-          <Route path="/superadmin/analytics" element={<PlatformAnalytics />} />
-          <Route path="/superadmin/businesses" element={<BusinessManagement />} />
-          <Route path="/superadmin/subscriptions" element={<SubscriptionManager />} />
-          <Route path="/superadmin/revenue" element={<RevenueTransactions />} />
-          <Route path="/superadmin/users" element={<UserManagementSA />} />
-          <Route path="/superadmin/security" element={<SecurityCenter />} />
-          <Route path="/superadmin/tickets" element={<SupportTickets />} />
-          <Route path="/superadmin/activity" element={<ActivityLog />} />
-          <Route path="/superadmin/settings" element={<SASettings />} />
-          <Route path="/superadmin/categories" element={<BusinessCategories />} />
+          <Route path="/admin" element={<SADashboard />} />
+          <Route path="/admin/analytics" element={<PlatformAnalytics />} />
+          <Route path="/admin/businesses" element={<BusinessManagement />} />
+          <Route path="/admin/subscriptions" element={<SubscriptionManager />} />
+          <Route path="/admin/revenue" element={<RevenueTransactions />} />
+          <Route path="/admin/users" element={<UserManagementSA />} />
+          <Route path="/admin/security" element={<SecurityCenter />} />
+          <Route path="/admin/tickets" element={<SupportTickets />} />
+          <Route path="/admin/activity" element={<ActivityLog />} />
+          <Route path="/admin/settings" element={<SASettings />} />
+          <Route path="/admin/categories" element={<BusinessCategories />} />
         </Route>
       </Routes>
     </BrowserRouter>

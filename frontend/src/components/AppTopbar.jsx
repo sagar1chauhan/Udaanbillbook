@@ -33,7 +33,8 @@ export function AppTopbar() {
   const { toggleSidebar } = useSidebar();
   const location = useLocation();
 
-  if (location.pathname.startsWith('/sale/new') || location.pathname.startsWith('/purchase/new')) return null;
+  const path = location.pathname;
+  if (path.endsWith('/sale/new') || path.endsWith('/purchase/new')) return null;
 
   const initials = (user?.name || "RK")
     .split(" ")
@@ -71,6 +72,19 @@ export function AppTopbar() {
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search invoices, products, parties…"
+            value={searchParams.get("q") || ""}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSearchParams((prev) => {
+                const next = new URLSearchParams(prev);
+                if (val) {
+                  next.set("q", val);
+                } else {
+                  next.delete("q");
+                }
+                return next;
+              });
+            }}
             className="h-10 rounded-xl border-transparent bg-secondary pl-9 focus-visible:bg-card"
           />
         </div>

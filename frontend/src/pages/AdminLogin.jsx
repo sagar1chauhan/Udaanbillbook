@@ -41,9 +41,8 @@ export default function AdminLogin() {
         token: user.token
       });
 
-      toast.success("Admin access granted!");
-      // Redirect to SuperAdmin dashboard
-      navigate("/superadmin");
+      // Redirect to Admin dashboard
+      navigate("/admin");
     } catch (error) {
       toast.error(error.response?.data?.message || "Invalid email or password");
     } finally {

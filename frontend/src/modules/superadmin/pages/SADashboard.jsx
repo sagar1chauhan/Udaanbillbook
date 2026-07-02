@@ -116,6 +116,20 @@ export function SADashboard() {
     );
   }
 
+  if (!data) {
+    return (
+      <div className="flex h-96 flex-col items-center justify-center text-center space-y-4">
+        <p className="text-rose-400 font-semibold">Failed to load platform dashboard data.</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   const kpis = data.platformKPIs;
   const revenueChartData = data.revenueChartData;
   const businessGrowthData = data.businessGrowthData;

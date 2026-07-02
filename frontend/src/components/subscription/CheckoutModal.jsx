@@ -13,34 +13,122 @@ export function CheckoutModal({ isOpen, onClose, selectedPlan, planPrice }) {
   const [isSuccess, setIsSuccess] = useState(false);
   const { user } = useMockAuth();
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handlePayment = async () => {
     setIsProcessing(true);
     
     try {
-      // Update subscription in database
-      const res = await api.post("/auth/subscribe", { planName: selectedPlan });
-      
-      // Simulate payment gateway delay (e.g. Razorpay/Stripe)
-      setTimeout(() => {
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
         setIsProcessing(false);
-        setIsSuccess(true);
-        
-        // Update global user state with new subscription
-        mockAuth.updateUser({
-          subscription: res.data.subscription
-        });
-        
-        toast.success(`Successfully upgraded to ${selectedPlan} Plan!`);
-        
-        // Auto close after success
-        setTimeout(() => {
-          setIsSuccess(false);
-          onClose();
-          // Force reload to apply subscription limits and permissions
-          window.location.reload();
-        }, 2000);
+        toast.error("Razorpay SDK failed to load. Please check your network.");
+        return;
+      }
 
-      }, 1500);
+      const keyRes = await api.get("/auth/razorpay-key");
+      const keyId = keyRes.data.keyId;
+
+      const orderRes = await api.post("/auth/razorpay-order", { planName: selectedPlan });
+      const { orderId, amount, currency, isMock } = orderRes.data;
+
+      if (isMock) {
+        setTimeout(async () => {
+          try {
+            const verifyRes = await api.post("/auth/verify-razorpay", {
+              razorpay_order_id: orderId,
+              razorpay_payment_id: `pay_mock_${Date.now()}`,
+              razorpay_signature: "mock_signature",
+              planName: selectedPlan
+            });
+
+            if (verifyRes.data.success) {
+              setIsProcessing(false);
+              setIsSuccess(true);
+              
+              mockAuth.updateUser({
+                subscription: verifyRes.data.subscription
+              });
+              
+              toast.success(`Successfully upgraded to ${selectedPlan} Plan (Demo Mode)!`);
+              
+              setTimeout(() => {
+                setIsSuccess(false);
+                onClose();
+                window.location.reload();
+              }, 2000);
+            }
+          } catch (err) {
+            setIsProcessing(false);
+            toast.error(err.response?.data?.message || "Mock payment verification failed");
+          }
+        }, 1500);
+        return;
+      }
+
+      const options = {
+        key: keyId,
+        amount: amount,
+        currency: currency,
+        name: "Udaan BillBook",
+        description: `Upgrade subscription to ${selectedPlan} Plan`,
+        order_id: orderId,
+        handler: async (response) => {
+          try {
+            const verifyRes = await api.post("/auth/verify-razorpay", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              planName: selectedPlan
+            });
+
+            if (verifyRes.data.success) {
+              setIsProcessing(false);
+              setIsSuccess(true);
+              
+              mockAuth.updateUser({
+                subscription: verifyRes.data.subscription
+              });
+              
+              toast.success(`Successfully upgraded to ${selectedPlan} Plan!`);
+              
+              setTimeout(() => {
+                setIsSuccess(false);
+                onClose();
+                window.location.reload();
+              }, 2000);
+            }
+          } catch (err) {
+            setIsProcessing(false);
+            toast.error(err.response?.data?.message || "Payment verification failed");
+          }
+        },
+        prefill: {
+          name: user?.name || "",
+          email: user?.email || "",
+          contact: user?.phone || "",
+        },
+        theme: {
+          color: "#10b981",
+        },
+        modal: {
+          ondismiss: () => {
+            setIsProcessing(false);
+          }
+        }
+      };
+
+      const rzp1 = new window.Razorpay(options);
+      rzp1.open();
+
     } catch (error) {
       setIsProcessing(false);
       toast.error(error.response?.data?.message || "Payment subscription failed");

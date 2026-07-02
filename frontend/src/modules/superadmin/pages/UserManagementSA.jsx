@@ -95,7 +95,7 @@ export function UserManagementSA() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/8">
-                {["User", "Business", "Role", "Status", "Last Login", "Device", "Actions"].map(h => (
+                {["User", "Business", "Plan", "Role", "Status", "Last Login", "Device", "Actions"].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">{h}</th>
                 ))}
               </tr>
@@ -117,6 +117,16 @@ export function UserManagementSA() {
                     </div>
                   </td>
                   <td className="px-4 py-3.5 text-xs text-slate-300">{u.businessName || u.business || "N/A"}</td>
+                  <td className="px-4 py-3.5">
+                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
+                      u.subscription?.plan === "Enterprise" ? "bg-purple-500/15 text-purple-400" :
+                      u.subscription?.plan === "Gold" ? "bg-amber-500/15 text-amber-400" :
+                      u.subscription?.plan === "Silver" ? "bg-blue-500/15 text-blue-400" :
+                      "bg-slate-500/15 text-slate-400"
+                    }`}>
+                      {u.subscription?.plan || "Free"}
+                    </span>
+                  </td>
                   <td className="px-4 py-3.5">
                     <span className={`text-[11px] font-semibold capitalize ${u.role === "admin" || u.role === "Admin" ? "text-purple-400" : "text-slate-400"}`}>{u.role || "vendor"}</span>
                   </td>
@@ -202,6 +212,20 @@ export function UserManagementSA() {
                 <div className="space-y-1 sm:col-span-2">
                   <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Business Address</p>
                   <p className="text-white font-medium">{selectedUser.businessAddress || "N/A"}</p>
+                </div>
+
+                 <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Active Plan</p>
+                  <div>
+                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                      selectedUser.subscription?.plan === "Enterprise" ? "bg-purple-500/15 text-purple-400" :
+                      selectedUser.subscription?.plan === "Gold" ? "bg-amber-500/15 text-amber-400" :
+                      selectedUser.subscription?.plan === "Silver" ? "bg-blue-500/15 text-blue-400" :
+                      "bg-slate-500/15 text-slate-400"
+                    }`}>
+                      {selectedUser.subscription?.plan || "Free"}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="space-y-1">

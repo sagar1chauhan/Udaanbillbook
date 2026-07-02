@@ -5,7 +5,7 @@ const Party = require('../models/Party');
 // @access  Private
 const getParties = async (req, res) => {
   try {
-    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+    const ownerId = (req.user.role === 'staff' ? req.user.ownerId : req.user.id).toString();
 
     const parties = await Party.find({ user: ownerId }).sort({ createdAt: -1 });
     res.status(200).json(parties);
@@ -19,7 +19,7 @@ const getParties = async (req, res) => {
 // @access  Private
 const createParty = async (req, res) => {
   try {
-    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+    const ownerId = (req.user.role === 'staff' ? req.user.ownerId : req.user.id).toString();
 
     const { name, phone, type, gstin, address, balance, balanceType } = req.body;
 
@@ -49,7 +49,7 @@ const createParty = async (req, res) => {
 // @access  Private
 const updateParty = async (req, res) => {
   try {
-    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+    const ownerId = (req.user.role === 'staff' ? req.user.ownerId : req.user.id).toString();
 
     const party = await Party.findById(req.params.id);
 
@@ -79,7 +79,7 @@ const updateParty = async (req, res) => {
 // @access  Private
 const deleteParty = async (req, res) => {
   try {
-    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+    const ownerId = (req.user.role === 'staff' ? req.user.ownerId : req.user.id).toString();
 
     const party = await Party.findById(req.params.id);
 

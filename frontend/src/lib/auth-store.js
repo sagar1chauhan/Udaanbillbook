@@ -25,6 +25,7 @@ export const mockAuth = {
   },
   signOut() {
     window.localStorage.removeItem(KEY);
+    window.localStorage.removeItem("Udaan.admin_auth");
     listeners.forEach((l) => l());
   },
   updateUser(updates) {

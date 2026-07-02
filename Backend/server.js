@@ -1,3 +1,4 @@
+// Trigger server reload to apply auth logging
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');

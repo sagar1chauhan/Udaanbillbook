@@ -89,7 +89,7 @@ export function UserManagement() {
         name: u.name,
         email: u.email,
         phone: u.phone,
-        role: u.role === 'admin' ? 'Admin' : 'Staff',
+        role: u.role ? u.role.charAt(0).toUpperCase() + u.role.slice(1) : 'Staff',
         status: "Active",
         joined: new Date(u.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
         avatar: u.name.split(' ').map(s=>s[0]).join('').substring(0, 2).toUpperCase(),
@@ -109,7 +109,10 @@ export function UserManagement() {
   // --- Handlers ---
   const handleAddStaff = async (newStaff) => {
     try {
-      await api.post('/auth/staff', newStaff);
+      await api.post('/auth/staff', {
+        ...newStaff,
+        role: newStaff.role.toLowerCase()
+      });
       toast.success("Staff added successfully");
       fetchStaff();
     } catch (err) {
@@ -119,7 +122,10 @@ export function UserManagement() {
 
   const handleEditStaff = async (updatedStaff) => {
     try {
-      await api.put(`/auth/staff/${updatedStaff.id}`, updatedStaff);
+      await api.put(`/auth/staff/${updatedStaff.id}`, {
+        ...updatedStaff,
+        role: updatedStaff.role.toLowerCase()
+      });
       toast.success("Staff details updated");
       fetchStaff();
     } catch (err) {
@@ -129,7 +135,10 @@ export function UserManagement() {
 
   const handlePermSave = async (updatedStaff) => {
     try {
-      await api.put(`/auth/staff/${updatedStaff.id}`, { permissions: updatedStaff.permissions });
+      await api.put(`/auth/staff/${updatedStaff.id}`, { 
+        permissions: updatedStaff.permissions,
+        role: updatedStaff.role.toLowerCase()
+      });
       toast.success("Permissions updated");
       fetchStaff();
     } catch (err) {

@@ -67,6 +67,10 @@ export function BusinessManagement() {
   const handleImpersonate = async (biz) => {
     try {
       const response = await api.post(`/admin/impersonate/${biz.id}`);
+      const adminAuth = window.localStorage.getItem("Udaan.auth");
+      if (adminAuth) {
+        window.localStorage.setItem("Udaan.admin_auth", adminAuth);
+      }
       window.localStorage.setItem("Udaan.auth", JSON.stringify(response.data));
       toast.success(`Impersonating ${biz.owner} / ${biz.name}`);
       setTimeout(() => {
