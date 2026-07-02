@@ -16,12 +16,16 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/parties', require('./routes/partyRoutes'));
+app.use('/api/party-types', require('./routes/partyTypeRoutes'));
 app.use('/api/items', require('./routes/itemRoutes'));
 app.use('/api/invoices', require('./routes/invoiceRoutes'));
+app.use('/api/categories', require('./routes/categoryRoutes'));
 app.use('/api/expenses', require('./routes/expenseRoutes'));
+app.use('/api/expense-categories', require('./routes/expenseCategoryRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/settings', require('./routes/settingsRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

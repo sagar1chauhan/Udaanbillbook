@@ -23,6 +23,7 @@ import { PartiesDashboard } from "./modules/parties/PartiesDashboard";
 import { ReportsDashboard } from "./modules/reports/ReportsDashboard";
 import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
+import UserTickets from "./pages/UserTickets";
 import { useSubscription } from "./hooks/useSubscription";
 import { useMockAuth } from "./lib/auth-store";
 
@@ -38,6 +39,7 @@ import { UserManagementSA } from "./modules/superadmin/pages/UserManagementSA";
 import { SupportTickets } from "./modules/superadmin/pages/SupportTickets";
 import { ActivityLog } from "./modules/superadmin/pages/ActivityLog";
 import { SASettings } from "./modules/superadmin/pages/SASettings";
+import { BusinessCategories } from "./modules/superadmin/pages/BusinessCategories";
 
 function SubscriptionGuard({ children, feature }) {
   const { canAccessFeature, hydrated } = useSubscription();
@@ -102,6 +104,7 @@ export default function App() {
           <Route path="/reports" element={<SubscriptionGuard feature="reports"><ReportsDashboard /></SubscriptionGuard>} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/tickets" element={<UserTickets />} />
 
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
@@ -119,6 +122,7 @@ export default function App() {
           <Route path="/superadmin/tickets" element={<SupportTickets />} />
           <Route path="/superadmin/activity" element={<ActivityLog />} />
           <Route path="/superadmin/settings" element={<SASettings />} />
+          <Route path="/superadmin/categories" element={<BusinessCategories />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,4 +1,4 @@
-// Mock client-side auth store. UI-only — no real backend.
+// Client-side auth store. Manages token and session state for the authenticated database user.
 import { useEffect, useState } from "react";
 
 const KEY = "Udaan.auth";

@@ -31,14 +31,13 @@ import {
   Package,
   MoreHorizontal,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { NewInvoiceDialog } from "@/components/NewInvoiceDialog";
 import { GstCalculatorDialog } from "@/components/GstCalculatorDialog";
 
 const salesData = [
@@ -107,7 +106,7 @@ function Kpi({
 }
 
 export function MainDashboard() {
-  const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isGstCalculatorOpen, setIsGstCalculatorOpen] = useState(false);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -143,7 +142,7 @@ export function MainDashboard() {
             <Button variant="outline" size="icon" className="rounded-xl shrink-0" onClick={() => setIsGstCalculatorOpen(true)} title="GST Calculator">
               <Calculator className="h-4 w-4" />
             </Button>
-            <Button className="rounded-xl flex-1 px-2 text-xs sm:text-sm sm:px-4 sm:flex-none" onClick={() => setIsNewInvoiceOpen(true)}>
+            <Button className="rounded-xl flex-1 px-2 text-xs sm:text-sm sm:px-4 sm:flex-none" onClick={() => setSearchParams({ "create-invoice": "true" })}>
               <Plus className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" /> <span className="truncate">New Invoice</span>
             </Button>
           </div>
@@ -353,7 +352,6 @@ export function MainDashboard() {
         </CardContent>
       </Card>
       
-      <NewInvoiceDialog open={isNewInvoiceOpen} onOpenChange={setIsNewInvoiceOpen} />
       <GstCalculatorDialog open={isGstCalculatorOpen} onOpenChange={setIsGstCalculatorOpen} />
     </div>
   );

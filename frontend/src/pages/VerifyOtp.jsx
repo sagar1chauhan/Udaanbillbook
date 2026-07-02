@@ -21,6 +21,7 @@ export default function VerifyOtp() {
     business: state.business || undefined,
     email: state.email || undefined,
     address: state.address || undefined,
+    businessType: state.businessType || undefined,
     role: state.role || undefined
   };
 
@@ -81,6 +82,8 @@ export default function VerifyOtp() {
         name: search.name,
         business: search.business,
         email: search.email,
+        address: search.address,
+        businessType: search.businessType,
         role: search.role
       });
 

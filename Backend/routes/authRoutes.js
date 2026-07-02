@@ -7,6 +7,13 @@ router.post('/send-otp', sendOtp);
 router.post('/verify-otp', verifyOtp);
 router.post('/login-email', loginEmail);
 router.get('/me', protect, getMe);
+router.get('/plans', getPlans);
+router.post('/subscribe', protect, subscribeUser);
+router.get('/settings', getPublicSettings);
+
+router.route('/tickets')
+  .get(protect, getUserTickets)
+  .post(protect, createUserTicket);
 
 // Staff management routes
 router.route('/staff')

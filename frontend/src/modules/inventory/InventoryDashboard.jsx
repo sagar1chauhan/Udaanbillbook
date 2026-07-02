@@ -28,17 +28,6 @@ import { AddProductDialog } from "@/components/EntityDialogs";
 
 const fmt = (n) => "₹" + n.toLocaleString("en-IN");
 
-const products = [
-  { name: "Basmati Rice 5kg", sku: "RCE-005", cat: "Grocery", price: 480, stock: 78, min: 20 },
-  { name: "Sunflower Oil 1L", sku: "OIL-001", cat: "Grocery", price: 180, stock: 32, min: 25 },
-  { name: "Toor Dal 1kg", sku: "DAL-001", cat: "Grocery", price: 150, stock: 12, min: 20 },
-  { name: "Tata Salt 1kg", sku: "SLT-001", cat: "Grocery", price: 25, stock: 156, min: 50 },
-  { name: "Atta 10kg", sku: "ATA-010", cat: "Grocery", price: 500, stock: 8, min: 15 },
-  { name: "Britannia Bread", sku: "BRD-001", cat: "Bakery", price: 45, stock: 28, min: 20 },
-  { name: "Amul Butter 500g", sku: "BTR-500", cat: "Dairy", price: 290, stock: 18, min: 12 },
-  { name: "Kissan Jam 700g", sku: "JAM-700", cat: "Packaged", price: 220, stock: 22, min: 10 },
-];
-
 export function InventoryDashboard() {
   const { user } = useMockAuth();
   const isViewer = user?.role === "Viewer";
@@ -48,7 +37,26 @@ export function InventoryDashboard() {
   const [cat, setCat] = useState("all");
   const [open, setOpen] = useState(false);
   const [isBulkOpen, setIsBulkOpen] = useState(false);
-  const cats = ["all", "Grocery", "Bakery", "Dairy", "Packaged"];
+  const [isAddCatOpen, setIsAddCatOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get('/categories');
+      setCategories(res.data || []);
+    } catch (err) {
+      console.error("Failed to load categories:", err);
+    }
+  };
+
+  const cats = React.useMemo(() => {
+    if (categories.length === 0) {
+      return ["all", "Grocery", "Bakery", "Dairy", "Packaged"];
+    }
+    return ["all", ...categories.map(c => c.name)];
+  }, [categories]);
+
+  const uniqueCategoriesCount = categories.length;
 
   // Stock adjustment dialog state
   const [stockDialog, setStockDialog] = useState({ open: false, mode: null, product: null });
@@ -82,6 +90,7 @@ export function InventoryDashboard() {
 
   useEffect(() => {
     fetchItems();
+    fetchCategories();
   }, []);
 
   const filtered = cat === "all" ? inventory : inventory.filter((p) => p.cat === cat);
@@ -89,8 +98,37 @@ export function InventoryDashboard() {
   const outOfStockCount = inventory.filter((p) => p.stock === 0).length;
   const totalValue = inventory.reduce((s, p) => s + p.price * p.stock, 0);
 
+  const handleAddCategory = async (name) => {
+    try {
+      await api.post('/categories', { name });
+      toast.success(`Category "${name}" created successfully`);
+      fetchCategories();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to save category");
+    }
+  };
+
   const handleAdd = async (payload) => {
     try {
+      let parsedExpDate = null;
+      if (payload.expDate) {
+        const trimmedDate = payload.expDate.trim();
+        if (trimmedDate.includes('/')) {
+          const parts = trimmedDate.split('/');
+          if (parts.length === 2) {
+            parsedExpDate = new Date(`${parts[1]}-${parts[0]}-01`);
+          } else if (parts.length === 3) {
+            parsedExpDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+          }
+        } else {
+          parsedExpDate = new Date(trimmedDate);
+        }
+      }
+
+      if (parsedExpDate && isNaN(parsedExpDate.getTime())) {
+        parsedExpDate = null;
+      }
+
       const backendPayload = {
         name: payload.name,
         itemCode: payload.sku,
@@ -100,7 +138,7 @@ export function InventoryDashboard() {
         stockQty: payload.stock,
         lowStockWarning: payload.min,
         batchNumber: payload.batchNo,
-        expiryDate: payload.expDate ? new Date(payload.expDate) : null
+        expiryDate: parsedExpDate
       };
 
       await api.post('/items', backendPayload);
@@ -108,7 +146,7 @@ export function InventoryDashboard() {
       fetchItems();
     } catch (error) {
       console.error("Error creating item:", error);
-      toast.error("Failed to save product to database");
+      toast.error(error.response?.data?.message || "Failed to save product to database");
     }
     setOpen(false);
   };
@@ -176,22 +214,28 @@ export function InventoryDashboard() {
     <div className="space-y-6">
       <PageHeader
         title="Inventory"
-        subtitle={`${inventory.length} products · ${lowCount} low stock · ${outOfStockCount} out of stock`}
+        subtitle={`${inventory.length} products · ${uniqueCategoriesCount} categories · ${lowCount} low stock`}
         actions={
           <>
             <Button variant="outline" className="rounded-xl" onClick={() => setIsBulkOpen(true)}>
               <Upload className="mr-1 h-4 w-4" /> Bulk Upload
             </Button>
             {!isViewer && (
-              <Button className="rounded-xl" onClick={() => setOpen(true)}>
-                <Plus className="mr-1 h-4 w-4" /> Add Product
-              </Button>
+              <>
+                <Button variant="outline" className="rounded-xl border-blue-200 text-blue-700 hover:bg-blue-50" onClick={() => setIsAddCatOpen(true)}>
+                  <Plus className="mr-1 h-4 w-4" /> Add Category
+                </Button>
+                <Button className="rounded-xl" onClick={() => setOpen(true)}>
+                  <Plus className="mr-1 h-4 w-4" /> Add Product
+                </Button>
+              </>
             )}
           </>
         }
       />
 
       <AddProductDialog open={open} onOpenChange={setOpen} onAdd={handleAdd} />
+      <AddCategoryDialog open={isAddCatOpen} onOpenChange={setIsAddCatOpen} onAdd={handleAddCategory} />
 
       {/* Stock Adjustment Dialog */}
       <Dialog open={stockDialog.open} onOpenChange={(v) => !v && setStockDialog({ open: false, mode: null, product: null })}>
@@ -348,7 +392,7 @@ export function InventoryDashboard() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Categories</p>
-              <p className="text-xl font-bold">4</p>
+              <p className="text-xl font-bold">{uniqueCategoriesCount}</p>
             </div>
           </CardContent>
         </Card>
@@ -508,6 +552,39 @@ export function InventoryDashboard() {
   );
 }
 
+function AddCategoryDialog({ open, onOpenChange, onAdd }) {
+  const [name, setName] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!name.trim()) return toast.error("Category name is required");
+    onAdd(name.trim());
+    setName("");
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>Add Category</DialogTitle>
+          <DialogDescription>Create a new category to organize your products.</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="cat-name">Category Name</Label>
+            <Input id="cat-name" value={name} onChange={(e) => setName(e.target.value)} className="h-10 rounded-xl" placeholder="e.g. Beverages" />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" className="rounded-xl">Save Category</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function BulkUploadDialog({ open, onOpenChange, onUploadSuccess }) {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -557,14 +634,33 @@ function BulkUploadDialog({ open, onOpenChange, onUploadSuccess }) {
 
         if (cols.length === 0 || !cols[0]) continue;
 
+        let parsedExpDate = null;
+        const expStr = cols[6];
+        if (expStr) {
+          const trimmedDate = expStr.trim();
+          if (trimmedDate.includes('/')) {
+            const parts = trimmedDate.split('/');
+            if (parts.length === 2) {
+              parsedExpDate = new Date(`${parts[1]}-${parts[0]}-01`);
+            } else if (parts.length === 3) {
+              parsedExpDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+            }
+          } else {
+            parsedExpDate = new Date(trimmedDate);
+          }
+        }
+        if (parsedExpDate && isNaN(parsedExpDate.getTime())) {
+          parsedExpDate = null;
+        }
+
         items.push({
           name: cols[0],
           salePrice: Number(cols[1]) || 0,
-          purchasePrice: Number(cols[2]) || 0,
+          purchasePrice: Number(cols[2]) || Number(cols[1]) * 0.75 || 0,
           stockQty: Number(cols[3]) || 0,
           category: cols[4] || 'General',
           batchNumber: cols[5] || '',
-          expiryDate: cols[6] ? new Date(cols[6]) : null
+          expiryDate: parsedExpDate
         });
       }
 

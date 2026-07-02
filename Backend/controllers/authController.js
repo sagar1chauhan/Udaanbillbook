@@ -1,4 +1,7 @@
 const User = require('../models/User');
+const Plan = require('../models/Plan');
+const Ticket = require('../models/Ticket');
+const PlatformSettings = require('../models/PlatformSettings');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
@@ -11,6 +14,23 @@ const generateToken = (id) => {
 };
 
 const otpStore = new Map();
+
+const getDeviceString = (userAgent) => {
+  if (!userAgent) return 'Chrome / Windows';
+  let os = 'Windows';
+  let browser = 'Chrome';
+  
+  if (userAgent.includes('Macintosh')) os = 'macOS';
+  else if (userAgent.includes('Linux')) os = 'Linux';
+  else if (userAgent.includes('Android')) os = 'Android';
+  else if (userAgent.includes('iPhone') || userAgent.includes('iPad')) os = 'iOS';
+  
+  if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) browser = 'Safari';
+  else if (userAgent.includes('Firefox')) browser = 'Firefox';
+  else if (userAgent.includes('Edge')) browser = 'Edge';
+  
+  return `${browser} / ${os}`;
+};
 
 // @desc    Send OTP
 // @route   POST /api/auth/send-otp
@@ -50,7 +70,7 @@ const sendOtp = async (req, res) => {
 // @access  Public
 const verifyOtp = async (req, res) => {
   try {
-    const { phone, otp, mode, name, business, address, email, role } = req.body;
+    const { phone, otp, mode, name, business, address, email, role, businessType } = req.body;
 
     if (!phone || !otp) {
       return res.status(400).json({ message: 'Phone and OTP are required' });
@@ -71,8 +91,9 @@ const verifyOtp = async (req, res) => {
         user.name = name || user.name;
         user.businessName = business || user.businessName;
         user.businessAddress = address || user.businessAddress;
+        user.businessType = businessType || user.businessType;
         user.email = email || user.email;
-        if (role) user.role = role;
+        user.role = (phone === "9876543210" ? "admin" : "vendor");
         await user.save();
       } else {
         // Create new user
@@ -81,8 +102,9 @@ const verifyOtp = async (req, res) => {
           name: name || "User",
           businessName: business,
           businessAddress: address,
+          businessType: businessType,
           email,
-          role: role || (phone === "9876543210" ? "admin" : "vendor")
+          role: (phone === "9876543210" ? "admin" : "vendor")
         });
       }
     } else {
@@ -90,10 +112,15 @@ const verifyOtp = async (req, res) => {
       if (!user) {
         return res.status(404).json({ message: 'User not found. Please register first.' });
       }
-      if (role) {
-        user.role = role;
-        await user.save();
-      }
+    }
+    
+    // Set login stats
+    user.lastLogin = new Date();
+    user.device = getDeviceString(req.headers['user-agent']);
+    await user.save();
+    
+    if (user.status === 'Banned') {
+      return res.status(403).json({ message: 'Your account has been banned. Please contact support.' });
     }
 
     res.json({
@@ -187,6 +214,10 @@ const loginEmail = async (req, res) => {
       }
     }
 
+    if (user.status === 'Banned') {
+      return res.status(403).json({ message: 'Your account has been banned. Please contact support.' });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       if (user.password !== password) {
@@ -196,8 +227,12 @@ const loginEmail = async (req, res) => {
 
     if (role && user.role !== role) {
       user.role = role;
-      await user.save();
     }
+    
+    // Set login stats
+    user.lastLogin = new Date();
+    user.device = getDeviceString(req.headers['user-agent']);
+    await user.save();
 
     res.status(200).json({
       _id: user.id,
@@ -293,6 +328,114 @@ const deleteStaff = async (req, res) => {
   }
 };
 
+// @desc    Get active subscription plans (Public/Vendor)
+// @route   GET /api/auth/plans
+// @access  Public
+const getPlans = async (req, res) => {
+  try {
+    let dbPlans = await Plan.find({ status: 'Active' });
+    if (dbPlans.length === 0) {
+      const defaultPlans = [
+        { name: "Free", price: 0, interval: "forever", features: ["50 invoices/month", "Basic inventory", "1 user", "Udaan branding"], popular: false, description: "Perfect for exploring the platform", platforms: "Mobile Only" },
+        { name: "Silver", price: 199, interval: "month", features: ["Unlimited invoices", "Advanced inventory", "3 users", "No branding", "Basic GST"], popular: false, description: "Ideal for growing small businesses", platforms: "Mobile + Desktop" },
+        { name: "Gold", price: 299, interval: "month", features: ["Everything in Silver", "Unlimited users", "E-way bills", "Advanced GST", "Staff management"], popular: true, description: "Complete solution for mature businesses", platforms: "Mobile + Desktop" },
+        { name: "Enterprise", price: 499, interval: "month", features: ["Everything in Gold", "Custom themes", "Priority support", "Barcode gen", "API access"], popular: false, description: "Premium subscription for enterprise needs", platforms: "Mobile + Desktop" }
+      ];
+      await Plan.insertMany(defaultPlans);
+      dbPlans = await Plan.find({ status: 'Active' });
+    }
+    res.status(200).json(dbPlans);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Subscribe user to a plan
+// @route   POST /api/auth/subscribe
+// @access  Private
+const subscribeUser = async (req, res) => {
+  try {
+    const { planName } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const Payment = require('../models/Payment');
+    
+    // Find the plan price
+    const plan = await Plan.findOne({ name: planName, status: 'Active' });
+    const price = plan ? plan.price : 0;
+
+    user.subscription = {
+      plan: planName,
+      status: 'active',
+      validUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+    };
+    await user.save();
+
+    // Create a payment record in database if the price > 0
+    if (price > 0) {
+      await Payment.create({
+        user: user._id,
+        type: 'Payment In',
+        amount: price * 12, // Annual billing
+        paymentMode: 'UPI',
+        date: new Date(),
+        referenceNumber: `TXN-SUB-${Date.now().toString().slice(-6)}`,
+        description: `Subscription upgrade to ${planName} Plan`
+      });
+    }
+
+    res.status(200).json({
+      message: `Successfully subscribed to ${planName}`,
+      subscription: user.subscription
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get user's support tickets
+// @route   GET /api/auth/tickets
+// @access  Private
+const getUserTickets = async (req, res) => {
+  try {
+    const tickets = await Ticket.find({ user: req.user.id }).sort({ createdAt: -1 });
+    res.status(200).json(tickets);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Create a new support ticket
+// @route   POST /api/auth/tickets
+// @access  Private
+const createUserTicket = async (req, res) => {
+  try {
+    const { subject, description, priority } = req.body;
+    if (!subject || !description) {
+      return res.status(400).json({ message: 'Subject and description are required' });
+    }
+
+    const ticketCount = await Ticket.countDocuments({});
+    const ticketId = `TKT-${880 + ticketCount + 1}`;
+
+    const newTicket = await Ticket.create({
+      id: ticketId,
+      user: req.user.id,
+      subject,
+      description,
+      priority: priority || 'Medium',
+      status: 'Open'
+    });
+
+    res.status(201).json(newTicket);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   sendOtp,
   verifyOtp,
@@ -301,5 +444,41 @@ module.exports = {
   getStaff,
   addStaff,
   updateStaff,
-  deleteStaff
+  deleteStaff,
+  getPlans,
+  getUserTickets,
+  createUserTicket
+};
+
+// @desc    Get public platform settings (e.g. business categories)
+// @route   GET /api/auth/settings
+// @access  Public
+const getPublicSettings = async (req, res) => {
+  try {
+    let settings = await PlatformSettings.findOne({});
+    if (!settings) {
+      settings = await PlatformSettings.create({});
+    }
+    res.status(200).json({
+      businessTypes: settings.businessTypes
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  sendOtp,
+  verifyOtp,
+  getMe,
+  loginEmail,
+  getStaff,
+  addStaff,
+  updateStaff,
+  deleteStaff,
+  getPlans,
+  subscribeUser,
+  getUserTickets,
+  createUserTicket,
+  getPublicSettings
 };

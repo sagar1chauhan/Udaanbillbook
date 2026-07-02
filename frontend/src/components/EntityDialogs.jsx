@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { usePlatformSettings } from "@/lib/platform-settings";
+import api from "@/lib/api";
 
 export function AddProductDialog({
   open, onOpenChange, onAdd,
@@ -36,7 +37,9 @@ export function AddProductDialog({
     customFieldsData: {},
   });
 
-  // Reset form when dialog opens/closes
+  const [categories, setCategories] = useState([]);
+
+  // Reset form and fetch categories when dialog opens/closes
   useEffect(() => {
     if (open) {
       setF({
@@ -55,6 +58,19 @@ export function AddProductDialog({
         size: "",
         customFieldsData: {},
       });
+
+      const fetchCategories = async () => {
+        try {
+          const res = await api.get('/categories');
+          setCategories(res.data || []);
+          if (res.data && res.data.length > 0) {
+            setF(p => ({ ...p, cat: res.data[0].name }));
+          }
+        } catch (error) {
+          console.error("Failed to fetch categories:", error);
+        }
+      };
+      fetchCategories();
     }
   }, [open]);
 
@@ -153,8 +169,15 @@ export function AddProductDialog({
                 <Select value={f.cat} onValueChange={(v) => set("cat", v)}>
                   <SelectTrigger className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {["Grocery", "Bakery", "Dairy", "Packaged", "Services", "Other"].map((c) => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    {(categories.length > 0 ? categories : [
+                      { name: "Grocery" },
+                      { name: "Bakery" },
+                      { name: "Dairy" },
+                      { name: "Packaged" },
+                      { name: "Services" },
+                      { name: "Other" }
+                    ]).map((c) => (
+                      <SelectItem key={c._id || c.name} value={c.name}>{c.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -291,6 +314,22 @@ export function AddPartyDialog({
     address: "",
   });
 
+  const [partyTypes, setPartyTypes] = useState([]);
+  const [showAddType, setShowAddType] = useState(false);
+  const [newTypeName, setNewTypeName] = useState("");
+
+  const fetchPartyTypes = async () => {
+    try {
+      const res = await api.get('/party-types');
+      setPartyTypes(res.data || []);
+      if (res.data && res.data.length > 0) {
+        setF(p => ({ ...p, type: res.data[0].name }));
+      }
+    } catch (error) {
+      console.error("Failed to load party types:", error);
+    }
+  };
+
   useEffect(() => {
     if (open) {
       setF({
@@ -302,10 +341,30 @@ export function AddPartyDialog({
         email: "",
         address: "",
       });
+      setShowAddType(false);
+      setNewTypeName("");
+      fetchPartyTypes();
     }
   }, [open]);
 
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
+
+  const handleCreateType = async (e) => {
+    e.preventDefault();
+    if (!newTypeName.trim()) return toast.error("Enter type name");
+    try {
+      const res = await api.post('/party-types', { name: newTypeName.trim() });
+      toast.success(`Type "${res.data.name}" added`);
+      setNewTypeName("");
+      setShowAddType(false);
+      // Refresh types list and set newly created one as active type
+      const updatedTypes = await api.get('/party-types');
+      setPartyTypes(updatedTypes.data || []);
+      set("type", res.data.name);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to create type");
+    }
+  };
 
   if (!partySettings) return null;
 
@@ -316,96 +375,129 @@ export function AddPartyDialog({
           <DialogTitle>Add Party</DialogTitle>
           <DialogDescription>Customer or supplier ledger registration.</DialogDescription>
         </DialogHeader>
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!f.name.trim()) return toast.error("Enter party name");
-            if (partySettings.phone && f.phone.length !== 10) return toast.error("Enter 10-digit phone");
 
-            const payload = {
-              name: f.name.trim(),
-              type: partySettings.partyType ? f.type : "Customer",
-              phone: partySettings.phone ? `+91 ${f.phone.slice(0, 4)} ${f.phone.slice(4)}` : "N/A",
-              balance: partySettings.openingBalance ? (Number(f.opening) || 0) : 0,
-            };
-
-            if (partySettings.gstin) payload.gstin = f.gstin.trim();
-            if (partySettings.email) payload.email = f.email.trim();
-            if (partySettings.address) payload.address = f.address.trim();
-
-            if (onAdd) {
-              onAdd(payload);
-            }
-
-            toast.success(`${f.name} added`);
-            onOpenChange(false);
-          }}
-        >
-          <div className="space-y-1.5">
-            <Label htmlFor="paname">Party name</Label>
-            <Input id="paname" value={f.name} onChange={(e) => set("name", e.target.value)} className="h-10 rounded-xl" />
+        {showAddType ? (
+          <div className="space-y-4 py-2">
+            <h4 className="font-semibold text-sm">Add Party Type</h4>
+            <div className="space-y-1.5">
+              <Label htmlFor="new-type-name">Type Name</Label>
+              <Input
+                id="new-type-name"
+                value={newTypeName}
+                onChange={(e) => setNewTypeName(e.target.value)}
+                className="h-10 rounded-xl"
+                placeholder="e.g. Distributor"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setShowAddType(false)}>Cancel</Button>
+              <Button type="button" onClick={handleCreateType} className="rounded-xl">Save Type</Button>
+            </div>
           </div>
+        ) : (
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!f.name.trim()) return toast.error("Enter party name");
+              if (partySettings.phone && f.phone.length !== 10) return toast.error("Enter 10-digit phone");
 
-          <div className="grid grid-cols-2 gap-3">
-            {partySettings.phone && (
+              const balanceVal = Number(f.opening) || 0;
+              const payload = {
+                name: f.name.trim(),
+                type: partySettings.partyType ? f.type : "Customer",
+                phone: partySettings.phone ? `+91 ${f.phone.slice(0, 4)} ${f.phone.slice(4)}` : "N/A",
+                balance: balanceVal,
+                balanceType: balanceVal >= 0 ? "To Receive" : "To Pay"
+              };
+
+              if (partySettings.gstin) payload.gstin = f.gstin.trim();
+              if (partySettings.email) payload.email = f.email.trim();
+              if (partySettings.address) payload.address = f.address.trim();
+
+              if (onAdd) {
+                onAdd(payload);
+              }
+
+              toast.success(`${f.name} added`);
+              onOpenChange(false);
+            }}
+          >
+            <div className="space-y-1.5">
+              <Label htmlFor="paname">Party name</Label>
+              <Input id="paname" value={f.name} onChange={(e) => set("name", e.target.value)} className="h-10 rounded-xl" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {partySettings.phone && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="paphone">Mobile</Label>
+                  <Input
+                    id="paphone" inputMode="numeric" maxLength={10}
+                    value={f.phone}
+                    onChange={(e) => set("phone", e.target.value.replace(/\D/g, ""))}
+                    className="h-10 rounded-xl"
+                  />
+                </div>
+              )}
+              {partySettings.partyType && (
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <Label>Type</Label>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddType(true)}
+                      className="text-[11px] text-blue-600 hover:underline font-semibold"
+                    >
+                      + Add Type
+                    </button>
+                  </div>
+                  <Select value={f.type} onValueChange={(v) => set("type", v)}>
+                    <SelectTrigger className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {partyTypes.map((t) => (
+                        <SelectItem key={t._id || t.name} value={t.name}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
+            {partySettings.openingBalance && (
               <div className="space-y-1.5">
-                <Label htmlFor="paphone">Mobile</Label>
-                <Input
-                  id="paphone" inputMode="numeric" maxLength={10}
-                  value={f.phone}
-                  onChange={(e) => set("phone", e.target.value.replace(/\D/g, ""))}
-                  className="h-10 rounded-xl"
-                />
+                <Label htmlFor="paopen">Opening balance (₹)</Label>
+                <Input id="paopen" type="number" value={f.opening} onChange={(e) => set("opening", e.target.value)} className="h-10 rounded-xl" placeholder="0" />
               </div>
             )}
-            {partySettings.partyType && (
+
+            {partySettings.gstin && (
               <div className="space-y-1.5">
-                <Label>Type</Label>
-                <Select value={f.type} onValueChange={(v) => set("type", v)}>
-                  <SelectTrigger className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Customer">Customer</SelectItem>
-                    <SelectItem value="Supplier">Supplier</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="pagstin">Party GSTIN</Label>
+                <Input id="pagstin" value={f.gstin} onChange={(e) => set("gstin", e.target.value.toUpperCase())} className="h-10 rounded-xl" placeholder="07XXXXX1234XX" />
               </div>
             )}
-          </div>
 
-          {partySettings.openingBalance && (
-            <div className="space-y-1.5">
-              <Label htmlFor="paopen">Opening balance (₹)</Label>
-              <Input id="paopen" type="number" value={f.opening} onChange={(e) => set("opening", e.target.value)} className="h-10 rounded-xl" placeholder="0" />
-            </div>
-          )}
+            {partySettings.email && (
+              <div className="space-y-1.5">
+                <Label htmlFor="paemail">Party Email</Label>
+                <Input id="paemail" type="email" value={f.email} onChange={(e) => set("email", e.target.value)} className="h-10 rounded-xl" placeholder="e.g. party@mail.com" />
+              </div>
+            )}
 
-          {partySettings.gstin && (
-            <div className="space-y-1.5">
-              <Label htmlFor="pagstin">Party GSTIN</Label>
-              <Input id="pagstin" value={f.gstin} onChange={(e) => set("gstin", e.target.value.toUpperCase())} className="h-10 rounded-xl" placeholder="07XXXXX1234XX" />
-            </div>
-          )}
+            {partySettings.address && (
+              <div className="space-y-1.5">
+                <Label htmlFor="paaddress">Billing Address</Label>
+                <Textarea id="paaddress" value={f.address} onChange={(e) => set("address", e.target.value)} className="min-h-[60px] rounded-xl" />
+              </div>
+            )}
 
-          {partySettings.email && (
-            <div className="space-y-1.5">
-              <Label htmlFor="paemail">Party Email</Label>
-              <Input id="paemail" type="email" value={f.email} onChange={(e) => set("email", e.target.value)} className="h-10 rounded-xl" placeholder="e.g. party@mail.com" />
-            </div>
-          )}
-
-          {partySettings.address && (
-            <div className="space-y-1.5">
-              <Label htmlFor="paaddress">Billing Address</Label>
-              <Textarea id="paaddress" value={f.address} onChange={(e) => set("address", e.target.value)} className="min-h-[60px] rounded-xl" />
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="rounded-xl">Save Party</Button>
-          </DialogFooter>
-        </form>
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+              <Button type="submit" className="rounded-xl">Save Party</Button>
+            </DialogFooter>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );

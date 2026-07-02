@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,28 +29,37 @@ const statusStyles = {
 };
 
 export function BillingDashboard() {
+  const { invoices, refreshInvoices } = useInvoices();
   const { user } = useMockAuth();
   const isViewer = user?.role === "Viewer";
-  const { invoices } = useInvoices();
+
+  useEffect(() => {
+    refreshInvoices();
+  }, []);
+
+  const stats = useMemo(() => {
+    let paid = 0;
+    let unpaid = 0;
+    let partial = 0;
+
+    invoices.forEach((inv) => {
+      const amt = Number(inv.amount) || 0;
+      if (inv.status === "Paid") paid += amt;
+      else if (inv.status === "Unpaid") unpaid += amt;
+      else if (inv.status === "Partial") partial += amt;
+    });
+
+    return {
+      total: invoices.length,
+      paid,
+      unpaid,
+      partial,
+      collectedThisMonth: paid,
+    };
+  }, [invoices]);
 
   const [tab, setTab] = useState("all");
   const filtered = tab === "all" ? invoices : invoices.filter((i) => i.status.toLowerCase() === tab);
-
-  const stats = useMemo(() => {
-    let totalInvoices = invoices.length;
-    let paidAmount = 0;
-    let unpaidAmount = 0;
-    let partialAmount = 0;
-
-    invoices.forEach(inv => {
-      const amount = inv.grandTotal || inv.amount || 0;
-      if (inv.status === 'Paid') paidAmount += amount;
-      if (inv.status === 'Unpaid') unpaidAmount += amount;
-      if (inv.status === 'Partial') partialAmount += amount;
-    });
-
-    return { totalInvoices, paidAmount, unpaidAmount, partialAmount };
-  }, [invoices]);
 
   const downloadOne = (inv) => {
     downloadInvoicePdf({
@@ -81,7 +90,7 @@ export function BillingDashboard() {
     <div className="space-y-6">
       <PageHeader
         title="Billing & Invoices"
-        subtitle={`${stats.totalInvoices} invoices · ${fmt(stats.paidAmount)} collected`}
+        subtitle={`${stats.total} invoices · ${fmt(stats.collectedThisMonth)} collected`}
         actions={
           <>
             <Button variant="outline" className="rounded-xl" onClick={() => toast.success("Exporting invoices…")}>
@@ -107,10 +116,10 @@ export function BillingDashboard() {
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {[
-          { label: "Total Invoices", value: stats.totalInvoices.toString(), tint: "bg-primary-soft text-primary" },
-          { label: "Paid", value: fmt(stats.paidAmount), tint: "bg-success-soft text-success" },
-          { label: "Unpaid", value: fmt(stats.unpaidAmount), tint: "bg-destructive/10 text-destructive" },
-          { label: "Partially Paid", value: fmt(stats.partialAmount), tint: "bg-accent-soft text-accent-foreground" },
+          { label: "Total Invoices", value: stats.total.toString(), tint: "bg-primary-soft text-primary" },
+          { label: "Paid", value: fmt(stats.paid), tint: "bg-success-soft text-success" },
+          { label: "Unpaid", value: fmt(stats.unpaid), tint: "bg-destructive/10 text-destructive" },
+          { label: "Partially Paid", value: fmt(stats.partial), tint: "bg-accent-soft text-accent-foreground" },
         ].map((s) => (
           <Card key={s.label} className="border-0 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
             <CardContent className="flex items-center gap-3 p-4">

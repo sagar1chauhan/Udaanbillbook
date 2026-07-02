@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,12 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Fuel, Truck, Zap, Wifi, ShoppingBag, Users } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
+import { Plus, Fuel, Truck, Zap, Wifi, ShoppingBag, Users, Layers } from "lucide-react";
 import { toast } from "sonner";
+import api from "@/lib/api";
 
 const fmt = (n) => "₹" + n.toLocaleString("en-IN");
 
@@ -21,15 +25,6 @@ const catIcons = {
   Payroll: Users,
 };
 
-const INITIAL_EXPENSES = [
-  { name: "Diesel - Delivery Van", cat: "Fuel", icon: Fuel, amount: 4200, date: "28 Apr" },
-  { name: "Shop Electricity Bill", cat: "Utilities", icon: Zap, amount: 6800, date: "27 Apr" },
-  { name: "Transport - Wholesale Pickup", cat: "Logistics", icon: Truck, amount: 3500, date: "26 Apr" },
-  { name: "Internet & Phone", cat: "Utilities", icon: Wifi, amount: 1200, date: "25 Apr" },
-  { name: "Packaging Material", cat: "Supplies", icon: ShoppingBag, amount: 2400, date: "24 Apr" },
-  { name: "Staff Salary - Apr", cat: "Payroll", icon: Users, amount: 28000, date: "23 Apr" },
-];
-
 const catColors = {
   Fuel: "bg-accent-soft text-accent-foreground",
   Utilities: "bg-primary-soft text-primary",
@@ -38,34 +33,95 @@ const catColors = {
   Payroll: "bg-destructive/10 text-destructive",
 };
 
+const formatDate = (dateStr) => {
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+  } catch (err) {
+    return dateStr;
+  }
+};
+
 export function ExpensesDashboard() {
-  const [expenseList, setExpenseList] = useState(INITIAL_EXPENSES);
+  const [expenseList, setExpenseList] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("Fuel");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  
+  // Category modal states
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+
+  const fetchExpenses = async () => {
+    try {
+      const res = await api.get('/expenses');
+      setExpenseList(res.data || []);
+    } catch (err) {
+      console.error("Failed to load expenses:", err);
+      toast.error("Failed to load expenses");
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get('/expense-categories');
+      setCategories(res.data || []);
+      if (res.data && res.data.length > 0) {
+        const exists = res.data.some(c => c.name === category);
+        if (!exists) {
+          setCategory(res.data[0].name);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load expense categories:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchExpenses();
+    fetchCategories();
+  }, []);
+
+  const handleAddCategory = async (name) => {
+    try {
+      const res = await api.post('/expense-categories', { name });
+      toast.success(`Category "${res.data.name}" added`);
+      await fetchCategories();
+      setCategory(res.data.name);
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to add category");
+    }
+  };
 
   const total = expenseList.reduce((s, e) => s + e.amount, 0);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title || !amount) {
       toast.error("Please fill in title and amount");
       return;
     }
 
-    const newExpense = {
-      name: title,
-      cat: category,
-      icon: catIcons[category] || ShoppingBag,
-      amount: parseFloat(amount),
-      date: new Date(date).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }),
-    };
-
-    setExpenseList([newExpense, ...expenseList]);
-    setTitle("");
-    setAmount("");
-    toast.success("Expense recorded");
+    try {
+      const payload = {
+        description: title,
+        category: category,
+        amount: parseFloat(amount),
+        date: date,
+      };
+      await api.post('/expenses', payload);
+      toast.success("Expense recorded");
+      setTitle("");
+      setAmount("");
+      fetchExpenses();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to record expense");
+    }
   };
 
   return (
@@ -107,14 +163,23 @@ export function ExpensesDashboard() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label>Category</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Category</Label>
+                  <button
+                    type="button"
+                    onClick={() => setCategoryOpen(true)}
+                    className="text-xs text-primary hover:underline font-semibold"
+                  >
+                    + Add Type/Category
+                  </button>
+                </div>
                 <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger className="h-10 rounded-xl">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.keys(catColors).map((c) => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    {categories.map((c) => (
+                      <SelectItem key={c._id || c.name} value={c.name}>{c.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -142,21 +207,69 @@ export function ExpensesDashboard() {
             <Badge variant="secondary" className="rounded-full">This month</Badge>
           </CardHeader>
           <CardContent className="space-y-2">
-            {expenseList.map((e, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-xl border bg-card p-3 transition-all duration-200 hover:translate-x-1 hover:shadow-sm">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${catColors[e.cat]}`}>
-                  <e.icon className="h-5 w-5" />
+            {expenseList.map((e, i) => {
+              const Icon = catIcons[e.category || e.cat] || Layers;
+              const color = catColors[e.category || e.cat] || "bg-primary-soft text-primary";
+              const titleText = e.description || e.name;
+              const catText = e.category || e.cat;
+              const dateText = formatDate(e.date);
+
+              return (
+                <div key={e._id || i} className="flex items-center gap-3 rounded-xl border bg-card p-3 transition-all duration-200 hover:translate-x-1 hover:shadow-sm">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${color}`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{titleText}</p>
+                    <p className="text-xs text-muted-foreground">{catText} · {dateText}</p>
+                  </div>
+                  <p className="text-sm font-bold">-{fmt(e.amount)}</p>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{e.name}</p>
-                  <p className="text-xs text-muted-foreground">{e.cat} · {e.date}</p>
-                </div>
-                <p className="text-sm font-bold">-{fmt(e.amount)}</p>
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
       </div>
+
+      {/* Add Category Dialog */}
+      <Dialog open={categoryOpen} onOpenChange={setCategoryOpen}>
+        <DialogContent className="max-w-md rounded-2xl w-[90%] sm:w-full">
+          <DialogHeader>
+            <DialogTitle>Add Expense Category</DialogTitle>
+            <DialogDescription>Create a new category to group your business expenses.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            if (!newCategoryName.trim()) {
+              toast.error("Category name cannot be empty");
+              return;
+            }
+            await handleAddCategory(newCategoryName.trim());
+            setNewCategoryName("");
+            setCategoryOpen(false);
+          }} className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="newCat">Category Name</Label>
+              <Input
+                id="newCat"
+                placeholder="e.g. Marketing, Rent, Travel"
+                className="h-10 rounded-xl"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button type="button" variant="outline" className="rounded-xl" onClick={() => setCategoryOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" className="rounded-xl">
+                Add Category
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

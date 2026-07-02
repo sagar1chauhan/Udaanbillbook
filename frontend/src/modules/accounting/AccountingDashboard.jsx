@@ -21,7 +21,6 @@ import api from "@/lib/api";
 
 const fmt = (n) => "₹" + (n || 0).toLocaleString("en-IN");
 
-
 export function AccountingDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -61,6 +60,26 @@ export function AccountingDashboard() {
 
   if (loading || !data) return <div className="p-8 text-center text-muted-foreground">Loading Accounting Data...</div>;
 
+  // Calculate dynamic today's cash flow change
+  const todayDateStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }); // e.g. "19 Jun"
+  const todayChange = data.entries
+    .filter(e => e.date && e.date.includes(todayDateStr))
+    .reduce((sum, e) => sum + (e.type === 'IN' ? e.amount : -e.amount), 0);
+
+  // Dynamic balance sheet values
+  const currentAssets = data.cashInHand + data.bankBalance + data.receivables;
+  const fixedAssets = 0; // Optional fixed assets
+  const totalAssets = currentAssets + fixedAssets;
+  const totalLiabilities = data.payables;
+  const equity = totalAssets - totalLiabilities;
+
+  // Dynamic bank account distribution (split by ratios for presentation)
+  const bankAccounts = [
+    { name: "HDFC Bank - 4521", type: "Savings", balance: Math.round(data.bankBalance * 0.6), icon: Building2 },
+    { name: "ICICI Bank - 8812", type: "Current", balance: Math.round(data.bankBalance * 0.3), icon: Building2 },
+    { name: "SBI Bank - 1024", type: "Savings", balance: Math.round(data.bankBalance * 0.1), icon: Building2 },
+  ];
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -92,7 +111,7 @@ export function AccountingDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{fmt(data.cashInHand)}</div>
             <p className="text-[11px] opacity-70 mt-1 flex items-center gap-1">
-              <ArrowUpCircle className="h-3 w-3" /> +₹2,400 today
+              <ArrowUpCircle className="h-3 w-3" /> {todayChange >= 0 ? "+" : ""}{fmt(todayChange)} today
             </p>
           </CardContent>
         </Card>
@@ -216,23 +235,23 @@ export function AccountingDashboard() {
                 <CardContent className="space-y-4">
                    <div className="flex items-center justify-between py-2 border-b">
                       <span className="text-sm font-semibold">Total Assets</span>
-                      <span className="font-bold">{fmt(2450000)}</span>
+                      <span className="font-bold">{fmt(totalAssets)}</span>
                    </div>
                    <div className="flex items-center justify-between py-2 border-b pl-4 text-muted-foreground">
                       <span className="text-xs">Current Assets</span>
-                      <span className="text-sm">{fmt(1250000)}</span>
+                      <span className="text-sm">{fmt(currentAssets)}</span>
                    </div>
                    <div className="flex items-center justify-between py-2 border-b pl-4 text-muted-foreground">
                       <span className="text-xs">Fixed Assets</span>
-                      <span className="text-sm">{fmt(1200000)}</span>
+                      <span className="text-sm">{fmt(fixedAssets)}</span>
                    </div>
                    <div className="flex items-center justify-between py-2 border-b mt-2">
                       <span className="text-sm font-semibold">Total Liabilities</span>
-                      <span className="font-bold text-destructive">{fmt(482000)}</span>
+                      <span className="font-bold text-destructive">{fmt(totalLiabilities)}</span>
                    </div>
                    <div className="flex items-center justify-between py-2">
                       <span className="text-sm font-semibold">Equity</span>
-                      <span className="font-bold text-primary">{fmt(1968000)}</span>
+                      <span className="font-bold text-primary">{fmt(equity)}</span>
                    </div>
                    <Button variant="outline" className="w-full rounded-xl mt-2">Generate Full Report</Button>
                 </CardContent>
@@ -242,11 +261,7 @@ export function AccountingDashboard() {
 
         <TabsContent value="bank" className="mt-6">
            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-              {[
-                { name: "HDFC Bank - 4521", type: "Savings", balance: 845200, icon: Building2 },
-                { name: "ICICI Bank - 8812", type: "Current", balance: 342100, icon: Building2 },
-                { name: "SBI Bank - 1024", type: "Savings", balance: 61200, icon: Building2 },
-              ].map((bank, i) => (
+              {bankAccounts.map((bank, i) => (
                 <Card key={i} className="border-0 shadow-sm border-l-4 border-l-primary transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
                    <CardContent className="p-5">
                     <div className="flex items-start justify-between mb-4">
