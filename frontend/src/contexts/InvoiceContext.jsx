@@ -1,15 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import api from "@/lib/api";
+import { toast } from "sonner";
+import { useMockAuth } from "@/lib/auth-store";
 
 const InvoiceContext = createContext();
 
 export function InvoiceProvider({ children }) {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { hydrated, isAuthenticated } = useMockAuth();
 
   const fetchInvoices = async () => {
-    const authData = localStorage.getItem('Udaan.auth');
-    if (!authData) return;
+    if (!isAuthenticated) return;
     setLoading(true);
     try {
       const res = await api.get("/invoices");
@@ -25,25 +27,33 @@ export function InvoiceProvider({ children }) {
       setInvoices(normalized);
     } catch (err) {
       console.error("Failed to fetch invoices:", err);
+      toast.error("Failed to load invoices");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchInvoices();
-  }, []);
+    if (hydrated && isAuthenticated) {
+      fetchInvoices();
+    } else if (hydrated && !isAuthenticated) {
+      setInvoices([]);
+    }
+  }, [hydrated, isAuthenticated]);
 
   const refreshInvoices = () => {
     fetchInvoices();
   };
 
-  const addInvoice = (invoice) => {
+  const addInvoice = (invoiceData) => {
+    if (invoiceData) {
+      return api.post('/invoices', invoiceData).then(() => refreshInvoices());
+    }
     refreshInvoices();
   };
 
   return (
-    <InvoiceContext.Provider value={{ invoices, loading, refreshInvoices, addInvoice }}>
+    <InvoiceContext.Provider value={{ invoices, loading, refreshInvoices, addInvoice, fetchInvoices }}>
       {children}
     </InvoiceContext.Provider>
   );

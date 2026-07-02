@@ -63,25 +63,25 @@ export function BillingDashboard() {
 
   const downloadOne = (inv) => {
     downloadInvoicePdf({
-      number: inv.id,
-      date: inv.date,
+      number: inv.invoiceNumber || inv.id,
+      date: new Date(inv.date).toLocaleDateString(),
       business: {
         name: "Sharma Traders",
         address: "Shop 12, MG Road, Indore, MP 452001",
         gstin: "23ABCDE1234F1Z5",
         phone: "+91 98765 43210",
       },
-      party: { name: inv.party },
+      party: { name: inv.partyName || inv.party },
       lines: [
-        { name: "Items as per challan", qty: 1, rate: inv.amount / 1.18, gst: 18 },
+        { name: "Items as per challan", qty: 1, rate: (inv.grandTotal || inv.amount) / 1.18, gst: 18 },
       ],
     });
-    toast.success(`${inv.id} downloaded`);
+    toast.success(`${inv.invoiceNumber || inv.id} downloaded`);
   };
 
   const shareWA = (inv) => {
     const msg = encodeURIComponent(
-      `Hi ${inv.party}, your invoice ${inv.id} of ₹${inv.amount.toLocaleString("en-IN")} is ready.`,
+      `Hi ${inv.partyName || inv.party}, your invoice ${inv.invoiceNumber || inv.id} of ₹${(inv.grandTotal || inv.amount).toLocaleString("en-IN")} is ready.`
     );
     window.open(`https://wa.me/?text=${msg}`, "_blank");
   };
@@ -182,16 +182,18 @@ export function BillingDashboard() {
               </TableHeader>
               <TableBody>
                 {filtered.map((inv) => (
-                  <TableRow key={inv.id} className="border-b last:border-0">
-                    <TableCell className="font-semibold">{inv.id}</TableCell>
+                  <TableRow key={inv._id || inv.id} className="border-b last:border-0">
+                    <TableCell className="font-semibold">{inv.invoiceNumber || inv.id}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={inv.type === 'Sale' ? 'border-red-200 bg-red-50 text-red-700' : 'border-blue-200 bg-blue-50 text-blue-700'}>
                         {inv.type || 'Sale'}
                       </Badge>
                     </TableCell>
-                    <TableCell>{inv.party}</TableCell>
-                    <TableCell className="hidden text-muted-foreground md:table-cell">{inv.date}</TableCell>
-                    <TableCell className="text-right font-semibold">{fmt(inv.amount)}</TableCell>
+                    <TableCell>{inv.partyName || inv.party}</TableCell>
+                    <TableCell className="hidden text-muted-foreground md:table-cell">
+                      {inv.date ? new Date(inv.date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }) : ""}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">{fmt(inv.grandTotal || inv.amount)}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={`rounded-full ${statusStyles[inv.status]}`}>
                         {inv.status}

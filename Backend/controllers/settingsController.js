@@ -5,11 +5,13 @@ const Settings = require('../models/Settings');
 // @access  Private
 const getSettings = async (req, res) => {
   try {
-    let settings = await Settings.findOne({ user: req.user.id });
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
+    let settings = await Settings.findOne({ user: ownerId });
 
     // If settings don't exist for the user, create default ones
     if (!settings) {
-      settings = await Settings.create({ user: req.user.id });
+      settings = await Settings.create({ user: ownerId });
     }
 
     res.status(200).json(settings);
@@ -23,12 +25,14 @@ const getSettings = async (req, res) => {
 // @access  Private
 const updateSettings = async (req, res) => {
   try {
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
     const { gstSettings, printSettings, invoiceSettings } = req.body;
 
-    let settings = await Settings.findOne({ user: req.user.id });
+    let settings = await Settings.findOne({ user: ownerId });
 
     if (!settings) {
-      settings = new Settings({ user: req.user.id });
+      settings = new Settings({ user: ownerId });
     }
 
     if (gstSettings) settings.gstSettings = { ...settings.gstSettings, ...gstSettings };
@@ -42,7 +46,60 @@ const updateSettings = async (req, res) => {
   }
 };
 
+// @desc    Upload company logo
+// @route   POST /api/settings/upload-logo
+// @access  Private
+const uploadLogo = async (req, res) => {
+  try {
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file provided' });
+    }
+    
+    let settings = await Settings.findOne({ user: ownerId });
+    if (!settings) {
+      settings = new Settings({ user: ownerId });
+    }
+    
+    settings.printSettings.companyLogoUrl = req.file.path;
+    settings.printSettings.printCompanyLogo = true;
+    
+    await settings.save();
+    res.status(200).json({ url: req.file.path, message: 'Logo uploaded successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Upload signature
+// @route   POST /api/settings/upload-signature
+// @access  Private
+const uploadSignature = async (req, res) => {
+  try {
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file provided' });
+    }
+    
+    let settings = await Settings.findOne({ user: ownerId });
+    if (!settings) {
+      settings = new Settings({ user: ownerId });
+    }
+    
+    settings.printSettings.signatureUrl = req.file.path;
+    
+    await settings.save();
+    res.status(200).json({ url: req.file.path, message: 'Signature uploaded successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getSettings,
-  updateSettings
+  updateSettings,
+  uploadLogo,
+  uploadSignature
 };

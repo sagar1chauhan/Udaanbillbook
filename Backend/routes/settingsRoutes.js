@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { getSettings, updateSettings } = require('../controllers/settingsController');
+const { getSettings, updateSettings, uploadLogo, uploadSignature } = require('../controllers/settingsController');
 const { protect } = require('../middleware/authMiddleware');
+const { upload } = require('../config/cloudinary');
 
 router.route('/').get(protect, getSettings).put(protect, updateSettings);
+router.post('/upload-logo', protect, upload.single('logo'), uploadLogo);
+router.post('/upload-signature', protect, upload.single('signature'), uploadSignature);
 
 module.exports = router;

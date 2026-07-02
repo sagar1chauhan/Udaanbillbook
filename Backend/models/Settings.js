@@ -19,6 +19,8 @@ const settingsSchema = new mongoose.Schema({
     themeColor: { type: String, default: '#a855f7' },
     printCompanyName: { type: Boolean, default: true },
     printCompanyLogo: { type: Boolean, default: false },
+    companyLogoUrl: { type: String, default: '' },
+    signatureUrl: { type: String, default: '' },
     extraSpaceTop: { type: Number, default: 0 },
     printCompanyAddress: { type: Boolean, default: true },
     printMobile: { type: Boolean, default: true },

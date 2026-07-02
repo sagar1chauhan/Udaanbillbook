@@ -5,7 +5,9 @@ const Item = require('../models/Item');
 // @access  Private
 const getItems = async (req, res) => {
   try {
-    const items = await Item.find({ user: req.user.id }).sort({ createdAt: -1 });
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
+    const items = await Item.find({ user: ownerId }).sort({ createdAt: -1 });
     res.status(200).json(items);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -17,6 +19,8 @@ const getItems = async (req, res) => {
 // @access  Private
 const createItem = async (req, res) => {
   try {
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
     const { name, itemCode, hsnSac, category, unit, salePrice, purchasePrice, taxRate, stockQty, lowStockWarning, batchNumber, expiryDate } = req.body;
 
     if (!name) {
@@ -24,7 +28,7 @@ const createItem = async (req, res) => {
     }
 
     const item = await Item.create({
-      user: req.user.id,
+      user: ownerId,
       name,
       itemCode,
       hsnSac,
@@ -50,13 +54,15 @@ const createItem = async (req, res) => {
 // @access  Private
 const updateItem = async (req, res) => {
   try {
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
     const item = await Item.findById(req.params.id);
 
     if (!item) {
       return res.status(404).json({ message: 'Item not found' });
     }
 
-    if (item.user.toString() !== req.user.id) {
+    if (item.user.toString() !== ownerId) {
       return res.status(401).json({ message: 'User not authorized' });
     }
 
@@ -77,13 +83,15 @@ const updateItem = async (req, res) => {
 // @access  Private
 const deleteItem = async (req, res) => {
   try {
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
     const item = await Item.findById(req.params.id);
 
     if (!item) {
       return res.status(404).json({ message: 'Item not found' });
     }
 
-    if (item.user.toString() !== req.user.id) {
+    if (item.user.toString() !== ownerId) {
       return res.status(401).json({ message: 'User not authorized' });
     }
 
@@ -99,13 +107,15 @@ const deleteItem = async (req, res) => {
 // @access  Private
 const bulkCreateItems = async (req, res) => {
   try {
+    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+
     const { items } = req.body;
     if (!items || !Array.isArray(items)) {
       return res.status(400).json({ message: 'Items array is required' });
     }
 
     const preparedItems = items.map(item => ({
-      user: req.user.id,
+      user: ownerId,
       name: item.name,
       itemCode: item.itemCode || `SKU-${Math.floor(100 + Math.random() * 900)}`,
       category: item.category || 'General',

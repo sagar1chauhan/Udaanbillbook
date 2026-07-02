@@ -76,9 +76,10 @@ export default function NewPurchase() {
       party: null,
       partyName: supplier || "S.K. Traders",
       type: "Purchase",
-      date: new Date(),
+      date: new Date().toISOString(),
       items: lines.filter(l => l.name.trim() !== "").map(l => ({
-        name: l.name,
+        name: l.name || "Item",
+        hsnSac: l.hsnSac,
         qty: Number(l.qty) || 1,
         rate: Number(l.rate) || 0,
         discount: Number(l.discount) || 0,

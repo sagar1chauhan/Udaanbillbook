@@ -44,7 +44,9 @@ const seedAdmin = async () => {
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI);
+    const conn = await mongoose.connect(process.env.MONGO_URI, {
+      family: 4 // Force IPv4 to bypass common Windows/ISP DNS SRV issues
+    });
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     // Seed admin by default
     await seedAdmin();

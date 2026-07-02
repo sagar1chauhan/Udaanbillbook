@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { sendOtp, verifyOtp, getMe, loginEmail, getStaff, addStaff, updateStaff, deleteStaff, getPlans, subscribeUser, getUserTickets, createUserTicket, getPublicSettings } = require('../controllers/authController');
-const { protect } = require('../middleware/authMiddleware');
+const { sendOtp, verifyOtp, getMe, loginEmail, getStaff, addStaff, updateStaff, deleteStaff, getPlans, subscribeUser, getPublicSettings, getUserTickets, createUserTicket } = require('../controllers/authController');
+const { protect, restrictTo } = require('../middleware/authMiddleware');
 
 router.post('/send-otp', sendOtp);
 router.post('/verify-otp', verifyOtp);
@@ -17,11 +17,11 @@ router.route('/tickets')
 
 // Staff management routes
 router.route('/staff')
-  .get(protect, getStaff)
-  .post(protect, addStaff);
+  .get(protect, restrictTo('admin', 'vendor'), getStaff)
+  .post(protect, restrictTo('admin', 'vendor'), addStaff);
   
 router.route('/staff/:id')
-  .put(protect, updateStaff)
-  .delete(protect, deleteStaff);
+  .put(protect, restrictTo('admin', 'vendor'), updateStaff)
+  .delete(protect, restrictTo('admin', 'vendor'), deleteStaff);
 
 module.exports = router;
