@@ -117,40 +117,30 @@ export function LoginForm({ role }) {
               {loading ? "Sending OTP…" : <>Send OTP <ArrowRight className="ml-1 h-4 w-4" /></>}
             </Button>
 
-            <div className="relative my-2 text-center">
-              <span className="relative z-10 bg-background px-3 text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                Demo Options
-              </span>
-              <span className="absolute left-0 top-1/2 h-px w-full bg-border" />
-            </div>
+            {role === "admin" && (
+              <>
+                <div className="relative my-2 text-center">
+                  <span className="relative z-10 bg-background px-3 text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                    Demo Options
+                  </span>
+                  <span className="absolute left-0 top-1/2 h-px w-full bg-border" />
+                </div>
 
-            <div className="flex flex-col gap-3">
-              {role === "admin" ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-12 w-full rounded-xl text-sm gap-2 border-primary/20 bg-primary-soft hover:bg-primary/10 text-primary font-semibold"
-                  onClick={() => {
-                    setPhone("9876543210");
-                    toast.message("Demo Admin filled");
-                  }}
-                >
-                  <ShieldCheck className="h-5 w-5" /> Load Admin Demo Presets
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-12 w-full rounded-xl text-sm gap-2 border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold"
-                  onClick={() => {
-                    setPhone("9123456789");
-                    toast.message("Demo Staff filled");
-                  }}
-                >
-                  <Phone className="h-5 w-5" /> Load Staff Demo Presets
-                </Button>
-              )}
-            </div>
+                <div className="flex flex-col gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-12 w-full rounded-xl text-sm gap-2 border-primary/20 bg-primary-soft hover:bg-primary/10 text-primary font-semibold"
+                    onClick={() => {
+                      setPhone("9876543210");
+                      toast.message("Demo Admin filled");
+                    }}
+                  >
+                    <ShieldCheck className="h-5 w-5" /> Load Admin Demo Presets
+                  </Button>
+                </div>
+              </>
+            )}
           </form>
         </TabsContent>
 
