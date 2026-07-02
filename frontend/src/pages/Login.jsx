@@ -7,7 +7,7 @@ export default function Login({ role }) {
   const isAdmin = role === "admin";
   return (
     <AuthShell
-      title={isAdmin ? "Admin Login" : "Staff / User Login"}
+      title={isAdmin ? "Admin Login" : "Staff / Vendor Login"}
       subtitle={isAdmin ? "Sign in as Admin to manage business settings and full operations." : "Sign in to handle billing and inventory workflows."}
       footer={
         <>
