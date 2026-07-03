@@ -20,6 +20,7 @@ const planStyles = {
   Silver: "bg-blue-500/15 text-blue-400",
   Gold: "bg-amber-500/15 text-amber-400",
   Enterprise: "bg-purple-500/15 text-purple-400",
+  None: "bg-slate-500/15 text-slate-400 border border-slate-500/25",
 };
 
 export function BusinessManagement() {
@@ -78,6 +79,18 @@ export function BusinessManagement() {
       }, 800);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to start impersonation");
+    }
+  };
+
+  const handleDeleteBusiness = async (biz) => {
+    if (window.confirm(`Are you sure you want to delete ${biz.name}? This will permanently remove the business user account.`)) {
+      try {
+        await api.delete(`/admin/users/${biz.id}`);
+        toast.success(`${biz.name} has been deleted successfully.`);
+        setBusinesses(prev => prev.filter(b => b.id !== biz.id));
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to delete business");
+      }
     }
   };
 
@@ -169,13 +182,13 @@ export function BusinessManagement() {
               <tbody>
                 {filtered.map((biz) => (
                   <tr key={biz.id} className="border-b border-white/5 hover:bg-white/3 transition-colors">
-                    <td className="px-4 py-3.5">
+                    <td className="px-4 py-3.5 cursor-pointer group/name hover:opacity-95" onClick={() => setSelectedBiz(biz)}>
                       <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-xs font-bold text-blue-400">
                           {(biz.name || "B").split(" ").map((w) => w[0]).join("").slice(0, 2)}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-white truncate">{biz.name}</p>
+                          <p className="text-sm font-semibold text-white truncate group-hover/name:text-emerald-400 group-hover/name:underline transition-all">{biz.name}</p>
                           <p className="text-[11px] text-slate-500 truncate">{biz.owner} · {biz.city}</p>
                         </div>
                       </div>
@@ -219,6 +232,10 @@ export function BusinessManagement() {
                         <button className="rounded-lg p-1.5 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 transition-colors" title="Impersonate"
                           onClick={() => handleImpersonate(biz)}>
                           <ExternalLink className="h-3.5 w-3.5" />
+                        </button>
+                        <button className="rounded-lg p-1.5 text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition-colors" title="Delete Business"
+                          onClick={() => handleDeleteBusiness(biz)}>
+                          <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </td>

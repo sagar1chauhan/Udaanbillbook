@@ -8,11 +8,80 @@ export function ItemTableCustomizationModal({ isOpen, onClose, settings, updateS
   const print = settings.printSettings || {};
   const [localColumns, setLocalColumns] = useState({});
   const [localNames, setLocalNames] = useState({});
+  const [order, setOrder] = useState([]);
+
+  const defaultOrder = [
+    "slNo",
+    "itemName",
+    "itemCode",
+    "hsnSac",
+    "batchNo",
+    "expDate",
+    "mfgDate",
+    "mrp",
+    "size",
+    "modelNo",
+    "description",
+    "count",
+    "colour",
+    "material",
+    "brand",
+    "serialNo",
+    "challanNo",
+    "quantity",
+    "unit",
+    "priceUnit",
+    "discount",
+    "discountPercent",
+    "taxablePriceUnit",
+    "taxAmount",
+    "taxPercent",
+    "taxableAmount",
+    "cess",
+    "finalRate",
+    "amount"
+  ];
+
+  const getLabelForKey = (key) => {
+    const labels = {
+      slNo: "#",
+      itemName: "Item name",
+      hsnSac: "HSN/SAC",
+      itemCode: "Item Code",
+      batchNo: "Batch No.",
+      expDate: "Exp. Date",
+      mfgDate: "Mfg. Date",
+      mrp: "MRP",
+      size: "Size",
+      modelNo: "Model No.",
+      description: "Description",
+      count: "Count",
+      colour: "Colour",
+      material: "Material",
+      brand: "Brand",
+      serialNo: "Serial No.",
+      challanNo: "Challan/Order No.",
+      quantity: "Quantity",
+      unit: "Unit",
+      priceUnit: "Price/Unit",
+      discount: "Discount",
+      discountPercent: "Discount %",
+      taxablePriceUnit: "Taxable Price/Unit",
+      taxAmount: "Tax Amount",
+      taxPercent: "Tax Percent",
+      taxableAmount: "Taxable Amount",
+      cess: "Ad. CESS",
+      finalRate: "Final Rate",
+      amount: "Amount"
+    };
+    return labels[key] || key;
+  };
 
   useEffect(() => {
     if (isOpen) {
       setLocalColumns(print.tableColumns || {});
       setLocalNames(print.tableColumnNames || {});
+      setOrder(print.columnOrder || defaultOrder);
     }
   }, [isOpen, settings]);
 
@@ -30,10 +99,24 @@ export function ItemTableCustomizationModal({ isOpen, onClose, settings, updateS
     updateSettings("printSettings", {
       ...print,
       tableColumns: localColumns,
-      tableColumnNames: localNames
+      tableColumnNames: localNames,
+      columnOrder: order
     });
     onClose();
   };
+
+  const moveColumn = (index, direction) => {
+    const newOrder = [...order];
+    const targetIndex = index + direction;
+    if (targetIndex >= 0 && targetIndex < newOrder.length) {
+      const temp = newOrder[index];
+      newOrder[index] = newOrder[targetIndex];
+      newOrder[targetIndex] = temp;
+      setOrder(newOrder);
+    }
+  };
+
+  const activeColsInOrder = order.filter(key => localColumns[key]);
 
   const renderCheckGroup = (key, defaultLabel, inputLabel = null) => {
     const checked = localColumns[key];
@@ -84,68 +167,69 @@ export function ItemTableCustomizationModal({ isOpen, onClose, settings, updateS
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-indigo-400 text-white text-[12px]">
-                  {localColumns.slNo && <th className="p-2 font-medium">{localNames.slNo || "#"}</th>}
-                  {localColumns.itemName && <th className="p-2 font-medium">{localNames.itemName || "Item name"}</th>}
-                  {localColumns.hsnSac && <th className="p-2 font-medium">{localNames.hsnSac || "HSN/SAC"}</th>}
-                  {localColumns.itemCode && <th className="p-2 font-medium">{localNames.itemCode || "Item Code"}</th>}
-                  {localColumns.batchNo && <th className="p-2 font-medium">{localNames.batchNo || "Batch No."}</th>}
-                  {localColumns.expDate && <th className="p-2 font-medium">{localNames.expDate || "Exp. Date"}</th>}
-                  {localColumns.mfgDate && <th className="p-2 font-medium">{localNames.mfgDate || "Mfg. Date"}</th>}
-                  {localColumns.mrp && <th className="p-2 font-medium">{localNames.mrp || "MRP"}</th>}
-                  {localColumns.size && <th className="p-2 font-medium">{localNames.size || "Size"}</th>}
-                  {localColumns.modelNo && <th className="p-2 font-medium">{localNames.modelNo || "Model No."}</th>}
-                  {localColumns.description && <th className="p-2 font-medium">{localNames.description || "Description"}</th>}
-                  {localColumns.count && <th className="p-2 font-medium">{localNames.count || "Count"}</th>}
-                  {localColumns.colour && <th className="p-2 font-medium">{localNames.colour || "Colour"}</th>}
-                  {localColumns.material && <th className="p-2 font-medium">{localNames.material || "Material"}</th>}
-                  {localColumns.brand && <th className="p-2 font-medium">{localNames.brand || "Brand"}</th>}
-                  {localColumns.serialNo && <th className="p-2 font-medium">{localNames.serialNo || "Serial No."}</th>}
-                  {localColumns.challanNo && <th className="p-2 font-medium">{localNames.challanNo || "Challan/Order No."}</th>}
-                  {localColumns.quantity && <th className="p-2 font-medium">{localNames.quantity || "Quantity"}</th>}
-                  {localColumns.unit && <th className="p-2 font-medium">{localNames.unit || "Unit"}</th>}
-                  {localColumns.priceUnit && <th className="p-2 font-medium">{localNames.priceUnit || "Price/Unit"}</th>}
-                  {localColumns.discount && <th className="p-2 font-medium">{localNames.discount || "Discount"}</th>}
-                  {localColumns.discountPercent && <th className="p-2 font-medium">{localNames.discountPercent || "Discount %"}</th>}
-                  {localColumns.taxablePriceUnit && <th className="p-2 font-medium">{localNames.taxablePriceUnit || "Taxable Price/Unit"}</th>}
-                  {localColumns.taxAmount && <th className="p-2 font-medium">{localNames.taxAmount || "Tax Amount"}</th>}
-                  {localColumns.taxPercent && <th className="p-2 font-medium">{localNames.taxPercent || "Tax Percent"}</th>}
-                  {localColumns.taxableAmount && <th className="p-2 font-medium">{localNames.taxableAmount || "Taxable Amount"}</th>}
-                  {localColumns.cess && <th className="p-2 font-medium">{localNames.cess || "Ad. CESS"}</th>}
-                  {localColumns.finalRate && <th className="p-2 font-medium">{localNames.finalRate || "Final Rate"}</th>}
-                  {localColumns.amount && <th className="p-2 font-medium">{localNames.amount || "Amount"}</th>}
+                  {activeColsInOrder.map((key, idx) => (
+                    <th key={key} className="p-2 font-medium group/hdr border-r border-indigo-300">
+                      <div className="flex items-center justify-between gap-2">
+                        <span>{localNames[key] || getLabelForKey(key)}</span>
+                        <div className="flex items-center gap-1 shrink-0 bg-black/20 p-0.5 rounded">
+                          <button 
+                            type="button"
+                            onClick={() => moveColumn(order.indexOf(key), -1)} 
+                            disabled={order.indexOf(key) === 0}
+                            className="px-1 text-white hover:bg-white/20 rounded text-[9px] font-bold disabled:opacity-30"
+                          >
+                            ←
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => moveColumn(order.indexOf(key), 1)} 
+                            disabled={order.indexOf(key) === order.length - 1}
+                            className="px-1 text-white hover:bg-white/20 rounded text-[9px] font-bold disabled:opacity-30"
+                          >
+                            →
+                          </button>
+                        </div>
+                      </div>
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 <tr className="text-[12px] text-slate-700 bg-white">
-                  {localColumns.slNo && <td className="p-2 border-r">1</td>}
-                  {localColumns.itemName && <td className="p-2 border-r">Item 1</td>}
-                  {localColumns.hsnSac && <td className="p-2 border-r">101</td>}
-                  {localColumns.itemCode && <td className="p-2 border-r">ITM001</td>}
-                  {localColumns.batchNo && <td className="p-2 border-r">B10</td>}
-                  {localColumns.expDate && <td className="p-2 border-r">09/24</td>}
-                  {localColumns.mfgDate && <td className="p-2 border-r">31/12</td>}
-                  {localColumns.mrp && <td className="p-2 border-r">₹ 500</td>}
-                  {localColumns.size && <td className="p-2 border-r">1</td>}
-                  {localColumns.modelNo && <td className="p-2 border-r">MDL1</td>}
-                  {localColumns.description && <td className="p-2 border-r">Desc...</td>}
-                  {localColumns.count && <td className="p-2 border-r">10</td>}
-                  {localColumns.colour && <td className="p-2 border-r">Red</td>}
-                  {localColumns.material && <td className="p-2 border-r">Cotton</td>}
-                  {localColumns.brand && <td className="p-2 border-r">Puma</td>}
-                  {localColumns.serialNo && <td className="p-2 border-r">SN123</td>}
-                  {localColumns.challanNo && <td className="p-2 border-r">CH001</td>}
-                  {localColumns.quantity && <td className="p-2 border-r">1</td>}
-                  {localColumns.unit && <td className="p-2 border-r">Pcs</td>}
-                  {localColumns.priceUnit && <td className="p-2 border-r">₹ 500</td>}
-                  {localColumns.discount && <td className="p-2 border-r">₹ 25</td>}
-                  {localColumns.discountPercent && <td className="p-2 border-r">5%</td>}
-                  {localColumns.taxablePriceUnit && <td className="p-2 border-r">₹ 475</td>}
-                  {localColumns.taxAmount && <td className="p-2 border-r">₹ 85</td>}
-                  {localColumns.taxPercent && <td className="p-2 border-r">18%</td>}
-                  {localColumns.taxableAmount && <td className="p-2 border-r">₹ 475</td>}
-                  {localColumns.cess && <td className="p-2 border-r">₹ 0</td>}
-                  {localColumns.finalRate && <td className="p-2 border-r">₹ 560</td>}
-                  {localColumns.amount && <td className="p-2 border-r">₹ 560</td>}
+                  {activeColsInOrder.map((key) => {
+                    const samples = {
+                      slNo: "1",
+                      itemName: "Item 1",
+                      hsnSac: "101",
+                      itemCode: "ITM001",
+                      batchNo: "B10",
+                      expDate: "09/24",
+                      mfgDate: "31/12",
+                      mrp: "₹ 500",
+                      size: "1",
+                      modelNo: "MDL1",
+                      description: "Desc...",
+                      count: "10",
+                      colour: "Red",
+                      material: "Cotton",
+                      brand: "Puma",
+                      serialNo: "SN123",
+                      challanNo: "CH001",
+                      quantity: "1",
+                      unit: "Pcs",
+                      priceUnit: "₹ 500",
+                      discount: "₹ 25",
+                      discountPercent: "5%",
+                      taxablePriceUnit: "₹ 475",
+                      taxAmount: "₹ 85",
+                      taxPercent: "18%",
+                      taxableAmount: "₹ 475",
+                      cess: "₹ 0",
+                      finalRate: "₹ 560",
+                      amount: "₹ 560"
+                    };
+                    return <td key={key} className="p-2 border-r">{samples[key] || "-"}</td>;
+                  })}
                 </tr>
               </tbody>
             </table>

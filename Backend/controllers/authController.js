@@ -131,6 +131,7 @@ const verifyOtp = async (req, res) => {
       businessName: user.businessName,
       role: user.role,
       token: generateToken(user._id),
+      subscription: user.subscription,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -148,7 +149,8 @@ const getMe = async (req, res) => {
       phone: req.user.phone,
       email: req.user.email,
       businessName: req.user.businessName,
-      role: req.user.role
+      role: req.user.role,
+      subscription: req.user.subscription
     };
     res.status(200).json(user);
   } catch (error) {
@@ -242,6 +244,7 @@ const loginEmail = async (req, res) => {
       businessName: user.businessName,
       role: user.role,
       token: generateToken(user._id),
+      subscription: user.subscription,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

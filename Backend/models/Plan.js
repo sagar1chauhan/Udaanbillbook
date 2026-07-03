@@ -32,7 +32,10 @@ const planSchema = new mongoose.Schema({
   platforms: {
     type: String,
     default: 'Mobile + Desktop'
-  }
+  },
+  allowedTemplates: [{
+    type: String
+  }]
 }, {
   timestamps: true
 });

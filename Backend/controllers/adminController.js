@@ -56,8 +56,8 @@ const updateUserStatus = async (req, res) => {
 const getAdminDashboardData = async (req, res) => {
   try {
     const allUsers = await User.find({});
-    const totalUsersCount = allUsers.filter(u => ['vendor', 'admin', 'staff', 'user'].includes(u.role)).length;
-    const activeUsersCount = allUsers.filter(u => ['vendor', 'admin', 'staff', 'user'].includes(u.role) && u.status !== 'Banned').length;
+    const totalUsersCount = allUsers.filter(u => u.role === 'vendor').length;
+    const activeUsersCount = allUsers.filter(u => u.role === 'vendor' && u.status !== 'Banned').length;
     
     const totalBusinessesCount = totalUsersCount;
 
@@ -71,7 +71,7 @@ const getAdminDashboardData = async (req, res) => {
 
     const planCounts = { Free: 0, Silver: 0, Gold: 0, Enterprise: 0 };
     allUsers.forEach((u) => {
-      if (!['vendor', 'admin', 'staff', 'user'].includes(u.role)) return;
+      if (u.role !== 'vendor') return;
       const planName = u.subscription?.plan || 'Free';
       const normalizedPlan = planName.charAt(0).toUpperCase() + planName.slice(1).toLowerCase();
       if (planCounts[normalizedPlan] !== undefined) {
@@ -88,7 +88,7 @@ const getAdminDashboardData = async (req, res) => {
       { name: "Enterprise", value: planCounts.Enterprise, fill: "#8b5cf6" },
     ];
 
-    const activeSubscriptions = allUsers.filter(u => ['vendor', 'admin', 'staff', 'user'].includes(u.role) && u.subscription?.status === 'active' && u.subscription?.plan !== 'Free').length;
+    const activeSubscriptions = allUsers.filter(u => u.role === 'vendor' && u.subscription?.status === 'active' && u.subscription?.plan !== 'Free').length;
 
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const currentMonthIndex = new Date().getMonth();
@@ -115,7 +115,7 @@ const getAdminDashboardData = async (req, res) => {
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const dailySignups = days.map(day => ({ day, signups: 0 }));
     allUsers.forEach(u => {
-      if (!['vendor', 'admin', 'staff', 'user'].includes(u.role)) return;
+      if (u.role !== 'vendor') return;
       const uDay = days[new Date(u.createdAt).getDay()];
       const signupItem = dailySignups.find(item => item.day === uDay);
       if (signupItem) signupItem.signups++;
@@ -123,7 +123,7 @@ const getAdminDashboardData = async (req, res) => {
 
     const businesses = await Promise.all(
       allUsers
-        .filter(u => ['vendor', 'admin', 'staff', 'user'].includes(u.role))
+        .filter(u => u.role === 'vendor')
         .map(async (u, idx) => {
           const userInvoices = allSales.filter(inv => inv.user.toString() === u._id.toString());
           const rev = userInvoices.reduce((sum, inv) => sum + (inv.grandTotal || 0), 0);
@@ -158,7 +158,7 @@ const getAdminDashboardData = async (req, res) => {
 
     const recentActivities = [];
     allUsers
-      .filter(u => ['vendor', 'admin', 'staff', 'user'].includes(u.role))
+      .filter(u => u.role === 'vendor')
       .slice(0, 6)
       .forEach(u => {
         recentActivities.push({
@@ -350,10 +350,10 @@ const getAdminSubscriptions = async (req, res) => {
     let dbPlans = await Plan.find({ status: 'Active' });
     if (dbPlans.length === 0) {
       const defaultPlans = [
-        { name: "Free", price: 0, interval: "forever", features: ["50 invoices/month", "Basic inventory", "1 user", "Udaan branding"], popular: false, description: "Perfect for exploring the platform", platforms: "Mobile Only" },
-        { name: "Silver", price: 199, interval: "month", features: ["Unlimited invoices", "Advanced inventory", "3 users", "No branding", "Basic GST"], popular: false, description: "Ideal for growing small businesses", platforms: "Mobile + Desktop" },
-        { name: "Gold", price: 299, interval: "month", features: ["Everything in Silver", "Unlimited users", "E-way bills", "Advanced GST", "Staff management"], popular: true, description: "Complete solution for mature businesses", platforms: "Mobile + Desktop" },
-        { name: "Enterprise", price: 499, interval: "month", features: ["Everything in Gold", "Custom themes", "Priority support", "Barcode gen", "API access"], popular: false, description: "Premium subscription for enterprise needs", platforms: "Mobile + Desktop" }
+        { name: "Free", price: 0, interval: "forever", features: ["50 invoices/month", "Basic inventory", "1 user", "Udaan branding"], popular: false, description: "Perfect for exploring the platform", platforms: "Mobile Only", allowedTemplates: ["GST Boxed", "Classic White"] },
+        { name: "Silver", price: 199, interval: "month", features: ["Unlimited invoices", "Advanced inventory", "3 users", "No branding", "Basic GST"], popular: false, description: "Ideal for growing small businesses", platforms: "Mobile + Desktop", allowedTemplates: ["GST Boxed", "Classic White", "Modern Green"] },
+        { name: "Gold", price: 299, interval: "month", features: ["Everything in Silver", "Unlimited users", "E-way bills", "Advanced GST", "Staff management"], popular: true, description: "Complete solution for mature businesses", platforms: "Mobile + Desktop", allowedTemplates: ["GST Boxed", "Classic White", "Modern Green", "Stylish Blue", "Minimalist", "Crimson Rose"] },
+        { name: "Enterprise", price: 499, interval: "month", features: ["Everything in Gold", "Custom themes", "Priority support", "Barcode gen", "API access"], popular: false, description: "Premium subscription for enterprise needs", platforms: "Mobile + Desktop", allowedTemplates: ["GST Boxed", "Classic White", "Modern Green", "Stylish Blue", "Minimalist", "Crimson Rose", "Warm Amber", "Royal Purple", "Charcoal Dark", "Tally Classic"] }
       ];
       await Plan.insertMany(defaultPlans);
       dbPlans = await Plan.find({ status: 'Active' });
@@ -377,6 +377,7 @@ const getAdminSubscriptions = async (req, res) => {
         status: plan.status,
         description: plan.description || '',
         platforms: plan.platforms || 'Mobile + Desktop',
+        allowedTemplates: plan.allowedTemplates || [],
         activeSubscribers,
         monthlyRevenue: activeSubscribers * plan.price
       };
@@ -393,7 +394,7 @@ const getAdminSubscriptions = async (req, res) => {
 // @access  Private
 const createSubscriptionPlan = async (req, res) => {
   try {
-    const { name, price, interval, features, popular, description, platforms } = req.body;
+    const { name, price, interval, features, popular, description, platforms, allowedTemplates } = req.body;
     if (!name || price === undefined) {
       return res.status(400).json({ message: 'Name and price are required' });
     }
@@ -408,7 +409,8 @@ const createSubscriptionPlan = async (req, res) => {
       features: features || [],
       popular: !!popular,
       description,
-      platforms: platforms || 'Mobile + Desktop'
+      platforms: platforms || 'Mobile + Desktop',
+      allowedTemplates: allowedTemplates || []
     });
     res.status(201).json(newPlan);
   } catch (error) {
@@ -421,7 +423,7 @@ const createSubscriptionPlan = async (req, res) => {
 // @access  Private
 const updateSubscriptionPlan = async (req, res) => {
   try {
-    const { name, price, interval, features, popular, description, platforms } = req.body;
+    const { name, price, interval, features, popular, description, platforms, allowedTemplates } = req.body;
     const plan = await Plan.findById(req.params.id);
     if (!plan) {
       return res.status(404).json({ message: 'Plan not found' });
@@ -433,6 +435,7 @@ const updateSubscriptionPlan = async (req, res) => {
     if (popular !== undefined) plan.popular = popular;
     if (description !== undefined) plan.description = description;
     if (platforms) plan.platforms = platforms;
+    if (allowedTemplates) plan.allowedTemplates = allowedTemplates;
 
     await plan.save();
     res.status(200).json(plan);
@@ -847,9 +850,29 @@ const updateAdminProfile = async (req, res) => {
   }
 };
 
+// @desc    Delete user (SuperAdmin only)
+// @route   DELETE /api/admin/users/:id
+// @access  Private
+const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    if (user._id.toString() === req.user.id.toString()) {
+      return res.status(400).json({ message: 'You cannot delete your own admin account' });
+    }
+    await user.deleteOne();
+    res.status(200).json({ message: 'User deleted successfully', id: req.params.id });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getAllUsers,
   updateUserStatus,
+  deleteUser,
   getAdminDashboardData,
   getAdminAnalyticsData,
   getAdminBusinesses,

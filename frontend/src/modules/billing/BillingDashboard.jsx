@@ -67,9 +67,21 @@ export function BillingDashboard() {
   }, [invoices]);
 
   const [tab, setTab] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
-
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const typeFilter = searchParams.get("type") || "all";
+  const setTypeFilter = (val) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (val && val !== "all") {
+        next.set("type", val);
+      } else {
+        next.delete("type");
+      }
+      return next;
+    });
+  };
+
   const search = searchParams.get("q") || "";
   const setSearch = (val) => {
     setSearchParams((prev) => {

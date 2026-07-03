@@ -23,7 +23,7 @@ const menuGroups = [
       { title: "Businesses", url: "/admin/businesses", icon: Building2 },
       { title: "Subscriptions", url: "/admin/subscriptions", icon: CreditCard },
       { title: "Revenue", url: "/admin/revenue", icon: TrendingUp },
-      { title: "Users", url: "/admin/users", icon: Users },
+      { title: "Vendors", url: "/admin/users", icon: Users },
       { title: "Categories", url: "/admin/categories", icon: LayoutGrid },
     ],
   },

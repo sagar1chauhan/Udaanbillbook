@@ -42,6 +42,14 @@ export const mockAuth = {
   },
 };
 
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key === KEY || e.key === "Udaan.admin_auth") {
+      listeners.forEach((l) => l());
+    }
+  });
+}
+
 export function useMockAuth() {
   const [user, setUser] = useState(null);
   const [hydrated, setHydrated] = useState(false);

@@ -135,6 +135,7 @@ export function MainDashboard() {
 
   const totalSales = data?.sales?.totalSales || 0;
   const invoiceCount = data?.sales?.invoiceCount || 0;
+  const totalPurchases = data?.purchases || 0;
   const totalExpenses = data?.expenses || 0;
   const netProfit = data?.netProfit || 0;
 
@@ -142,14 +143,13 @@ export function MainDashboard() {
   const getRoleUrl = (url) => url.replace(/^\/vendor/, rolePrefix);
 
   const allActions = [
-    { label: "Sale", feature: "billing", icon: ClipboardCheck, color: "text-red-500", bg: "bg-red-50/50", border: "border-red-100", link: "/vendor/billing" },
-    { label: "Purchase", feature: "billing", icon: ShoppingBasket, color: "text-blue-600", bg: "bg-blue-50/50", border: "border-blue-100", link: "/vendor/billing" },
+    { label: "Sale", feature: "billing", icon: ClipboardCheck, color: "text-red-500", bg: "bg-red-50/50", border: "border-red-100", link: "/vendor/billing?type=sale" },
+    { label: "Purchase", feature: "billing", icon: ShoppingBasket, color: "text-blue-600", bg: "bg-blue-50/50", border: "border-blue-100", link: "/vendor/billing?type=purchase" },
     { label: "Expenses", feature: "expenses", icon: ReceiptText, color: "text-blue-600", bg: "bg-blue-50/50", border: "border-blue-100", link: "/vendor/expenses" },
     { label: "Estimate", feature: "billing", icon: FileText, color: "text-emerald-600", bg: "bg-emerald-50/50", border: "border-emerald-100", link: "/vendor/billing" },
-    { label: "Customers", feature: "parties", icon: UserCheck, color: "text-emerald-600", bg: "bg-emerald-50/50", border: "border-emerald-100", link: "/vendor/parties" },
-    { label: "Suppliers", feature: "parties", icon: Truck, color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200", link: "/vendor/parties" },
+    { label: "Customers", feature: "parties", icon: UserCheck, color: "text-emerald-600", bg: "bg-emerald-50/50", border: "border-emerald-100", link: "/vendor/parties?type=customer" },
+    { label: "Suppliers", feature: "parties", icon: Truck, color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200", link: "/vendor/parties?type=supplier" },
     { label: "Products", feature: "inventory", icon: Package, color: "text-blue-600", bg: "bg-blue-50/50", border: "border-blue-100", link: "/vendor/inventory" },
-    { label: "More", feature: "dashboard", icon: MoreHorizontal, color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200", link: "/vendor/dashboard" },
   ];
 
   const allowedActions = allActions.filter((action) => {
@@ -182,7 +182,7 @@ export function MainDashboard() {
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Kpi label="Total Sales" value={fmt(totalSales)} delta={`+${invoiceCount} Bills`} up icon={IndianRupee} tint="bg-primary-soft text-primary" />
-        <Kpi label="Invoices" value={invoiceCount.toString()} delta="Real-time" up icon={ReceiptText} tint="bg-accent-soft text-accent" />
+        <Kpi label="Total Purchase" value={fmt(totalPurchases)} delta="Real-time" up icon={ShoppingBasket} tint="bg-accent-soft text-accent" />
         <Kpi label="Expenses" value={fmt(totalExpenses)} delta="Total spent" up={false} icon={Wallet} tint="bg-secondary text-secondary-foreground" />
         <Kpi label="Net Profit" value={fmt(netProfit)} delta="Calculated" up icon={PiggyBank} tint="bg-success-soft text-success" />
       </div>

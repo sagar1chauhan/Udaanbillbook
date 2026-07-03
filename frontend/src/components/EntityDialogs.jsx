@@ -35,6 +35,10 @@ export function AddProductDialog({
     mfgDate: "",
     modelNo: "",
     size: "",
+    unit: "Pcs",
+    gst: "0",
+    hsnSac: "",
+    discount: "",
     customFieldsData: {},
   });
 
@@ -57,6 +61,10 @@ export function AddProductDialog({
         mfgDate: "",
         modelNo: "",
         size: "",
+        unit: "Pcs",
+        gst: "0",
+        hsnSac: "",
+        discount: "",
         customFieldsData: {},
       });
 
@@ -84,18 +92,36 @@ export function AddProductDialog({
 
   if (!itemSettings) return null;
 
+  const isServiceOnly = itemSettings.whatDoYouSell === "Service";
+  const isProductOnly = itemSettings.whatDoYouSell === "Product";
+
+  const defaultCats = [];
+  if (!isServiceOnly) {
+    defaultCats.push({ name: "Grocery" }, { name: "Bakery" }, { name: "Dairy" }, { name: "Packaged" });
+  }
+  if (!isProductOnly) {
+    defaultCats.push({ name: "Services" });
+  }
+  defaultCats.push({ name: "Other" });
+
+  const titleText = isServiceOnly ? "Add Service" : "Add Product";
+  const descText = isServiceOnly 
+    ? "Setup service information and pricing preferences."
+    : "Setup inventory information and pricing preferences.";
+  const nameLabel = isServiceOnly ? "Service name" : "Product name";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Product</DialogTitle>
-          <DialogDescription>Setup inventory information and pricing preferences.</DialogDescription>
+          <DialogTitle>{titleText}</DialogTitle>
+          <DialogDescription>{descText}</DialogDescription>
         </DialogHeader>
         <form
           className="space-y-4"
           onSubmit={(e) => {
             e.preventDefault();
-            if (!f.name.trim()) return toast.error("Enter product name");
+            if (!f.name.trim()) return toast.error(`Enter ${isServiceOnly ? 'service' : 'product'} name`);
             if (!f.price) return toast.error("Enter price");
 
             const payload = {
@@ -115,6 +141,12 @@ export function AddProductDialog({
             if (itemSettings.mfgDate) payload.mfgDate = f.mfgDate.trim();
             if (itemSettings.modelNo) payload.modelNo = f.modelNo.trim();
             if (itemSettings.size) payload.size = f.size.trim();
+            if (itemSettings.itemsUnit) payload.unit = f.unit;
+            if (itemSettings.itemWiseTax) {
+              payload.gst = Number(f.gst) || 0;
+              payload.hsnSac = f.hsnSac.trim();
+            }
+            if (itemSettings.itemWiseDiscount) payload.discount = Number(f.discount) || 0;
             payload.customFieldsData = f.customFieldsData;
 
             if (onAdd) {
@@ -126,7 +158,7 @@ export function AddProductDialog({
           }}
         >
           <div className="space-y-1.5">
-            <Label htmlFor="pname">Product name</Label>
+            <Label htmlFor="pname">{nameLabel}</Label>
             <Input id="pname" value={f.name} onChange={(e) => set("name", e.target.value)} className="h-10 rounded-xl" />
           </div>
 
@@ -170,16 +202,25 @@ export function AddProductDialog({
                 <Select value={f.cat} onValueChange={(v) => set("cat", v)}>
                   <SelectTrigger className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {(categories.length > 0 ? categories : [
-                      { name: "Grocery" },
-                      { name: "Bakery" },
-                      { name: "Dairy" },
-                      { name: "Packaged" },
-                      { name: "Services" },
-                      { name: "Other" }
-                    ]).map((c) => (
+                    {(categories.length > 0 ? categories : defaultCats).map((c) => (
                       <SelectItem key={c._id || c.name} value={c.name}>{c.name}</SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {itemSettings.itemsUnit && (
+              <div className="space-y-1.5">
+                <Label htmlFor="punit">Measuring Unit</Label>
+                <Select value={f.unit} onValueChange={(v) => set("unit", v)}>
+                  <SelectTrigger id="punit" className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pcs">Pcs (Pieces)</SelectItem>
+                    <SelectItem value="Kgs">Kgs (Kilograms)</SelectItem>
+                    <SelectItem value="Ltrs">Ltrs (Litres)</SelectItem>
+                    <SelectItem value="Box">Box</SelectItem>
+                    <SelectItem value="Nos">Nos (Numbers)</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -198,6 +239,39 @@ export function AddProductDialog({
               </div>
             )}
           </div>
+
+          {/* Tax and Discount settings */}
+          {(itemSettings.itemWiseTax || itemSettings.itemWiseDiscount) && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t pt-3 mt-2">
+              {itemSettings.itemWiseTax && (
+                <>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="phsn">HSN/SAC Code</Label>
+                    <Input id="phsn" value={f.hsnSac} onChange={(e) => set("hsnSac", e.target.value)} className="h-10 rounded-xl" placeholder="e.g. 996601" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="pgst">Default GST Rate</Label>
+                    <Select value={f.gst} onValueChange={(v) => set("gst", v)}>
+                      <SelectTrigger id="pgst" className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">0%</SelectItem>
+                        <SelectItem value="5">5%</SelectItem>
+                        <SelectItem value="12">12%</SelectItem>
+                        <SelectItem value="18">18%</SelectItem>
+                        <SelectItem value="28">28%</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+              {itemSettings.itemWiseDiscount && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="pdisc_rate">Default Discount (%)</Label>
+                  <Input id="pdisc_rate" type="number" min={0} max={100} value={f.discount} onChange={(e) => set("discount", e.target.value)} className="h-10 rounded-xl" placeholder="0" />
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Description */}
           {itemSettings.description && (

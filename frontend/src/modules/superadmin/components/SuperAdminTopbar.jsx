@@ -1,13 +1,30 @@
 import React from "react";
-import { Bell, Search, Moon, Sun, Command } from "lucide-react";
-import { useMockAuth } from "@/lib/auth-store";
+import { Bell, Search, Moon, Sun, Command, LogOut, Settings as SettingsIcon, User as UserIcon } from "lucide-react";
+import { useMockAuth, mockAuth } from "@/lib/auth-store";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export function SuperAdminTopbar() {
   const { user } = useMockAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    mockAuth.signOut();
+    toast.success("Logged out successfully");
+    navigate("/login");
+  };
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b px-4 md:px-6 backdrop-blur-xl"
@@ -43,19 +60,46 @@ export function SuperAdminTopbar() {
 
         <div className="hidden sm:flex h-8 w-px bg-white/10 mx-1" />
 
-        <div className="flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 px-3 py-1.5">
-          <Avatar className="h-7 w-7">
-            <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white text-xs font-bold">
-              SA
-            </AvatarFallback>
-          </Avatar>
-          <div className="hidden md:flex flex-col">
-            <span className="text-xs font-semibold text-white leading-tight">
-              {user?.name || "SuperAdmin"}
-            </span>
-            <span className="text-[10px] text-emerald-400 leading-tight">Platform Owner</span>
-          </div>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 px-3 py-1.5 hover:bg-white/10 transition-colors">
+              <Avatar className="h-7 w-7">
+                <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white text-xs font-bold">
+                  DA
+                </AvatarFallback>
+              </Avatar>
+              <div className="hidden md:flex flex-col text-left">
+                <span className="text-xs font-semibold text-white leading-tight">
+                  {user?.name || "SuperAdmin"}
+                </span>
+                <span className="text-[10px] text-emerald-400 leading-tight">Platform Owner</span>
+              </div>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 bg-slate-900 border border-white/10 text-slate-200">
+            <DropdownMenuLabel className="flex flex-col border-b border-white/5 pb-2">
+              <span className="text-white font-bold">{user?.name || "Demo Admin"}</span>
+              <span className="text-[10px] text-slate-400 font-normal">
+                {user?.email || "admin@udaan.com"}
+              </span>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-white/5" />
+            <DropdownMenuItem asChild className="focus:bg-white/5 focus:text-white cursor-pointer">
+              <Link to="/admin/settings" className="flex items-center w-full">
+                <UserIcon className="mr-2 h-4 w-4 text-slate-400" /> Profile
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="focus:bg-white/5 focus:text-white cursor-pointer">
+              <Link to="/admin/settings" className="flex items-center w-full">
+                <SettingsIcon className="mr-2 h-4 w-4 text-slate-400" /> Settings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-white/5" />
+            <DropdownMenuItem onClick={handleLogout} className="text-rose-400 focus:bg-rose-500/10 focus:text-rose-400 cursor-pointer">
+              <LogOut className="mr-2 h-4 w-4" /> Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

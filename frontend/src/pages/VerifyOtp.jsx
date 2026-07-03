@@ -97,7 +97,8 @@ export default function VerifyOtp() {
         phone: user.phone,
         email: user.email,
         role: user.role,
-        token: user.token
+        token: user.token,
+        subscription: user.subscription
       });
 
       const redirectPath = (user.role?.toLowerCase() === "staff" || user.role?.toLowerCase() === "viewer") ? "/staff/dashboard" : "/vendor/dashboard";

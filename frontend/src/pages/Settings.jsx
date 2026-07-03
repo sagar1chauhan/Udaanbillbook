@@ -17,12 +17,28 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useSubscription, PLANS } from "@/hooks/useSubscription";
 import { Crown, Play, Plus, Edit2, Trash2, Smartphone, Monitor } from "lucide-react";
 import { PrintSettingsTab } from "@/components/PrintSettingsTab";
+import { useMockAuth, mockAuth } from "@/lib/auth-store";
 
 export default function Settings() {
   const { settings, hydrated } = usePlatformSettings();
   const { currentPlan } = useSubscription();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState("GENERAL");
+
+  const { user } = useMockAuth();
+  const [bizName, setBizName] = useState("");
+  const [bizGstin, setBizGstin] = useState("");
+  const [bizPhone, setBizPhone] = useState("");
+  const [bizAddress, setBizAddress] = useState("");
+
+  React.useEffect(() => {
+    if (user) {
+      setBizName(user.business || "");
+      setBizGstin(user.gstin || "");
+      setBizPhone(user.phone || "");
+      setBizAddress(user.address || "");
+    }
+  }, [user]);
 
   // Dialog States for Tax Rates
   const [rateModalOpen, setRateModalOpen] = useState(false);
@@ -171,14 +187,11 @@ export default function Settings() {
 
   const tabs = [
     { id: "GENERAL", label: "GENERAL" },
-    { id: "TRANSACTION", label: "TRANSACTION" },
     { id: "PRINT", label: "PRINT", badge: "pro" },
     { id: "TAXES_GST", label: "TAXES & GST" },
     { id: "MESSAGE", label: "TRANSACTION MESSAGE" },
     { id: "PARTY", label: "PARTY" },
-    { id: "ITEM", label: "ITEM" },
-    { id: "REMINDERS", label: "SERVICE REMINDERS", badge: "vip" },
-    { id: "ACCOUNTING", label: "ACCOUNTING", badge: "vip" }
+    { id: "ITEM", label: "ITEM" }
   ];
 
   return (
@@ -242,118 +255,36 @@ export default function Settings() {
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
+                      mockAuth.updateUser({
+                        business: bizName,
+                        phone: bizPhone,
+                        gstin: bizGstin,
+                        address: bizAddress
+                      });
                       toast.success("Business profile saved successfully");
                     }}
                     className="grid grid-cols-1 gap-4 sm:grid-cols-2"
                   >
                     <div className="space-y-1.5 sm:col-span-2">
                       <Label>Business Name</Label>
-                      <Input defaultValue="Sharma Traders" className="h-10 rounded-xl" />
+                      <Input value={bizName} onChange={(e) => setBizName(e.target.value)} className="h-10 rounded-xl" />
                     </div>
                     <div className="space-y-1.5">
                       <Label>GSTIN</Label>
-                      <Input defaultValue="07ABCDE1234F1Z5" className="h-10 rounded-xl" />
+                      <Input value={bizGstin} onChange={(e) => setBizGstin(e.target.value)} className="h-10 rounded-xl" />
                     </div>
                     <div className="space-y-1.5">
                       <Label>Phone</Label>
-                      <Input defaultValue="+91 98765 43210" className="h-10 rounded-xl" />
+                      <Input value={bizPhone} onChange={(e) => setBizPhone(e.target.value)} className="h-10 rounded-xl" />
                     </div>
                     <div className="space-y-1.5 sm:col-span-2">
                       <Label>Address</Label>
-                      <Input defaultValue="Shop 14, MG Road, Pune 411001" className="h-10 rounded-xl" />
+                      <Input value={bizAddress} onChange={(e) => setBizAddress(e.target.value)} className="h-10 rounded-xl" />
                     </div>
                     <div className="sm:col-span-2">
                       <Button type="submit" className="rounded-xl">Save Profile Details</Button>
                     </div>
                   </form>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-[var(--shadow-card)]">
-                <CardHeader>
-                  <CardTitle className="text-base">Regional & Numeric Settings</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label>Business Currency</Label>
-                    <Select
-                      value={generalSettings.currency}
-                      onValueChange={(v) => updateSettings("generalSettings", { currency: v })}
-                    >
-                      <SelectTrigger className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="₹">Rupee (₹)</SelectItem>
-                        <SelectItem value="$">Dollar ($)</SelectItem>
-                        <SelectItem value="€">Euro (€)</SelectItem>
-                        <SelectItem value="£">Pound (£)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Amount Decimals (e.g. 0.00)</Label>
-                    <Select
-                      value={String(generalSettings.decimals)}
-                      onValueChange={(v) => updateSettings("generalSettings", { decimals: Number(v) })}
-                    >
-                      <SelectTrigger className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="0">0 decimal places</SelectItem>
-                        <SelectItem value="1">1 decimal place</SelectItem>
-                        <SelectItem value="2">2 decimal places</SelectItem>
-                        <SelectItem value="3">3 decimal places</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-[var(--shadow-card)]">
-                <CardHeader>
-                  <CardTitle className="text-base">Operations Preferences</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    {renderControl("generalSettings", "gstinNumber", "Enable GSTIN Number Fields")}
-                    {renderControl("generalSettings", "stopNegativeStock", "Stop Sale on Negative Stock")}
-                    {renderControl("generalSettings", "blockNewItems", "Block New Items Creation from Transaction Form")}
-                    {renderControl("generalSettings", "blockNewParties", "Block New Parties Creation from Transaction Form")}
-                  </div>
-                  <div className="space-y-2">
-                    {renderControl("generalSettings", "auditTrail", "Audit Trail Logs")}
-                    {renderControl("generalSettings", "autoBackup", "Enable Automatic Cloud Backup")}
-                    <div className="flex items-center justify-between py-1.5 px-2 opacity-50">
-                      <Label className="text-sm font-medium">Godown Management & Stock Transfer</Label>
-                      <Crown className="h-4 w-4 text-amber-500 fill-amber-500" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-[var(--shadow-card)]">
-                <CardHeader>
-                  <CardTitle className="text-base">Customize Your View</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <Label>Screen Zoom Scale</Label>
-                      <span className="font-semibold text-primary">{generalSettings.zoom}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="70"
-                      max="130"
-                      step="5"
-                      value={generalSettings.zoom}
-                      onChange={(e) => updateSettings("generalSettings", { zoom: Number(e.target.value) })}
-                      className="w-full accent-primary h-1.5 bg-muted rounded-lg appearance-none cursor-pointer"
-                    />
-                    <div className="flex justify-between text-[10px] text-muted-foreground">
-                      <span>70%</span>
-                      <span>100% (Default)</span>
-                      <span>130%</span>
-                    </div>
-                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -651,11 +582,11 @@ export default function Settings() {
                     </CardHeader>
                     <CardContent className="flex gap-4">
                       <Button
-                        variant={messageSettings.type === "Vyapar" ? "default" : "outline"}
-                        onClick={() => updateSettings("messageSettings", { type: "Vyapar" })}
+                        variant={messageSettings.type === "Udaan" ? "default" : "outline"}
+                        onClick={() => updateSettings("messageSettings", { type: "Udaan" })}
                         className="rounded-xl flex-1 h-11 text-xs"
                       >
-                        Send via Vyapar SMS API
+                        Send via Udaan SMS API
                       </Button>
                       <Button
                         variant={messageSettings.type === "WhatsApp" ? "default" : "outline"}
@@ -746,9 +677,9 @@ export default function Settings() {
                 <div className="xl:col-span-1 space-y-4 sticky top-6">
                   <Card className="border-0 bg-gradient-to-b from-[#efeae2] to-[#d6ccc2] shadow-[var(--shadow-card)] overflow-hidden rounded-2xl">
                     <CardHeader className="bg-[#075e54] text-white py-3 px-4 flex flex-row items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-xs">V</div>
+                      <div className="h-8 w-8 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-xs">U</div>
                       <div>
-                        <p className="text-xs font-bold leading-tight">Vyapar Notification</p>
+                        <p className="text-xs font-bold leading-tight">Udaan BillBook Notification</p>
                         <p className="text-[10px] text-emerald-200 leading-tight">Active Auto-Message</p>
                       </div>
                     </CardHeader>
@@ -765,7 +696,7 @@ export default function Settings() {
                         )}
                         {messageSettings.showWebLink && (
                           <p className="text-blue-600 underline cursor-pointer mt-1 break-all">
-                            https://vyapar.co/invoice/inv_85
+                            https://udaanbillbook.co/invoice/inv_85
                           </p>
                         )}
                         <span className="text-[9px] text-slate-400 absolute right-2 bottom-1">11:38 AM ✔</span>
@@ -806,20 +737,6 @@ export default function Settings() {
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {renderControl("itemSettings", "enableItem", "Enable Item Module")}
-                    <div className="flex items-center justify-between py-1 px-2">
-                      <Label className="text-sm">What do you sell?</Label>
-                      <Select
-                        value={itemSettings.whatDoYouSell}
-                        onValueChange={(v) => updateSettings("itemSettings", { whatDoYouSell: v })}
-                      >
-                        <SelectTrigger className="w-36 h-8 rounded-lg text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Product">Products Only</SelectItem>
-                          <SelectItem value="Service">Services Only</SelectItem>
-                          <SelectItem value="Both">Product & Service</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
                     {renderControl("itemSettings", "barcodeScan", "Enable Barcode Scanning Fields")}
                     {itemSettings.barcodeScan && (
                       <div className="pl-6 py-1.5 flex items-center gap-6">

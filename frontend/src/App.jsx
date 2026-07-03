@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ShieldAlert } from "lucide-react";
 import Layout from "./Layout";
 import { InvoiceProvider } from "./contexts/InvoiceContext";
 
@@ -55,14 +56,37 @@ function SuperAdminGuard({ children }) {
 
   if (!hydrated) return null;
   
-  // Auto-restore backed up admin session if vendor impersonation is active and they navigated back to admin console
+  // Show confirmation to restore admin session if vendor impersonation is active and they are accessing admin routes
   const adminAuth = localStorage.getItem("Udaan.admin_auth");
   if (adminAuth && (!user || user.role?.toLowerCase() !== "admin")) {
-    console.log("[SuperAdminGuard] restoring admin auth session...");
-    localStorage.setItem("Udaan.auth", adminAuth);
-    localStorage.removeItem("Udaan.admin_auth");
-    window.location.reload();
-    return null;
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center p-4 text-white" style={{ background: "oklch(0.12 0.025 257)" }}>
+        <div className="w-full max-w-md bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl shadow-2xl text-center space-y-6">
+          <div className="h-16 w-16 bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center mx-auto border border-amber-500/30">
+            <ShieldAlert className="h-8 w-8" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold tracking-tight">Impersonation Active</h2>
+            <p className="text-slate-400 text-sm">
+              You are currently viewing the platform as vendor <strong className="text-slate-200">{user?.name || "Harsh Pandey"} ({user?.business || "harshkidukan"})</strong>.
+            </p>
+            <p className="text-slate-400 text-xs">
+              To enter the Admin Portal, please end the impersonation session. This will restore your Admin permissions.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              localStorage.setItem("Udaan.auth", adminAuth);
+              localStorage.removeItem("Udaan.admin_auth");
+              window.location.reload();
+            }}
+            className="h-12 w-full rounded-xl text-base bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-all shadow-[0_0_20px_rgba(52,211,153,0.3)] hover:shadow-[0_0_25px_rgba(52,211,153,0.5)] border-0 cursor-pointer"
+          >
+            End Impersonation & Enter Admin
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (!user || user.role?.toLowerCase() !== "admin") {

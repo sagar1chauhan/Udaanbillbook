@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Search, Users, Ban, CheckCircle2, Eye, Mail, Phone, Monitor, Clock, Shield, X } from "lucide-react";
+import { Search, Users, Ban, CheckCircle2, Eye, Mail, Phone, Monitor, Clock, Shield, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -40,6 +40,22 @@ export function UserManagementSA() {
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to update status");
+    }
+  };
+
+  const handleDeleteUser = async (user) => {
+    if (!window.confirm(`Are you sure you want to delete user ${user.name}? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      await api.delete(`/admin/users/${user._id}`);
+      toast.success(`${user.name} deleted successfully`);
+      setUsers(prev => prev.filter(u => u._id !== user._id));
+      if (selectedUser && selectedUser._id === user._id) {
+        setSelectedUser(null);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete user");
     }
   };
 
@@ -150,6 +166,7 @@ export function UserManagementSA() {
                       ) : (
                         <button className="rounded-lg p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors" title="Unban" onClick={() => handleToggleStatus(u)}><CheckCircle2 className="h-3.5 w-3.5" /></button>
                       )}
+                      <button className="rounded-lg p-1.5 text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition-colors" title="Delete" onClick={() => handleDeleteUser(u)}><Trash2 className="h-3.5 w-3.5" /></button>
                     </div>
                   </td>
                 </tr>

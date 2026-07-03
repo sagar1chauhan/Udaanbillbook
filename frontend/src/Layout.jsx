@@ -5,7 +5,8 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { AppTopbar } from "@/components/AppTopbar";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { Toaster } from "@/components/ui/sonner";
-import { useMockAuth } from "@/lib/auth-store";
+import { useMockAuth, mockAuth } from "@/lib/auth-store";
+import api from "@/lib/api";
 
 const PUBLIC_ROUTES = ["/login", "/register", "/verify-otp", "/admin/login", "/user/login", "/vendor", "/staff"];
 
@@ -26,6 +27,29 @@ export default function Layout() {
       navigate("/login");
     }
   }, [hydrated, isAuthenticated, isPublic, navigate]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      api.get("/auth/me")
+        .then((res) => {
+          mockAuth.updateUser({
+            subscription: res.data.subscription,
+            role: res.data.role,
+            name: res.data.name,
+            business: res.data.businessName,
+            phone: res.data.phone,
+            email: res.data.email
+          });
+        })
+        .catch((err) => {
+          console.error("Failed to sync user profile with database:", err);
+          if (err.response?.status === 401 || err.response?.status === 403) {
+            mockAuth.signOut();
+            navigate("/login");
+          }
+        });
+    }
+  }, [isAuthenticated, navigate]);
 
   if (isPublic) {
     return (

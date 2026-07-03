@@ -68,26 +68,7 @@ export function AppTopbar() {
           <SidebarTrigger className="-ml-1" />
         </div>
 
-        <div className="relative ml-4 hidden flex-1 max-w-md md:block">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search invoices, products, parties…"
-            value={searchParams.get("q") || ""}
-            onChange={(e) => {
-              const val = e.target.value;
-              setSearchParams((prev) => {
-                const next = new URLSearchParams(prev);
-                if (val) {
-                  next.set("q", val);
-                } else {
-                  next.delete("q");
-                }
-                return next;
-              });
-            }}
-            className="h-10 rounded-xl border-transparent bg-secondary pl-9 focus-visible:bg-card"
-          />
-        </div>
+        {/* Removed top search bar */}
 
         {/* Right Section */}
         <div className="flex items-center gap-2">
@@ -95,10 +76,12 @@ export function AppTopbar() {
           <Button
             size="sm"
             className="hidden h-10 rounded-xl px-4 md:inline-flex"
-            onClick={() => setOpen(true)}
+            asChild
           >
-            <Plus className="mr-1 h-4 w-4" />
-            New Invoice
+            <Link to={`${user?.role?.toLowerCase() === "staff" ? "/staff" : "/vendor"}/sale/new`}>
+              <Plus className="mr-1 h-4 w-4" />
+              New Invoice
+            </Link>
           </Button>
 
           {/* Bell Icon */}
@@ -152,12 +135,11 @@ export function AppTopbar() {
                     {user?.phone ? `+91 ${user.phone}` : "Not signed in"}
                   </span>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/settings"><User className="mr-2 h-4 w-4" /> Profile</Link>
+                  <Link to={`${user?.role?.toLowerCase() === "staff" ? "/staff" : "/vendor"}/settings`}><User className="mr-2 h-4 w-4" /> Profile</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/settings"><SettingsIcon className="mr-2 h-4 w-4" /> Settings</Link>
+                  <Link to={`${user?.role?.toLowerCase() === "staff" ? "/staff" : "/vendor"}/settings`}><SettingsIcon className="mr-2 h-4 w-4" /> Settings</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onLogout} className="text-destructive focus:text-destructive">
@@ -180,8 +162,6 @@ export function AppTopbar() {
 
         </div>
       </header>
-
-      <NewInvoiceDialog open={open} onOpenChange={setOpen} />
     </>
   );
 }

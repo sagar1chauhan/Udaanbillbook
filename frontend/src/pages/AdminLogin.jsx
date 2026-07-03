@@ -38,7 +38,8 @@ export default function AdminLogin() {
         phone: user.phone,
         email: user.email,
         role: user.role,
-        token: user.token
+        token: user.token,
+        subscription: user.subscription
       });
 
       // Redirect to Admin dashboard
