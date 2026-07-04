@@ -315,7 +315,7 @@ const getAdminAnalyticsData = async (req, res) => {
 const getAdminBusinesses = async (req, res) => {
   try {
     const allSales = await Invoice.find({ type: 'Sale' });
-    const allUsers = await User.find({ role: { $in: ['vendor', 'admin', 'staff', 'user'] } });
+    const allUsers = await User.find({ role: 'vendor' });
 
     const businesses = allUsers.map((u, idx) => {
       const userInvoices = allSales.filter(inv => inv.user.toString() === u._id.toString());
@@ -359,7 +359,7 @@ const getAdminSubscriptions = async (req, res) => {
       dbPlans = await Plan.find({ status: 'Active' });
     }
 
-    const allUsers = await User.find({ role: { $in: ['vendor', 'admin', 'staff', 'user'] } });
+    const allUsers = await User.find({ role: 'vendor' });
 
     const plans = dbPlans.map(plan => {
       const activeSubscribers = allUsers.filter(u => {
