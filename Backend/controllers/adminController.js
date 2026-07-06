@@ -350,10 +350,10 @@ const getAdminSubscriptions = async (req, res) => {
     let dbPlans = await Plan.find({ status: 'Active' });
     if (dbPlans.length === 0) {
       const defaultPlans = [
-        { name: "Free", price: 0, interval: "forever", features: ["50 invoices/month", "Basic inventory", "1 user", "Udaan branding"], popular: false, description: "Perfect for exploring the platform", platforms: "Mobile Only", allowedTemplates: ["GST Boxed", "Classic White"] },
-        { name: "Silver", price: 199, interval: "month", features: ["Unlimited invoices", "Advanced inventory", "3 users", "No branding", "Basic GST"], popular: false, description: "Ideal for growing small businesses", platforms: "Mobile + Desktop", allowedTemplates: ["GST Boxed", "Classic White", "Modern Green"] },
-        { name: "Gold", price: 299, interval: "month", features: ["Everything in Silver", "Unlimited users", "E-way bills", "Advanced GST", "Staff management"], popular: true, description: "Complete solution for mature businesses", platforms: "Mobile + Desktop", allowedTemplates: ["GST Boxed", "Classic White", "Modern Green", "Stylish Blue", "Minimalist", "Crimson Rose"] },
-        { name: "Enterprise", price: 499, interval: "month", features: ["Everything in Gold", "Custom themes", "Priority support", "Barcode gen", "API access"], popular: false, description: "Premium subscription for enterprise needs", platforms: "Mobile + Desktop", allowedTemplates: ["GST Boxed", "Classic White", "Modern Green", "Stylish Blue", "Minimalist", "Crimson Rose", "Warm Amber", "Royal Purple", "Charcoal Dark", "Tally Classic"] }
+        { name: "Free", price: 0, interval: "forever", features: ["50 invoices/month", "Basic inventory", "1 user", "Udaan branding"], popular: false, description: "Perfect for exploring the platform", platforms: "Mobile Only", allowedTemplates: ["GST Boxed", "Classic White"], showUdaanLogo: true },
+        { name: "Silver", price: 199, interval: "month", features: ["Unlimited invoices", "Advanced inventory", "3 users", "No branding", "Basic GST"], popular: false, description: "Ideal for growing small businesses", platforms: "Mobile + Desktop", allowedTemplates: ["GST Boxed", "Classic White", "Modern Green"], showUdaanLogo: false },
+        { name: "Gold", price: 299, interval: "month", features: ["Everything in Silver", "Unlimited users", "E-way bills", "Advanced GST", "Staff management"], popular: true, description: "Complete solution for mature businesses", platforms: "Mobile + Desktop", allowedTemplates: ["GST Boxed", "Classic White", "Modern Green", "Stylish Blue", "Minimalist", "Crimson Rose"], showUdaanLogo: false },
+        { name: "Enterprise", price: 499, interval: "month", features: ["Everything in Gold", "Custom themes", "Priority support", "Barcode gen", "API access"], popular: false, description: "Premium subscription for enterprise needs", platforms: "Mobile + Desktop", allowedTemplates: ["GST Boxed", "Classic White", "Modern Green", "Stylish Blue", "Minimalist", "Crimson Rose", "Warm Amber", "Royal Purple", "Charcoal Dark", "Tally Classic"], showUdaanLogo: false }
       ];
       await Plan.insertMany(defaultPlans);
       dbPlans = await Plan.find({ status: 'Active' });
@@ -378,6 +378,7 @@ const getAdminSubscriptions = async (req, res) => {
         description: plan.description || '',
         platforms: plan.platforms || 'Mobile + Desktop',
         allowedTemplates: plan.allowedTemplates || [],
+        showUdaanLogo: plan.showUdaanLogo !== undefined ? plan.showUdaanLogo : true,
         activeSubscribers,
         monthlyRevenue: activeSubscribers * plan.price
       };
@@ -394,7 +395,7 @@ const getAdminSubscriptions = async (req, res) => {
 // @access  Private
 const createSubscriptionPlan = async (req, res) => {
   try {
-    const { name, price, interval, features, popular, description, platforms, allowedTemplates } = req.body;
+    const { name, price, interval, features, popular, description, platforms, allowedTemplates, showUdaanLogo } = req.body;
     if (!name || price === undefined) {
       return res.status(400).json({ message: 'Name and price are required' });
     }
@@ -410,7 +411,8 @@ const createSubscriptionPlan = async (req, res) => {
       popular: !!popular,
       description,
       platforms: platforms || 'Mobile + Desktop',
-      allowedTemplates: allowedTemplates || []
+      allowedTemplates: allowedTemplates || [],
+      showUdaanLogo: showUdaanLogo !== undefined ? !!showUdaanLogo : true
     });
     res.status(201).json(newPlan);
   } catch (error) {
@@ -423,7 +425,7 @@ const createSubscriptionPlan = async (req, res) => {
 // @access  Private
 const updateSubscriptionPlan = async (req, res) => {
   try {
-    const { name, price, interval, features, popular, description, platforms, allowedTemplates } = req.body;
+    const { name, price, interval, features, popular, description, platforms, allowedTemplates, showUdaanLogo } = req.body;
     const plan = await Plan.findById(req.params.id);
     if (!plan) {
       return res.status(404).json({ message: 'Plan not found' });
@@ -436,6 +438,7 @@ const updateSubscriptionPlan = async (req, res) => {
     if (description !== undefined) plan.description = description;
     if (platforms) plan.platforms = platforms;
     if (allowedTemplates) plan.allowedTemplates = allowedTemplates;
+    if (showUdaanLogo !== undefined) plan.showUdaanLogo = !!showUdaanLogo;
 
     await plan.save();
     res.status(200).json(plan);

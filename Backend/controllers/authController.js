@@ -13,6 +13,17 @@ const generateToken = (id) => {
   });
 };
 
+const getSubscriptionWithLogo = async (subscription) => {
+  if (!subscription) return { plan: 'Free', status: 'active', showUdaanLogo: true };
+  const planDetails = await Plan.findOne({ name: subscription.plan, status: 'Active' });
+  return {
+    plan: subscription.plan || 'Free',
+    status: subscription.status || 'active',
+    validUntil: subscription.validUntil,
+    showUdaanLogo: planDetails ? (planDetails.showUdaanLogo !== undefined ? planDetails.showUdaanLogo : true) : true
+  };
+};
+
 const otpStore = new Map();
 
 const getDeviceString = (userAgent) => {
@@ -123,6 +134,8 @@ const verifyOtp = async (req, res) => {
       return res.status(403).json({ message: 'Your account has been banned. Please contact support.' });
     }
 
+    const responseSubscription = await getSubscriptionWithLogo(user.subscription);
+
     res.json({
       _id: user.id,
       name: user.name,
@@ -131,7 +144,7 @@ const verifyOtp = async (req, res) => {
       businessName: user.businessName,
       role: user.role,
       token: generateToken(user._id),
-      subscription: user.subscription,
+      subscription: responseSubscription,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -143,6 +156,7 @@ const verifyOtp = async (req, res) => {
 // @access  Private
 const getMe = async (req, res) => {
   try {
+    const responseSubscription = await getSubscriptionWithLogo(req.user.subscription);
     const user = {
       _id: req.user.id,
       name: req.user.name,
@@ -150,7 +164,7 @@ const getMe = async (req, res) => {
       email: req.user.email,
       businessName: req.user.businessName,
       role: req.user.role,
-      subscription: req.user.subscription
+      subscription: responseSubscription
     };
     res.status(200).json(user);
   } catch (error) {
@@ -236,6 +250,8 @@ const loginEmail = async (req, res) => {
     user.device = getDeviceString(req.headers['user-agent']);
     await user.save();
 
+    const responseSubscription = await getSubscriptionWithLogo(user.subscription);
+
     res.status(200).json({
       _id: user.id,
       name: user.name,
@@ -244,7 +260,7 @@ const loginEmail = async (req, res) => {
       businessName: user.businessName,
       role: user.role,
       token: generateToken(user._id),
-      subscription: user.subscription,
+      subscription: responseSubscription,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -339,10 +355,10 @@ const getPlans = async (req, res) => {
     let dbPlans = await Plan.find({ status: 'Active' });
     if (dbPlans.length === 0) {
       const defaultPlans = [
-        { name: "Free", price: 0, interval: "forever", features: ["50 invoices/month", "Basic inventory", "1 user", "Udaan branding"], popular: false, description: "Perfect for exploring the platform", platforms: "Mobile Only" },
-        { name: "Silver", price: 199, interval: "month", features: ["Unlimited invoices", "Advanced inventory", "3 users", "No branding", "Basic GST"], popular: false, description: "Ideal for growing small businesses", platforms: "Mobile + Desktop" },
-        { name: "Gold", price: 299, interval: "month", features: ["Everything in Silver", "Unlimited users", "E-way bills", "Advanced GST", "Staff management"], popular: true, description: "Complete solution for mature businesses", platforms: "Mobile + Desktop" },
-        { name: "Enterprise", price: 499, interval: "month", features: ["Everything in Gold", "Custom themes", "Priority support", "Barcode gen", "API access"], popular: false, description: "Premium subscription for enterprise needs", platforms: "Mobile + Desktop" }
+        { name: "Free", price: 0, interval: "forever", features: ["50 invoices/month", "Basic inventory", "1 user", "Udaan branding"], popular: false, description: "Perfect for exploring the platform", platforms: "Mobile Only", showUdaanLogo: true },
+        { name: "Silver", price: 199, interval: "month", features: ["Unlimited invoices", "Advanced inventory", "3 users", "No branding", "Basic GST"], popular: false, description: "Ideal for growing small businesses", platforms: "Mobile + Desktop", showUdaanLogo: false },
+        { name: "Gold", price: 299, interval: "month", features: ["Everything in Silver", "Unlimited users", "E-way bills", "Advanced GST", "Staff management"], popular: true, description: "Complete solution for mature businesses", platforms: "Mobile + Desktop", showUdaanLogo: false },
+        { name: "Enterprise", price: 499, interval: "month", features: ["Everything in Gold", "Custom themes", "Priority support", "Barcode gen", "API access"], popular: false, description: "Premium subscription for enterprise needs", platforms: "Mobile + Desktop", showUdaanLogo: false }
       ];
       await Plan.insertMany(defaultPlans);
       dbPlans = await Plan.find({ status: 'Active' });
@@ -390,9 +406,11 @@ const subscribeUser = async (req, res) => {
       });
     }
 
+    const responseSubscription = await getSubscriptionWithLogo(user.subscription);
+
     res.status(200).json({
       message: `Successfully subscribed to ${planName}`,
-      subscription: user.subscription
+      subscription: responseSubscription
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -577,10 +595,12 @@ const verifyRazorpayPayment = async (req, res) => {
         description: `Mock/Demo Subscription upgrade to ${planName} Plan`
       });
 
+      const responseSubscription = await getSubscriptionWithLogo(user.subscription);
+
       return res.status(200).json({
         success: true,
         message: `Successfully verified and subscribed to ${planName} (Mock)`,
-        subscription: user.subscription
+        subscription: responseSubscription
       });
     }
 
@@ -623,10 +643,12 @@ const verifyRazorpayPayment = async (req, res) => {
       description: `Razorpay Subscription upgrade to ${planName} Plan`
     });
 
+    const responseSubscription = await getSubscriptionWithLogo(user.subscription);
+
     res.status(200).json({
       success: true,
       message: `Successfully verified and subscribed to ${planName}`,
-      subscription: user.subscription
+      subscription: responseSubscription
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

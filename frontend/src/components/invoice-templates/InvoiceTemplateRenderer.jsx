@@ -1,4 +1,5 @@
 import React from "react";
+import { useMockAuth } from "@/lib/auth-store";
 import { GSTBoxedTemplate } from "./GSTBoxedTemplate";
 import { ClassicTemplate } from "./ClassicTemplate";
 import { ModernTemplate } from "./ModernTemplate";
@@ -53,6 +54,7 @@ export function normalizeInvoice(inv) {
 }
 
 export function InvoiceTemplateRenderer({ invoice, printSettings, gstSettings, templateName, themeColor, numberToWords }) {
+  const { user } = useMockAuth();
   if (!invoice) return null;
   const normalized = normalizeInvoice(invoice);
 
@@ -85,25 +87,44 @@ export function InvoiceTemplateRenderer({ invoice, printSettings, gstSettings, t
   const activeColor = colorMap[themeColor] || colorMap.slate;
 
   // Resolve template components
-  switch (templateName) {
-    case "GST Boxed":
-      return <GSTBoxedTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
-    case "Classic White":
-      return <ClassicTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
-    case "Modern Green":
-    case "Stylish Blue":
-    case "Charcoal Dark":
-      return <ModernTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
-    case "Minimalist":
-      return <MinimalTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
-    case "Crimson Rose":
-      return <BusinessTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
-    case "Warm Amber":
-      return <CorporateTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
-    case "Royal Purple":
-      return <ProfessionalTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
-    case "Tally Classic":
-    default:
-      return <RetailTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
-  }
+  const templateJSX = (() => {
+    switch (templateName) {
+      case "GST Boxed":
+        return <GSTBoxedTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
+      case "Classic White":
+        return <ClassicTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
+      case "Modern Green":
+      case "Stylish Blue":
+      case "Charcoal Dark":
+        return <ModernTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
+      case "Minimalist":
+        return <MinimalTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
+      case "Crimson Rose":
+        return <BusinessTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
+      case "Warm Amber":
+        return <CorporateTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
+      case "Royal Purple":
+        return <ProfessionalTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
+      case "Tally Classic":
+      default:
+        return <RetailTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
+    }
+  })();
+
+  const showLogo = user?.subscription?.showUdaanLogo !== false;
+
+  return (
+    <div className="relative flex flex-col justify-between h-full min-h-[inherit]">
+      <div className="flex-1">
+        {templateJSX}
+      </div>
+      {showLogo && (
+        <div className="mt-4 pt-3 border-t border-dashed border-slate-200 flex items-center justify-center gap-1.5 text-[10px] text-slate-400 font-sans print:flex">
+          <span>Generated using</span>
+          <img src="/udaan-logo-removebg-preview.png" alt="Udaan" className="h-3.5 w-3.5 object-contain" />
+          <span className="font-semibold text-slate-600">Udaan BillBook</span>
+        </div>
+      )}
+    </div>
+  );
 }

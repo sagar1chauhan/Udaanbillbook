@@ -35,7 +35,11 @@ const planSchema = new mongoose.Schema({
   },
   allowedTemplates: [{
     type: String
-  }]
+  }],
+  showUdaanLogo: {
+    type: Boolean,
+    default: true
+  }
 }, {
   timestamps: true
 });

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Bell, Search, Moon, Sun, Command, LogOut, Settings as SettingsIcon, User as UserIcon } from "lucide-react";
 import { useMockAuth, mockAuth } from "@/lib/auth-store";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -15,16 +15,90 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import api from "@/lib/api";
 
 export function SuperAdminTopbar() {
   const { user } = useMockAuth();
   const navigate = useNavigate();
+
+  const [data, setData] = useState({ businesses: [], users: [], tickets: [] });
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        document.getElementById("global-search-input")?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const fetchSearchData = async () => {
+    setIsFocused(true);
+    if (data.businesses.length > 0) return;
+    setLoading(true);
+    try {
+      const [bizRes, usersRes, tktRes] = await Promise.all([
+        api.get("/admin/businesses"),
+        api.get("/admin/users"),
+        api.get("/admin/tickets").catch(() => ({ data: [] }))
+      ]);
+      setData({
+        businesses: bizRes.data || [],
+        users: usersRes.data || [],
+        tickets: tktRes.data || []
+      });
+    } catch (err) {
+      console.error("Error loading search data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBlur = () => {
+    setTimeout(() => setIsFocused(false), 200);
+  };
 
   const handleLogout = () => {
     mockAuth.signOut();
     toast.success("Logged out successfully");
     navigate("/login");
   };
+
+  const query = searchQuery.trim().toLowerCase();
+
+  const filteredBusinesses = query
+    ? data.businesses.filter(b => 
+        (b.name || "").toLowerCase().includes(query) ||
+        (b.owner || "").toLowerCase().includes(query) ||
+        (b.city || "").toLowerCase().includes(query) ||
+        (b.plan || "").toLowerCase().includes(query)
+      ).slice(0, 4)
+    : [];
+
+  const filteredUsers = query
+    ? data.users.filter(u =>
+        (u.name || "").toLowerCase().includes(query) ||
+        (u.email || "").toLowerCase().includes(query) ||
+        (u.phone || "").toLowerCase().includes(query) ||
+        (u.role || "").toLowerCase().includes(query)
+      ).slice(0, 4)
+    : [];
+
+  const filteredTickets = query
+    ? data.tickets.filter(t =>
+        (t.subject || "").toLowerCase().includes(query) ||
+        (t.business || "").toLowerCase().includes(query) ||
+        (t.status || "").toLowerCase().includes(query) ||
+        (t.id || "").toLowerCase().includes(query)
+      ).slice(0, 4)
+    : [];
+
+  const hasResults = filteredBusinesses.length > 0 || filteredUsers.length > 0 || filteredTickets.length > 0;
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b px-4 md:px-6 backdrop-blur-xl"
@@ -34,19 +108,109 @@ export function SuperAdminTopbar() {
       }}
     >
       {/* Left: Search */}
-      <div className="flex items-center gap-3 flex-1 max-w-md">
+      <div className="flex items-center gap-3 flex-1 max-w-md relative">
         <div className="relative flex-1 hidden sm:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
           <input
+            id="global-search-input"
             type="text"
-            placeholder="Search businesses, users, transactions..."
-            className="w-full h-9 rounded-xl pl-9 pr-4 text-sm bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/40 transition-all"
+            placeholder="Search businesses, users, tickets..."
+            className="w-full h-9 rounded-xl pl-9 pr-12 text-sm bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/40 transition-all"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={fetchSearchData}
+            onBlur={handleBlur}
+            autoComplete="off"
           />
           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 rounded-md bg-white/5 px-1.5 py-0.5 border border-white/10">
             <Command className="h-3 w-3 text-slate-500" />
             <span className="text-[10px] text-slate-500 font-medium">K</span>
           </div>
         </div>
+
+        {/* Search Results Dropdown Overlay */}
+        {isFocused && searchQuery.trim() && (
+          <div className="absolute top-full left-0 right-0 mt-2 rounded-2xl border border-white/10 shadow-2xl p-4 overflow-y-auto max-h-[400px] z-50 backdrop-blur-xl bg-slate-900/95 text-left">
+            {loading ? (
+              <div className="flex py-6 items-center justify-center gap-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+                <span className="text-xs text-slate-400">Searching platform...</span>
+              </div>
+            ) : !hasResults ? (
+              <div className="text-center py-6 text-xs text-slate-500">
+                No matching businesses, users, or tickets found.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Businesses */}
+                {filteredBusinesses.length > 0 && (
+                  <div>
+                    <h4 className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Businesses</h4>
+                    <div className="space-y-1.5">
+                      {filteredBusinesses.map(b => (
+                        <Link
+                          key={b.id || b._id}
+                          to={`/admin/businesses?search=${b.name}`}
+                          className="flex items-center justify-between p-2 rounded-xl bg-white/3 hover:bg-emerald-500/10 border border-white/5 hover:border-emerald-500/20 transition-all text-xs"
+                        >
+                          <div className="text-left">
+                            <p className="font-bold text-white">{b.name}</p>
+                            <p className="text-[10px] text-slate-400">{b.owner} • {b.city}</p>
+                          </div>
+                          <span className="bg-emerald-500/15 text-emerald-400 text-[9px] px-2 py-0.5 rounded-full font-semibold">{b.plan}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Users */}
+                {filteredUsers.length > 0 && (
+                  <div>
+                    <h4 className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Vendors / Users</h4>
+                    <div className="space-y-1.5">
+                      {filteredUsers.map(u => (
+                        <Link
+                          key={u._id}
+                          to={`/admin/users?search=${u.name}`}
+                          className="flex items-center justify-between p-2 rounded-xl bg-white/3 hover:bg-emerald-500/10 border border-white/5 hover:border-emerald-500/20 transition-all text-xs"
+                        >
+                          <div className="text-left">
+                            <p className="font-bold text-white">{u.name}</p>
+                            <p className="text-[10px] text-slate-400">{u.email || u.phone}</p>
+                          </div>
+                          <span className="bg-blue-500/15 text-blue-400 text-[9px] px-2 py-0.5 rounded-full font-semibold capitalize">{u.role}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tickets */}
+                {filteredTickets.length > 0 && (
+                  <div>
+                    <h4 className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Support Tickets</h4>
+                    <div className="space-y-1.5">
+                      {filteredTickets.map(t => (
+                        <Link
+                          key={t.id}
+                          to={`/admin/tickets?search=${t.id}`}
+                          className="flex items-center justify-between p-2 rounded-xl bg-white/3 hover:bg-emerald-500/10 border border-white/5 hover:border-emerald-500/20 transition-all text-xs"
+                        >
+                          <div className="text-left max-w-[70%]">
+                            <p className="font-bold text-white truncate">{t.subject}</p>
+                            <p className="text-[10px] text-slate-400 truncate">{t.business} • ID: {t.id}</p>
+                          </div>
+                          <span className={`text-[9px] px-2 py-0.5 rounded-full font-semibold ${t.status === "Open" ? "bg-amber-500/15 text-amber-400" : "bg-emerald-500/15 text-emerald-400"}`}>{t.status}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Right: Actions */}

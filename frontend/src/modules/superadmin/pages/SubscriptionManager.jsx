@@ -23,7 +23,8 @@ export function SubscriptionManager() {
     popular: false,
     platforms: "Mobile + Desktop",
     description: "",
-    allowedTemplates: []
+    allowedTemplates: [],
+    showUdaanLogo: true
   });
 
   const fetchPlans = async () => {
@@ -50,7 +51,8 @@ export function SubscriptionManager() {
       popular: false,
       platforms: "Mobile + Desktop",
       description: "",
-      allowedTemplates: ["GST Boxed", "Classic White"]
+      allowedTemplates: ["GST Boxed", "Classic White"],
+      showUdaanLogo: true
     });
     setIsOpen(true);
   };
@@ -64,7 +66,8 @@ export function SubscriptionManager() {
       popular: plan.popular,
       platforms: plan.platforms,
       description: plan.description || "",
-      allowedTemplates: plan.allowedTemplates || []
+      allowedTemplates: plan.allowedTemplates || [],
+      showUdaanLogo: plan.showUdaanLogo !== undefined ? plan.showUdaanLogo : true
     });
     setIsOpen(true);
   };
@@ -83,7 +86,8 @@ export function SubscriptionManager() {
       popular: formData.popular,
       platforms: formData.platforms,
       description: formData.description.trim(),
-      allowedTemplates: formData.allowedTemplates
+      allowedTemplates: formData.allowedTemplates,
+      showUdaanLogo: formData.showUdaanLogo
     };
 
     try {
@@ -236,6 +240,14 @@ export function SubscriptionManager() {
                     </div>
                   </div>
                 )}
+                <div className="border-t border-white/5 pt-3 mt-3 flex items-center justify-between">
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Udaan Logo</p>
+                  {plan.showUdaanLogo ? (
+                    <span className="text-[9px] bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded text-amber-400 font-medium">Shown</span>
+                  ) : (
+                    <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded text-emerald-400 font-medium">Hidden</span>
+                  )}
+                </div>
               </div>
 
               {/* Glow */}
@@ -364,6 +376,18 @@ export function SubscriptionManager() {
                 />
                 <label htmlFor="popular" className="text-xs font-semibold text-slate-300 select-none cursor-pointer">
                   Mark as Most Popular plan
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="showUdaanLogo"
+                  className="rounded bg-white/5 border-white/10 text-emerald-500 focus:ring-emerald-500"
+                  checked={formData.showUdaanLogo}
+                  onChange={(e) => setFormData({ ...formData, showUdaanLogo: e.target.checked })}
+                />
+                <label htmlFor="showUdaanLogo" className="text-xs font-semibold text-slate-300 select-none cursor-pointer">
+                  Show Udaan Logo on Invoice
                 </label>
               </div>
               <div className="flex justify-end gap-3 pt-2">

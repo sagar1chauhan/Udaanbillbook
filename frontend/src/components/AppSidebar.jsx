@@ -106,7 +106,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-2 px-2 py-2">
           <img src={logo} alt="Udaan" className="h-9 w-9 rounded-xl object-cover shadow-[var(--shadow-glow)]" />
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-bold leading-tight">udaan BillBook</span>
+            <span className="text-sm font-bold leading-tight">Udaan BillBook</span>
             <span className="text-[11px] text-muted-foreground leading-tight">Business Accounting</span>
           </div>
         </div>

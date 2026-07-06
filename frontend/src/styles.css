@@ -190,3 +190,50 @@
     }
   }
 }
+
+/* Custom premium trackless scrollbars globally */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(1 0 0 / 12%) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.2 0.04 257 / 15%);
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: oklch(1 0 0 / 12%);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.2 0.04 257 / 30%);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: oklch(1 0 0 / 25%);
+}
+
+/* Hide scrollbars completely for sidebars and top bars for maximum clean aesthetic */
+aside nav,
+.sidebar-content,
+.scrollbar-none {
+  scrollbar-width: none !important;
+}
+
+aside nav::-webkit-scrollbar,
+.sidebar-content::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+}
+
