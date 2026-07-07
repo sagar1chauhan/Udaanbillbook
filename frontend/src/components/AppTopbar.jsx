@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Bell, Search, Plus, LogOut, Settings as SettingsIcon, User, Menu } from "lucide-react";
+import { Bell, Search, Plus, LogOut, Settings as SettingsIcon, User, Menu, X } from "lucide-react";
 import { useNavigate, Link, useLocation, useSearchParams } from "react-router-dom";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 const logo = "/udaan-logo-removebg-preview.png";
@@ -29,6 +29,23 @@ export function AppTopbar() {
     });
   };
   const { user } = useMockAuth();
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: "Payment received", description: "Anil Sweets paid ₹24,500", url: "/billing" },
+    { id: 2, title: "Low stock alert", description: "Atta 10kg has only 8 units left", url: "/inventory" },
+    { id: 3, title: "Reminder sent", description: "Patel Stores · ₹36,200 due", url: "/parties" }
+  ]);
+
+  const clearAllNotifications = (e) => {
+    e.stopPropagation();
+    setNotifications([]);
+    toast.success("All notifications cleared");
+  };
+
+  const removeNotification = (id, e) => {
+    e.stopPropagation();
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
   const navigate = useNavigate();
   const { toggleSidebar } = useSidebar();
   const location = useLocation();
@@ -48,6 +65,9 @@ export function AppTopbar() {
     toast.success("Signed out");
     navigate("/login");
   };
+
+  const userRole = user?.role?.toLowerCase() || "user";
+  const rolePrefix = (userRole === "staff" || userRole === "viewer") ? "/staff" : "/vendor";
 
   return (
     <>
@@ -78,7 +98,7 @@ export function AppTopbar() {
             className="hidden h-10 rounded-xl px-4 md:inline-flex"
             asChild
           >
-            <Link to={`${user?.role?.toLowerCase() === "staff" ? "/staff" : "/vendor"}/sale/new`}>
+            <Link to={`${rolePrefix}/sale/new`}>
               <Plus className="mr-1 h-4 w-4" />
               New Invoice
             </Link>
@@ -89,26 +109,50 @@ export function AppTopbar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-xl">
                 <Bell className="h-5 w-5" />
-                <Badge className="absolute -right-0.5 -top-0.5 h-4 min-w-4 rounded-full bg-destructive p-0 px-1 text-[10px]">
-                  3
-                </Badge>
+                {notifications.length > 0 && (
+                  <Badge className="absolute -right-0.5 -top-0.5 h-4 min-w-4 rounded-full bg-destructive p-0 px-1 text-[10px]">
+                    {notifications.length}
+                  </Badge>
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-72">
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+              <DropdownMenuLabel className="flex items-center justify-between font-semibold">
+                <span>Notifications</span>
+                {notifications.length > 0 && (
+                  <button 
+                    onClick={clearAllNotifications}
+                    className="text-[10px] text-red-500 hover:text-red-600 font-bold uppercase hover:underline"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="flex flex-col items-start gap-0.5">
-                <span className="text-xs font-semibold">Payment received</span>
-                <span className="text-[11px] text-muted-foreground">Anil Sweets paid ₹24,500</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex flex-col items-start gap-0.5">
-                <span className="text-xs font-semibold">Low stock alert</span>
-                <span className="text-[11px] text-muted-foreground">Atta 10kg has only 8 units left</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex flex-col items-start gap-0.5">
-                <span className="text-xs font-semibold">Reminder sent</span>
-                <span className="text-[11px] text-muted-foreground">Patel Stores · ₹36,200 due</span>
-              </DropdownMenuItem>
+              {notifications.length > 0 ? (
+                notifications.map((n) => (
+                  <DropdownMenuItem 
+                    key={n.id}
+                    className="flex items-center justify-between cursor-pointer group pr-2 py-2"
+                    onClick={() => navigate(`${rolePrefix}${n.url}`)}
+                  >
+                    <div className="flex flex-col items-start gap-0.5 flex-1 pr-2">
+                      <span className="text-xs font-semibold">{n.title}</span>
+                      <span className="text-[11px] text-muted-foreground">{n.description}</span>
+                    </div>
+                    <button
+                      onClick={(e) => removeNotification(n.id, e)}
+                      className="opacity-0 group-hover:opacity-100 hover:bg-slate-100 p-1 rounded transition-all text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </DropdownMenuItem>
+                ))
+              ) : (
+                <div className="py-6 text-center text-xs text-muted-foreground">
+                  All caught up! 🎉
+                </div>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
 

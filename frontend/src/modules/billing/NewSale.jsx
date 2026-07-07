@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { ArrowLeft, Printer, Plus, Send, Trash2, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,121 @@ import { validateUtr, validateUpi } from "@/lib/validation";
 import { useMockAuth } from "@/lib/auth-store";
 import { InvoiceTemplateRenderer } from "@/components/invoice-templates/InvoiceTemplateRenderer";
 import { usePlatformSettings } from "@/lib/platform-settings";
+
+function SignaturePad({ value, onChange }) {
+  const canvasRef = useRef(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width || 350;
+    canvas.height = 150;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    if (value) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+      img.src = value;
+    }
+  }, []);
+
+  const getCoordinates = (e) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    
+    if (e.touches && e.touches.length > 0) {
+      return {
+        x: e.touches[0].clientX - rect.left,
+        y: e.touches[0].clientY - rect.top
+      };
+    }
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  };
+
+  const startDrawing = (e) => {
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const { x, y } = getCoordinates(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    setIsDrawing(true);
+  };
+
+  const draw = (e) => {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const { x, y } = getCoordinates(e);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    if (!isDrawing) return;
+    setIsDrawing(false);
+    const canvas = canvasRef.current;
+    if (canvas) {
+      onChange(canvas.toDataURL());
+    }
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      onChange('');
+    }
+  };
+
+  return (
+    <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+      <canvas
+        ref={canvasRef}
+        className="w-full h-[150px] bg-white cursor-crosshair touch-none"
+        onMouseDown={startDrawing}
+        onMouseMove={draw}
+        onMouseUp={stopDrawing}
+        onMouseLeave={stopDrawing}
+        onTouchStart={startDrawing}
+        onTouchMove={draw}
+        onTouchEnd={stopDrawing}
+      />
+      <div className="flex justify-between items-center bg-slate-50 px-3 py-1.5 border-t">
+        <span className="text-[10px] text-slate-400 font-medium">Draw your signature here</span>
+        <button
+          type="button"
+          onClick={clearCanvas}
+          className="text-xs text-red-500 hover:text-red-600 font-semibold"
+        >
+          Clear
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function NewSale() {
   const navigate = useNavigate();
@@ -137,6 +252,8 @@ export default function NewSale() {
   const [acknowledgement, setAcknowledgement] = useState(() => getInitialState("acknowledgement", ""));
   const [signatureText, setSignatureText] = useState(() => getInitialState("signatureText", ""));
   const [signatureUrl, setSignatureUrl] = useState(() => getInitialState("signatureUrl", ""));
+  const [signatureImgUrl, setSignatureImgUrl] = useState(() => getInitialState("signatureImgUrl", ""));
+  const [sigMode, setSigMode] = useState("draw"); // 'draw' or 'upload'
   const [partyBalance, setPartyBalance] = useState(() => getInitialState("partyBalance", ""));
 
   const [activePane, setActivePane] = useState("form");
@@ -161,6 +278,9 @@ export default function NewSale() {
       }
       if (!signatureUrl && settings.printSettings.signatureUrl) {
         setSignatureUrl(settings.printSettings.signatureUrl);
+      }
+      if (!signatureImgUrl && settings.printSettings.signatureImgUrl) {
+        setSignatureImgUrl(settings.printSettings.signatureImgUrl);
       }
     }
   }, [settings]);
@@ -197,6 +317,7 @@ export default function NewSale() {
       acknowledgement,
       signatureText,
       signatureUrl,
+      signatureImgUrl,
       partyBalance
     };
     localStorage.setItem("Udaan.sale_draft", JSON.stringify(draft));
@@ -205,7 +326,7 @@ export default function NewSale() {
     reverseCharge, challanNo, vehicleNo, dateOfSupply, placeOfSupply,
     billedToAddress, billedToGstin, billedToMobile, billedToState, invoiceTemplate, themeColor,
     sellerName, sellerAddress, sellerEmail, sellerPhone, sellerGstin,
-    terms, description, receivedBy, deliveredBy, acknowledgement, signatureText, signatureUrl, partyBalance
+    terms, description, receivedBy, deliveredBy, acknowledgement, signatureText, signatureUrl, signatureImgUrl, partyBalance
   ]);
 
   const handleUtrChange = (val) => {
@@ -944,7 +1065,7 @@ export default function NewSale() {
                     </div>
                   )}
                   {printSet.printSignatureText && (
-                    <div className="space-y-3 pt-2 border-t border-dashed">
+                    <div className="space-y-4 pt-2 border-t border-dashed">
                       <div className="space-y-1">
                         <Label className="text-xs">Signature Text</Label>
                         <Input 
@@ -954,11 +1075,13 @@ export default function NewSale() {
                           className="h-9 rounded-lg"
                         />
                       </div>
+                      
+                      {/* Seal Upload */}
                       <div className="space-y-2">
-                        <Label className="text-xs block">Seal & Signature Image</Label>
+                        <Label className="text-xs block font-semibold text-slate-700">Seal Image</Label>
                         <div className="flex items-center gap-3">
                           <label className="text-[12px] bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1.5 rounded-xl hover:bg-blue-100 cursor-pointer font-semibold transition-all">
-                            Upload Seal & Sign Image
+                            Upload Seal Image
                             <input 
                               type="file" 
                               accept="image/*" 
@@ -987,7 +1110,69 @@ export default function NewSale() {
                         </div>
                         {signatureUrl && (
                           <div className="border rounded-xl p-2 bg-slate-50 w-32 h-16 flex items-center justify-center">
-                            <img src={signatureUrl} alt="Seal & Sign" className="max-h-full max-w-full object-contain" />
+                            <img src={signatureUrl} alt="Seal" className="max-h-full max-w-full object-contain" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Signature Option */}
+                      <div className="space-y-2 pt-3 border-t border-dashed border-slate-200">
+                        <Label className="text-xs block font-semibold text-slate-700">Authorized Signature</Label>
+                        <div className="flex gap-2 p-1 bg-slate-100 rounded-lg w-max mb-2">
+                          <button
+                            type="button"
+                            onClick={() => setSigMode("draw")}
+                            className={`px-3 py-1 text-[11px] font-semibold rounded-md transition-all ${sigMode === "draw" ? "bg-white text-blue-600 shadow-sm" : "text-slate-600 hover:text-slate-800"}`}
+                          >
+                            Draw Signature
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSigMode("upload")}
+                            className={`px-3 py-1 text-[11px] font-semibold rounded-md transition-all ${sigMode === "upload" ? "bg-white text-blue-600 shadow-sm" : "text-slate-600 hover:text-slate-800"}`}
+                          >
+                            Upload Signature Photo
+                          </button>
+                        </div>
+
+                        {sigMode === "draw" ? (
+                          <SignaturePad value={signatureImgUrl} onChange={setSignatureImgUrl} />
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-3">
+                              <label className="text-[12px] bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1.5 rounded-xl hover:bg-blue-100 cursor-pointer font-semibold transition-all">
+                                Upload Signature Image
+                                <input 
+                                  type="file" 
+                                  accept="image/*" 
+                                  className="hidden" 
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      const reader = new FileReader();
+                                      reader.onloadend = () => {
+                                        setSignatureImgUrl(reader.result);
+                                      };
+                                      reader.readAsDataURL(file);
+                                    }
+                                  }}
+                                />
+                              </label>
+                              {signatureImgUrl && (
+                                <button 
+                                  type="button" 
+                                  onClick={() => setSignatureImgUrl("")} 
+                                  className="text-[11px] text-red-500 hover:underline font-semibold"
+                                >
+                                  Remove
+                                </button>
+                              )}
+                            </div>
+                            {signatureImgUrl && (
+                              <div className="border rounded-xl p-2 bg-slate-50 w-32 h-16 flex items-center justify-center">
+                                <img src={signatureImgUrl} alt="Signature" className="max-h-full max-w-full object-contain" />
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -1215,7 +1400,8 @@ export default function NewSale() {
                 email: sellerEmail,
                 phone: sellerPhone,
                 signatureText: signatureText,
-                signatureUrl: signatureUrl
+                signatureUrl: signatureUrl,
+                signatureImgUrl: signatureImgUrl
               }}
               gstSettings={{
                 ...gstSet,

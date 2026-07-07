@@ -405,11 +405,17 @@ export function GSTBoxedTemplate({ invoice, printSet, gstSet, activeColor, numbe
                 <span className={`font-bold text-slate-800 uppercase block ${getInvoiceSizeClass(textSz, "text-[9px]")}`}>
                   For, {printSet.companyName || "KESHAV TRAVELS"}
                 </span>
-                {printSet.signatureUrl ? (
-                  <img src={printSet.signatureUrl} alt="Seal/Signature" className="h-10 max-h-12 object-contain my-1" />
-                ) : (
-                  <div className="h-8" />
-                )}
+                <div className="flex flex-col items-center justify-center my-1 min-h-[40px]">
+                  {printSet.signatureUrl && (
+                    <img src={printSet.signatureUrl} alt="Seal" className="h-10 max-h-12 object-contain" />
+                  )}
+                  {printSet.signatureImgUrl && (
+                    <img src={printSet.signatureImgUrl} alt="Signature" className="h-8 max-h-10 object-contain mt-1" />
+                  )}
+                  {!printSet.signatureUrl && !printSet.signatureImgUrl && (
+                    <div className="h-8" />
+                  )}
+                </div>
                 <span className={`text-slate-400 block pt-1 border-t w-32 mx-auto text-center ${getInvoiceSizeClass(textSz, "text-[8px]")}`}>
                   {printSet.signatureText || "Authorised Signatory"}
                 </span>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bell, Search, Moon, Sun, Command, LogOut, Settings as SettingsIcon, User as UserIcon } from "lucide-react";
+import { Bell, Search, Moon, Sun, Command, LogOut, Settings as SettingsIcon, User as UserIcon, X } from "lucide-react";
 import { useMockAuth, mockAuth } from "@/lib/auth-store";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,23 @@ import api from "@/lib/api";
 export function SuperAdminTopbar() {
   const { user } = useMockAuth();
   const navigate = useNavigate();
+
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: "New Business Signup", description: "Keshav Travels registered", url: "/admin/businesses" },
+    { id: 2, title: "Support Ticket #1024", description: "Payment pending issue", url: "/admin/tickets" },
+    { id: 3, title: "Subscription Upgraded", description: "Sharma Traders moved to Gold", url: "/admin/subscriptions" }
+  ]);
+
+  const clearAllNotifications = (e) => {
+    e.stopPropagation();
+    setNotifications([]);
+    toast.success("All notifications cleared");
+  };
+
+  const removeNotification = (id, e) => {
+    e.stopPropagation();
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
 
   const [data, setData] = useState({ businesses: [], users: [], tickets: [] });
   const [loading, setLoading] = useState(false);
@@ -215,12 +232,56 @@ export function SuperAdminTopbar() {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
-        <button className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all">
-          <Bell className="h-4 w-4" />
-          <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white px-1">
-            3
-          </span>
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+              <Bell className="h-4 w-4" />
+              {notifications.length > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white px-1">
+                  {notifications.length}
+                </span>
+              )}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-72 bg-slate-900 border border-white/10 text-slate-200">
+            <DropdownMenuLabel className="flex items-center justify-between font-semibold">
+              <span className="text-white">Notifications</span>
+              {notifications.length > 0 && (
+                <button 
+                  onClick={clearAllNotifications}
+                  className="text-[10px] text-rose-400 hover:text-rose-300 font-bold uppercase hover:underline"
+                >
+                  Clear All
+                </button>
+              )}
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-white/5" />
+            {notifications.length > 0 ? (
+              notifications.map((n) => (
+                <DropdownMenuItem 
+                  key={n.id}
+                  className="flex items-center justify-between cursor-pointer group pr-2 py-2 focus:bg-white/5 focus:text-white text-slate-300"
+                  onClick={() => navigate(n.url)}
+                >
+                  <div className="flex flex-col items-start gap-0.5 flex-1 pr-2">
+                    <span className="text-xs font-semibold text-white">{n.title}</span>
+                    <span className="text-[11px] text-slate-400">{n.description}</span>
+                  </div>
+                  <button
+                    onClick={(e) => removeNotification(n.id, e)}
+                    className="opacity-0 group-hover:opacity-100 hover:bg-white/5 p-1 rounded transition-all text-slate-500 hover:text-slate-300"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </DropdownMenuItem>
+              ))
+            ) : (
+              <div className="py-6 text-center text-xs text-slate-500">
+                All caught up! 🎉
+              </div>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <div className="hidden sm:flex h-8 w-px bg-white/10 mx-1" />
 

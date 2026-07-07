@@ -43,10 +43,9 @@ const menuGroups = [
   },
 ];
 
-export function SuperAdminSidebar() {
+export function SuperAdminSidebar({ collapsed, setCollapsed }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(false);
 
   const isActive = (url) =>
     url === "/admin"
@@ -99,7 +98,7 @@ export function SuperAdminSidebar() {
                     key={item.title}
                     to={item.url}
                     title={collapsed ? item.title : undefined}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 group ${
+                    className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 group ${
                       active
                         ? "bg-emerald-500/15 text-emerald-400 shadow-sm shadow-emerald-500/10"
                         : "text-slate-400 hover:text-white hover:bg-white/5"
