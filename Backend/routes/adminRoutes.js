@@ -19,7 +19,8 @@ const {
   getPlatformSettingsData,
   updatePlatformSettingsData,
   getAdminProfile,
-  updateAdminProfile
+  updateAdminProfile,
+  updateBillingSettings
 } = require('../controllers/adminController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
@@ -29,6 +30,7 @@ router.use(restrictTo('admin'));
 
 router.get('/users', getAllUsers);
 router.put('/users/:id/status', updateUserStatus);
+router.put('/users/:id/billing-settings', updateBillingSettings);
 router.get('/dashboard', getAdminDashboardData);
 router.get('/analytics', getAdminAnalyticsData);
 router.get('/businesses', getAdminBusinesses);

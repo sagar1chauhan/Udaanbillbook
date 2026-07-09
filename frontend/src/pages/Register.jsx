@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthShell } from "@/components/AuthShell";
+import { mockAuth } from "@/lib/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ import api from "@/lib/api";
 
 export default function Register() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [businessTypes, setBusinessTypes] = useState([
     "Retail Shop",
     "Wholesale / Distribution",
@@ -29,6 +31,9 @@ export default function Register() {
     type: "Retail Shop",
     phone: "",
     email: "",
+    gstNo: "",
+    aadhaarCard: null,
+    panCard: null,
   });
   const [loading, setLoading] = useState(false);
 
@@ -44,7 +49,24 @@ export default function Register() {
         console.error("Failed to load business types", error);
       }
     };
+
+    const fetchUserPhone = async () => {
+      const localUser = mockAuth.get();
+      if (localUser && localUser.phone) {
+        setForm(f => ({ ...f, phone: localUser.phone }));
+      }
+      try {
+        const res = await api.get("/auth/me");
+        if (res.data && res.data.phone) {
+          setForm(f => ({ ...f, phone: res.data.phone }));
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+
     fetchPublicSettings();
+    fetchUserPhone();
   }, []);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -71,7 +93,9 @@ export default function Register() {
           business: form.business,
           email: form.email,
           address: form.address,
-          businessType: form.type
+          businessType: form.type,
+          gstNo: form.gstNo,
+          returnUrl: location.state?.returnUrl
         }
       });
     } catch (error) {
@@ -85,14 +109,6 @@ export default function Register() {
     <AuthShell
       title="Create your free account"
       subtitle="Set up your business in less than a minute."
-      footer={
-        <>
-          Already have an account?{" "}
-          <Link to="/login" className="font-semibold text-primary hover:underline">
-            Sign in
-          </Link>
-        </>
-      }
     >
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -161,7 +177,8 @@ export default function Register() {
               placeholder="98xxxxxxxx"
               value={form.phone}
               onChange={(e) => set("phone", e.target.value.replace(/\D/g, ""))}
-              className="h-11 flex-1 rounded-xl"
+              className={`h-11 flex-1 rounded-xl ${mockAuth.get()?.phone ? "bg-slate-100 text-slate-500 cursor-not-allowed focus-visible:ring-0" : ""}`}
+              readOnly={!!mockAuth.get()?.phone}
             />
           </div>
         </div>
@@ -178,7 +195,55 @@ export default function Register() {
           />
         </div>
 
-        <Button type="submit" disabled={loading} className="h-12 w-full rounded-xl text-base">
+        <div className="pt-4 mt-2 border-t border-border/50">
+          <h3 className="text-sm font-semibold text-slate-800 mb-3">Document Uploads (Optional)</h3>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="gstNo">GST Number</Label>
+              <Input
+                id="gstNo"
+                placeholder="22AAAAA0000A1Z5"
+                value={form.gstNo}
+                onChange={(e) => set("gstNo", e.target.value.toUpperCase())}
+                className="h-11 rounded-xl"
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="aadhaarCard">Aadhaar Card</Label>
+                <Input
+                  id="aadhaarCard"
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) => set("aadhaarCard", e.target.files[0])}
+                  className="h-11 rounded-xl cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                />
+                {form.aadhaarCard && form.aadhaarCard.type.startsWith('image/') && (
+                  <div className="mt-3 p-1.5 border border-slate-200 rounded-xl inline-block bg-white shadow-sm">
+                    <img src={URL.createObjectURL(form.aadhaarCard)} alt="Aadhaar Preview" className="h-24 w-auto rounded-lg object-contain" />
+                  </div>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="panCard">PAN Card</Label>
+                <Input
+                  id="panCard"
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) => set("panCard", e.target.files[0])}
+                  className="h-11 rounded-xl cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                />
+                {form.panCard && form.panCard.type.startsWith('image/') && (
+                  <div className="mt-3 p-1.5 border border-slate-200 rounded-xl inline-block bg-white shadow-sm">
+                    <img src={URL.createObjectURL(form.panCard)} alt="PAN Preview" className="h-24 w-auto rounded-lg object-contain" />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <Button type="submit" disabled={loading} className="h-12 w-full rounded-xl text-base mt-4">
           {loading ? "Sending OTP…" : <>Continue <ArrowRight className="ml-1 h-4 w-4" /></>}
         </Button>
       </form>

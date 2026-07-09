@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { ArrowLeft, ReceiptText, Printer, Plus, Send, Trash2 } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
+import { ArrowLeft, ReceiptText, Printer, Plus, Send, Trash2, X, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -19,6 +19,33 @@ export default function NewSale() {
   const [lines, setLines] = useState([
     { name: "Item description", hsnSac: "", qty: 1, rate: 0, discount: 0, gst: 18 }
   ]);
+
+  const [showAdModal, setShowAdModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showSubModal, setShowSubModal] = useState(false);
+  const [pendingSave, setPendingSave] = useState(null);
+  const [regForm, setRegForm] = useState({ businessName: "", address: "", type: "Retail" });
+
+  useEffect(() => {
+    const saved = sessionStorage.getItem('pendingNewSale');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.customer) setCustomer(data.customer);
+        if (data.receivedAmount !== undefined) setReceivedAmount(data.receivedAmount);
+        if (data.lines) setLines(data.lines);
+        if (data.pendingSave) {
+          setPendingSave(data.pendingSave);
+          const isResume = sessionStorage.getItem('resumeInvoiceFlow') === 'true';
+          if (isResume) {
+            sessionStorage.removeItem('resumeInvoiceFlow');
+            setTimeout(() => continueFlow(null, true), 300);
+          }
+        }
+      } catch(e) {}
+      sessionStorage.removeItem('pendingNewSale');
+    }
+  }, []);
 
   const totals = useMemo(() => {
     let subtotal = 0;
@@ -95,14 +122,66 @@ export default function NewSale() {
       receivedAmount: receivedAmount
     };
 
+    setPendingSave({ isSend, payload });
+
+    try {
+      const { data: user } = await api.get('/auth/me');
+      
+      if (user.showAds) {
+        setShowAdModal(true);
+        return; // wait for ad to finish
+      }
+      
+      continueFlow(user);
+    } catch (err) {
+      toast.error("Failed to check user settings.");
+    }
+  };
+
+  const continueFlow = async (user = null, forceResume = false) => {
+    if (!user) {
+      try {
+        const res = await api.get('/auth/me');
+        user = res.data;
+      } catch (e) {
+        toast.error("Failed to check user settings.");
+        return;
+      }
+    }
+
+    if (user.billsGenerated === 0 && !forceResume) {
+      sessionStorage.setItem('pendingNewSale', JSON.stringify({
+        customer, receivedAmount, lines, pendingSave
+      }));
+      navigate('/register', { state: { returnUrl: '/sale/new' } });
+      return;
+    }
+
+    if (user.billLimit !== -1 && user.billsGenerated >= user.billLimit) {
+      setShowSubModal(true);
+      return;
+    }
+
+    executeSave();
+  };
+
+  const executeSave = async () => {
+    if (!pendingSave) return;
+    const { isSend, payload } = pendingSave;
     try {
       const endpoint = isSend ? "/invoices/send" : "/invoices";
       await api.post(endpoint, payload);
-      addInvoice(); // Trigger refresh in context
+      addInvoice();
       toast.success(isSend ? "Sale invoice saved & sent successfully!" : "Sale invoice created successfully!");
       navigate("/billing");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to save sale invoice");
+      if (err.response?.data?.message === 'LIMIT_REACHED') {
+        setShowSubModal(true);
+      } else {
+        toast.error(err.response?.data?.message || "Failed to save sale invoice");
+      }
+    } finally {
+      setPendingSave(null);
     }
   };
 
@@ -240,6 +319,100 @@ export default function NewSale() {
           </div>
         </div>
       </div>
+
+      {/* Ad Modal */}
+      {showAdModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <div className="bg-emerald-50 p-6 flex flex-col items-center justify-center text-center">
+              <span className="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-2">Advertisement</span>
+              <h3 className="text-xl font-bold text-slate-800 mb-4">Upgrade Your Business Today!</h3>
+              <div className="h-32 w-full bg-emerald-100 rounded-xl mb-4 flex items-center justify-center text-emerald-800/50">
+                [ Sponsored Content ]
+              </div>
+              <p className="text-sm text-slate-600">Get 50% off on premium subscriptions this month.</p>
+            </div>
+            <div className="p-4 flex justify-end">
+              <Button onClick={() => { setShowAdModal(false); continueFlow(); }} className="bg-emerald-600 hover:bg-emerald-700">
+                Skip Ad & Continue
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Register Modal */}
+      {showRegisterModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <ShieldCheck className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800">Complete Profile</h3>
+                  <p className="text-xs text-slate-500">Required before your first bill</p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Business Name</label>
+                  <Input value={regForm.businessName} onChange={e => setRegForm({...regForm, businessName: e.target.value})} placeholder="e.g. Udaan Store" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Business Type</label>
+                  <Input value={regForm.type} onChange={e => setRegForm({...regForm, type: e.target.value})} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Address</label>
+                  <Input value={regForm.address} onChange={e => setRegForm({...regForm, address: e.target.value})} />
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-slate-50 border-t flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => { setShowRegisterModal(false); setPendingSave(null); }}>Cancel</Button>
+              <Button onClick={() => {
+                // Mock save profile
+                setShowRegisterModal(false);
+                setShowSubModal(true); // show sub modal next
+              }} className="bg-blue-600 hover:bg-blue-700">Save Details</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Subscription Modal */}
+      {showSubModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <h3 className="text-xl font-bold text-slate-800 mb-2">Choose a Plan</h3>
+              <p className="text-sm text-slate-500 mb-6">Select a subscription plan to continue generating bills.</p>
+              
+              <div className="space-y-3">
+                <div className="border border-emerald-200 bg-emerald-50 p-4 rounded-xl cursor-pointer hover:bg-emerald-100 transition-colors" onClick={() => { setShowSubModal(false); executeSave(); }}>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="font-bold text-emerald-800">Free Trial</span>
+                    <span className="font-bold text-emerald-600">₹0/mo</span>
+                  </div>
+                  <p className="text-xs text-emerald-600 text-left">Generate up to 10 bills free</p>
+                </div>
+                <div className="border border-slate-200 p-4 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => { navigate('/pricing'); }}>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="font-bold text-slate-800">Pro Plan</span>
+                    <span className="font-bold text-blue-600">₹499/mo</span>
+                  </div>
+                  <p className="text-xs text-slate-500 text-left">Unlimited bills + Priority support</p>
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-slate-50 border-t flex justify-end">
+              <Button variant="ghost" onClick={() => { setShowSubModal(false); setPendingSave(null); }}>Cancel</Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floating Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:justify-center">

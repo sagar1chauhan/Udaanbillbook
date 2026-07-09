@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
@@ -52,6 +53,28 @@ export function NewInvoiceDialog({
   const isLite = txnSettings?.billingType === "Lite";
   const showBankAndTerms = !isLite && (txnSettings?.bankDetails || txnSettings?.termsAndConditions);
   const [activeTab, setActiveTab] = useState("party");
+  
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [showAdModal, setShowAdModal] = useState(false);
+  const [showSubModal, setShowSubModal] = useState(false);
+  const [pendingSave, setPendingSave] = useState(null);
+
+  useEffect(() => {
+    const saved = sessionStorage.getItem('pendingDialogInvoice');
+    if (saved && open) {
+      try {
+        const data = JSON.parse(saved);
+        setPendingSave(data);
+        const isResume = sessionStorage.getItem('resumeInvoiceFlow') === 'true';
+        if (isResume) {
+          sessionStorage.removeItem('resumeInvoiceFlow');
+          setTimeout(() => continueFlow(null, data, true), 300);
+        }
+      } catch(e) {}
+      sessionStorage.removeItem('pendingDialogInvoice');
+    }
+  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -330,14 +353,65 @@ export function NewInvoiceDialog({
       receivedAmount: receivedAmount
     };
 
+    setPendingSave(payload);
+
+    try {
+      const { data: user } = await api.get('/auth/me');
+      
+      if (user.showAds) {
+        setShowAdModal(true);
+        return; // wait for ad to finish
+      }
+      
+      continueFlow(user, payload);
+    } catch (err) {
+      toast.error("Failed to check user settings.");
+    }
+  };
+
+  const continueFlow = async (user = null, payloadObj = null, forceResume = false) => {
+    const payload = payloadObj || pendingSave;
+    if (!user) {
+      try {
+        const res = await api.get('/auth/me');
+        user = res.data;
+      } catch (e) {
+        toast.error("Failed to check user settings.");
+        return;
+      }
+    }
+
+    if (user.billsGenerated === 0 && !forceResume) {
+      sessionStorage.setItem('pendingDialogInvoice', JSON.stringify(payload));
+      navigate('/register', { state: { returnUrl: location.pathname } });
+      return;
+    }
+
+    if (user.billLimit !== -1 && user.billsGenerated >= user.billLimit) {
+      setShowSubModal(true);
+      return;
+    }
+
+    executeSave(payload);
+  };
+
+  const executeSave = async (payloadObj = null) => {
+    const payload = payloadObj || pendingSave;
+    if (!payload) return;
+
     try {
       await api.post("/invoices", payload);
       toast.success("Invoice created successfully!");
       onOpenChange(false);
       window.location.reload();
     } catch (err) {
-      const errMsg = err.response?.data?.message || "Failed to save invoice";
-      toast.error(errMsg);
+      if (err.response?.data?.message === 'LIMIT_REACHED') {
+        setShowSubModal(true);
+      } else {
+        toast.error(err.response?.data?.message || "Failed to save invoice");
+      }
+    } finally {
+      setPendingSave(null);
     }
   };
 
@@ -965,6 +1039,59 @@ export function NewInvoiceDialog({
           </DialogFooter>
         </div>
       </DialogContent>
+
+      {/* Ad Modal */}
+      {showAdModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <div className="bg-emerald-50 p-6 flex flex-col items-center justify-center text-center">
+              <span className="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-2">Advertisement</span>
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Upgrade Your Business Today!</h3>
+              <div className="h-32 w-full bg-emerald-100 rounded-xl mb-4 flex items-center justify-center text-emerald-800/50">
+                [ Sponsored Content ]
+              </div>
+              <p className="text-sm text-gray-600">Get 50% off on premium subscriptions this month.</p>
+            </div>
+            <div className="p-4 flex justify-end">
+              <Button onClick={() => { setShowAdModal(false); continueFlow(); }} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                Skip Ad & Continue
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Subscription Modal */}
+      {showSubModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Choose a Plan</h3>
+              <p className="text-sm text-gray-500 mb-6">Select a subscription plan to continue generating bills.</p>
+              
+              <div className="space-y-3">
+                <div className="border border-emerald-200 bg-emerald-50 p-4 rounded-xl cursor-pointer hover:bg-emerald-100 transition-colors" onClick={() => { setShowSubModal(false); executeSave(); }}>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="font-bold text-emerald-800">Free Trial</span>
+                    <span className="font-bold text-emerald-600">₹0/mo</span>
+                  </div>
+                  <p className="text-xs text-emerald-600 text-left">Generate up to 10 bills free</p>
+                </div>
+                <div className="border border-gray-200 p-4 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => { navigate('/pricing'); }}>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="font-bold text-gray-800">Pro Plan</span>
+                    <span className="font-bold text-blue-600">₹499/mo</span>
+                  </div>
+                  <p className="text-xs text-gray-500 text-left">Unlimited bills + Priority support</p>
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-gray-50 border-t flex justify-end">
+              <Button variant="ghost" onClick={() => { setShowSubModal(false); setPendingSave(null); }}>Cancel</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </Dialog>
   );
 }

@@ -100,7 +100,12 @@ export default function VerifyOtp() {
       });
 
       toast.success(user.role === "admin" ? "Admin access granted!" : search.mode === "register" ? "Account created!" : "Signed in successfully");
-      navigate("/");
+      
+      if (state.returnUrl) {
+        sessionStorage.setItem('resumeInvoiceFlow', 'true');
+      }
+      
+      navigate(state.returnUrl || "/");
 
     } catch (error) {
       toast.error(error.response?.data?.message || "Invalid OTP");

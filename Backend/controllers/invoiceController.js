@@ -44,6 +44,16 @@ const createInvoice = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields or items' });
     }
 
+    const User = require('../models/User');
+    const owner = await User.findById(ownerId);
+    if (!owner) {
+      return res.status(404).json({ message: 'Owner not found' });
+    }
+
+    if (owner.billLimit !== -1 && owner.billsGenerated >= owner.billLimit) {
+      return res.status(403).json({ message: 'LIMIT_REACHED' });
+    }
+
     const invoice = await Invoice.create({
       user: ownerId,
       invoiceNumber,
@@ -99,6 +109,9 @@ const createInvoice = async (req, res) => {
         await dbParty.save();
       }
     }
+
+    owner.billsGenerated = (owner.billsGenerated || 0) + 1;
+    await owner.save();
 
     // Automatically create Payment record if receivedAmount > 0
     if (receivedAmount > 0 && party) {

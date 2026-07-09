@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Bell, Search, Plus, LogOut, Settings as SettingsIcon, User, Menu } from "lucide-react";
 import { useNavigate, Link, useLocation, useSearchParams } from "react-router-dom";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
@@ -32,6 +32,12 @@ export function AppTopbar() {
   const navigate = useNavigate();
   const { toggleSidebar } = useSidebar();
   const location = useLocation();
+
+  useEffect(() => {
+    if (sessionStorage.getItem('pendingDialogInvoice')) {
+      setOpen(true);
+    }
+  }, []);
 
   if (location.pathname.startsWith('/sale/new') || location.pathname.startsWith('/purchase/new')) return null;
 
