@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   getAllUsers,
   updateUserStatus,
+  deleteUser,
   getAdminDashboardData,
   getAdminAnalyticsData,
   getAdminBusinesses,
@@ -31,6 +32,7 @@ router.use(restrictTo('admin'));
 router.get('/users', getAllUsers);
 router.put('/users/:id/status', updateUserStatus);
 router.put('/users/:id/billing-settings', updateBillingSettings);
+router.delete('/users/:id', deleteUser);
 router.get('/dashboard', getAdminDashboardData);
 router.get('/analytics', getAdminAnalyticsData);
 router.get('/businesses', getAdminBusinesses);

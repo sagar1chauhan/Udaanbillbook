@@ -17,12 +17,20 @@ export function InvoiceProvider({ children }) {
       const res = await api.get("/invoices");
       // Normalize invoices from backend
       const normalized = (res.data || []).map(inv => ({
-        id: inv.invoiceNumber || `INV-${inv._id.substring(18).toUpperCase()}`,
+        _id: inv._id,
+        id: inv.invoiceNumber || (inv._id ? `INV-${inv._id.substring(18).toUpperCase()}` : ''),
+        invoiceNumber: inv.invoiceNumber || (inv._id ? `INV-${inv._id.substring(18).toUpperCase()}` : ''),
         party: inv.partyName || (inv.party && inv.party.name) || "Walk-in Customer",
+        partyName: inv.partyName || (inv.party && inv.party.name) || "Walk-in Customer",
         date: new Date(inv.date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
+        dateRaw: inv.date,
         amount: inv.grandTotal || 0,
+        grandTotal: inv.grandTotal || 0,
+        taxableAmount: inv.taxableAmount || 0,
+        gstAmount: inv.gstAmount || 0,
         status: inv.status || "Unpaid",
-        type: inv.type || "Sale"
+        type: inv.type || "Sale",
+        paymentMethod: inv.paymentMethod || "Cash"
       }));
       setInvoices(normalized);
     } catch (err) {

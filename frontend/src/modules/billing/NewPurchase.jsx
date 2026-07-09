@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { ArrowLeft, ReceiptText, Bell, Plus, Send, Trash2, CirclePlus } from "lucide-react";
+import { ArrowLeft, ReceiptText, Bell, Plus, Send, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -7,18 +7,63 @@ import { Input } from "@/components/ui/input";
 import { useInvoices } from "@/contexts/InvoiceContext";
 import { toast } from "sonner";
 import api from "@/lib/api";
+import { validateUtr, validateUpi } from "@/lib/validation";
+import { useMockAuth } from "@/lib/auth-store";
 
 const fmt = (n) => "₹" + Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function NewPurchase() {
   const navigate = useNavigate();
   const { addInvoice } = useInvoices();
+  const { user } = useMockAuth();
 
-  const [supplier, setSupplier] = useState("S.K. Traders");
-  const [receivedAmount, setReceivedAmount] = useState(0);
-  const [lines, setLines] = useState([
-    { name: "Item description", hsnSac: "", qty: 1, rate: 0, discount: 0, gst: 18 }
-  ]);
+  const getInitialState = (key, fallback) => {
+    try {
+      const saved = localStorage.getItem("Udaan.purchase_draft");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed[key] !== undefined) return parsed[key];
+      }
+    } catch (e) {
+      console.error("Failed to parse purchase draft", e);
+    }
+    return fallback;
+  };
+
+  const [supplier, setSupplier] = useState(() => getInitialState("supplier", ""));
+  const [receivedAmount, setReceivedAmount] = useState(() => getInitialState("receivedAmount", 0));
+  const [status, setStatus] = useState(() => getInitialState("status", "Unpaid"));
+  const [paymentMethod, setPaymentMethod] = useState(() => getInitialState("paymentMethod", "Cash"));
+  const [paymentDetails, setPaymentDetails] = useState(() => getInitialState("paymentDetails", {
+    transactionId: "", utr: "", bankName: "", accountNumber: "", ifsc: ""
+  }));
+  const [errors, setErrors] = useState({ utr: "", upi: "" });
+  const [lines, setLines] = useState(() => getInitialState("lines", [
+    { name: "", hsnSac: "", qty: 1, rate: 0, discount: 0, gst: 18 }
+  ]));
+
+  React.useEffect(() => {
+    const draft = { supplier, receivedAmount, status, paymentMethod, paymentDetails, lines };
+    localStorage.setItem("Udaan.purchase_draft", JSON.stringify(draft));
+  }, [supplier, receivedAmount, status, paymentMethod, paymentDetails, lines]);
+
+  const handleUtrChange = (val) => {
+    setPaymentDetails({ ...paymentDetails, utr: val });
+    if (val.trim() === "" || !validateUtr(val)) {
+      setErrors((prev) => ({ ...prev, utr: "Please enter a valid UTR Number." }));
+    } else {
+      setErrors((prev) => ({ ...prev, utr: "" }));
+    }
+  };
+
+  const handleUpiChange = (val) => {
+    setPaymentDetails({ ...paymentDetails, transactionId: val });
+    if (val.trim() === "" || !validateUpi(val)) {
+      setErrors((prev) => ({ ...prev, upi: "Please enter a valid UPI ID." }));
+    } else {
+      setErrors((prev) => ({ ...prev, upi: "" }));
+    }
+  };
 
   const totals = useMemo(() => {
     let subtotal = 0;
@@ -32,7 +77,6 @@ export default function NewPurchase() {
       const d = Number(l.discount) || 0;
       const g = Number(l.gst) || 0;
 
-      // Tax Inclusive Rates (Prices include GST)
       const rateAfterDisc = r * (1 - d / 100);
       const lineTotal = q * rateAfterDisc;
       const taxableVal = lineTotal / (1 + g / 100);
@@ -50,6 +94,21 @@ export default function NewPurchase() {
 
     return { subtotal, discountAmount, taxableAmount, gstAmount, roundOff, grand: roundedGrand };
   }, [lines]);
+
+  const handleStatusChange = (newStatus) => {
+    setStatus(newStatus);
+    if (newStatus === "Paid") {
+      setReceivedAmount(totals.grand);
+    } else if (newStatus === "Unpaid") {
+      setReceivedAmount(0);
+    }
+  };
+
+  React.useEffect(() => {
+    if (status === "Paid") {
+      setReceivedAmount(totals.grand);
+    }
+  }, [totals.grand, status]);
 
   const updateLine = (index, field, value) => {
     setLines((prev) => prev.map((l, i) => (i === index ? { ...l, [field]: value } : l)));
@@ -71,10 +130,30 @@ export default function NewPurchase() {
       return;
     }
 
+    if (status !== "Unpaid" && paymentMethod === "Online") {
+      const isUtrValid = validateUtr(paymentDetails.utr);
+      const isUpiValid = validateUpi(paymentDetails.transactionId);
+
+      let newErrors = { utr: "", upi: "" };
+      if (!isUtrValid) {
+        newErrors.utr = "Please enter a valid UTR Number.";
+        toast.error("Please enter a valid UTR Number.");
+      }
+      if (!isUpiValid) {
+        newErrors.upi = "Please enter a valid UPI ID.";
+        toast.error("Please enter a valid UPI ID.");
+      }
+
+      if (!isUtrValid || !isUpiValid) {
+        setErrors(newErrors);
+        return;
+      }
+    }
+
     const payload = {
       invoiceNumber: "PUR-" + Math.floor(1000 + Math.random() * 9000),
       party: null,
-      partyName: supplier || "S.K. Traders",
+      partyName: supplier || "Walk-in Supplier",
       type: "Purchase",
       date: new Date().toISOString(),
       items: lines.filter(l => l.name.trim() !== "").map(l => ({
@@ -91,18 +170,23 @@ export default function NewPurchase() {
       gstAmount: totals.gstAmount,
       roundOff: totals.roundOff,
       grandTotal: totals.grand,
-      status: receivedAmount >= totals.grand ? "Paid" : (receivedAmount > 0 ? "Partial" : "Unpaid"),
-      receivedAmount: receivedAmount
+      status: status,
+      receivedAmount: receivedAmount,
+      paymentMethod: status === "Unpaid" ? "Cash" : paymentMethod,
+      paymentDetails: status === "Unpaid" ? {} : paymentDetails
     };
 
     try {
       const endpoint = isSend ? "/invoices/send" : "/invoices";
       await api.post(endpoint, payload);
-      addInvoice(); // Trigger refresh in context
+      addInvoice();
+      localStorage.removeItem("Udaan.purchase_draft");
       toast.success(isSend ? "Purchase record saved & sent successfully!" : "Purchase record created successfully!");
-      navigate("/billing");
+      const userRole = user?.role?.toLowerCase() || "user";
+      const rolePrefix = (userRole === "staff" || userRole === "viewer") ? "/staff" : "/vendor";
+      navigate(`${rolePrefix}/billing`);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to save purchase record");
+      toast.error(err.response?.data?.message || err.message || "Failed to save purchase record");
     }
   };
 
@@ -138,7 +222,8 @@ export default function NewPurchase() {
           <Input 
             value={supplier} 
             onChange={(e) => setSupplier(e.target.value)} 
-            className="h-10 text-[15px] font-medium text-slate-800 border-none px-0 focus-visible:ring-0" 
+            placeholder="Enter supplier name..."
+            className="h-10 rounded-xl border border-slate-200 px-3 bg-white focus:border-slate-400 text-slate-800 text-[14px] font-medium focus-visible:ring-0" 
           />
         </div>
 
@@ -146,8 +231,8 @@ export default function NewPurchase() {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
           <div className="flex items-center justify-between mb-4">
             <span className="font-semibold text-slate-800">Items List</span>
-            <Button type="button" size="sm" variant="outline" onClick={addLine} className="rounded-full text-xs h-8 text-emerald-700 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-100">
-              <CirclePlus className="mr-1 h-4 w-4" /> Add Item
+            <Button type="button" size="sm" variant="outline" onClick={addLine} className="rounded-full text-xs h-8">
+              <Plus className="mr-1 h-3 w-3" /> Add Item
             </Button>
           </div>
 
@@ -177,13 +262,38 @@ export default function NewPurchase() {
                   </div>
                   <div className="col-span-4 md:col-span-1">
                     <label className="text-[11px] font-medium text-slate-500 mb-1 block">GST %</label>
-                    <select value={l.gst} onChange={(e) => updateLine(i, 'gst', e.target.value)} className="h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                    <select 
+                      value={[0, 5, 12, 18, 28].includes(Number(l.gst)) ? String(l.gst) : "custom"} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "custom") {
+                          updateLine(i, 'gst', 3);
+                        } else {
+                          updateLine(i, 'gst', Number(val));
+                        }
+                      }} 
+                      className="h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
                       <option value="0">0%</option>
                       <option value="5">5%</option>
                       <option value="12">12%</option>
                       <option value="18">18%</option>
                       <option value="28">28%</option>
+                      <option value="custom">Custom</option>
                     </select>
+                    {![0, 5, 12, 18, 28].includes(Number(l.gst)) && (
+                      <div className="mt-1.5 flex items-center gap-1">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={l.gst}
+                          onChange={(e) => updateLine(i, 'gst', Number(e.target.value) || 0)}
+                          placeholder="Rate %"
+                          className="h-8 text-xs px-2 w-full rounded-md"
+                        />
+                      </div>
+                    )}
                   </div>
                   <div className="col-span-4 md:col-span-1 flex items-end justify-end pb-1">
                     <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600" onClick={() => removeLine(i)} disabled={lines.length === 1}>
@@ -220,16 +330,117 @@ export default function NewPurchase() {
               <span className="text-slate-500">Round Off</span>
               <span className="font-semibold text-slate-500">{totals.roundOff.toFixed(2)}</span>
             </div>
+
+            {/* Payment Status */}
             <div className="flex justify-between items-center text-[13px] pt-2">
-              <span className="text-slate-500 font-medium">Paid Amount (₹)</span>
-              <Input
-                type="number"
-                min={0}
-                value={receivedAmount}
-                onChange={(e) => setReceivedAmount(Number(e.target.value) || 0)}
-                className="w-32 h-8 text-right font-semibold rounded-lg bg-slate-50 border-slate-200 focus-visible:bg-white"
-              />
+              <span className="text-slate-500 font-medium">Payment Status</span>
+              <select
+                value={status}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                className="w-40 h-9 rounded-xl border border-slate-200 bg-white px-3 py-1 text-xs sm:text-sm font-medium shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1"
+              >
+                <option value="Unpaid">Unpaid</option>
+                <option value="Paid">Paid</option>
+                <option value="Partial">Partially Paid</option>
+              </select>
             </div>
+
+            {/* Received Amount */}
+            {status !== "Unpaid" && (
+              <div className="flex justify-between items-center text-[13px] pt-2">
+                <span className="text-slate-500 font-medium">Received Amount (₹)</span>
+                <Input
+                  type="number"
+                  min={0}
+                  max={totals.grand}
+                  disabled={status === "Paid"}
+                  value={receivedAmount}
+                  onChange={(e) => setReceivedAmount(Number(e.target.value) || 0)}
+                  className="w-40 h-9 text-right font-semibold rounded-xl bg-slate-50 border-slate-200 focus-visible:bg-white"
+                />
+              </div>
+            )}
+
+            {/* Payment Method */}
+            {status !== "Unpaid" && (
+              <div className="flex justify-between items-center text-[13px] pt-2">
+                <span className="text-slate-500 font-medium">Payment Method</span>
+                <select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="w-40 h-9 rounded-xl border border-slate-200 bg-white px-3 py-1 text-xs sm:text-sm font-medium shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1"
+                >
+                  <option value="Cash">Cash</option>
+                  <option value="Online">Online</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                </select>
+              </div>
+            )}
+
+            {/* Online Payment Details */}
+            {status !== "Unpaid" && paymentMethod === "Online" && (
+              <div className="space-y-3 pt-3 border-t border-dashed mt-2">
+                <div className="grid grid-cols-2 gap-3 text-left">
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-500 mb-1 block">UPI ID / Transaction ID</label>
+                    <Input 
+                      value={paymentDetails.transactionId} 
+                      onChange={(e) => handleUpiChange(e.target.value)} 
+                      placeholder="e.g. name@okhdfcbank" 
+                      maxLength={45}
+                      className={`h-9 rounded-xl text-xs sm:text-sm ${errors.upi ? 'border-red-500 focus:border-red-500 focus-visible:ring-red-500' : 'border-slate-200'}`}
+                    />
+                    {errors.upi && <span className="text-[10px] text-red-500 mt-1 block">{errors.upi}</span>}
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-500 mb-1 block">UTR Number</label>
+                    <Input 
+                      value={paymentDetails.utr} 
+                      onChange={(e) => handleUtrChange(e.target.value)} 
+                      placeholder="e.g. 123456789012" 
+                      maxLength={22}
+                      className={`h-9 rounded-xl text-xs sm:text-sm ${errors.utr ? 'border-red-500 focus:border-red-500 focus-visible:ring-red-500' : 'border-slate-200'}`}
+                    />
+                    {errors.utr && <span className="text-[10px] text-red-500 mt-1 block">{errors.utr}</span>}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Bank Transfer Details */}
+            {status !== "Unpaid" && paymentMethod === "Bank Transfer" && (
+              <div className="space-y-3 pt-3 border-t border-dashed mt-2">
+                <div className="grid grid-cols-3 gap-2.5 text-left">
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-500 mb-1 block">Bank Name</label>
+                    <Input 
+                      value={paymentDetails.bankName} 
+                      onChange={(e) => setPaymentDetails({ ...paymentDetails, bankName: e.target.value })} 
+                      placeholder="HDFC / SBI" 
+                      className="h-9 rounded-xl text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-500 mb-1 block">Account Number</label>
+                    <Input 
+                      value={paymentDetails.accountNumber} 
+                      onChange={(e) => setPaymentDetails({ ...paymentDetails, accountNumber: e.target.value })} 
+                      placeholder="987654321012" 
+                      className="h-9 rounded-xl text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-500 mb-1 block">IFSC Code</label>
+                    <Input 
+                      value={paymentDetails.ifsc} 
+                      onChange={(e) => setPaymentDetails({ ...paymentDetails, ifsc: e.target.value })} 
+                      placeholder="HDFC0001234" 
+                      className="h-9 rounded-xl text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           
           <Separator className="mb-4" />

@@ -90,6 +90,18 @@ const sentInvoiceSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  paymentMethod: {
+    type: String,
+    enum: ['Cash', 'Online', 'Bank Transfer'],
+    default: 'Cash'
+  },
+  paymentDetails: {
+    transactionId: String,
+    utr: String,
+    bankName: String,
+    accountNumber: String,
+    ifsc: String
+  },
   isSent: {
     type: Boolean,
     default: true,

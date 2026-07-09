@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Invoice = require('../models/Invoice');
 const Party = require('../models/Party');
 const Item = require('../models/Item');
@@ -9,7 +10,7 @@ const Payment = require('../models/Payment');
 // @desc    Get all invoices for user
 const getInvoices = async (req, res) => {
   try {
-    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+    const ownerId = (req.user.role === 'staff' ? req.user.ownerId : req.user.id).toString();
 
     const invoices = await Invoice.find({ user: ownerId })
       .populate('party', 'name phone')
@@ -32,12 +33,13 @@ const getInvoices = async (req, res) => {
 // @access  Private
 const createInvoice = async (req, res) => {
   try {
-    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+    const ownerId = (req.user.role === 'staff' ? req.user.ownerId : req.user.id).toString();
 
     const { 
       invoiceNumber, party, partyName, type, date, items, 
       subtotal, discountAmount, taxableAmount, gstAmount, 
-      roundOff, grandTotal, status, receivedAmount 
+      roundOff, grandTotal, status, receivedAmount,
+      paymentMethod, paymentDetails
     } = req.body;
 
     if (!invoiceNumber || !type || !items || items.length === 0) {
@@ -52,6 +54,19 @@ const createInvoice = async (req, res) => {
 
     if (owner.billLimit !== -1 && owner.billsGenerated >= owner.billLimit) {
       return res.status(403).json({ message: 'LIMIT_REACHED' });
+    }
+
+    if (paymentMethod === 'Online') {
+      const { validateUtr, validateUpi } = require('../utils/validation');
+      const utrVal = paymentDetails?.utr;
+      const upiVal = paymentDetails?.transactionId;
+
+      if (!utrVal || !validateUtr(utrVal)) {
+        return res.status(400).json({ message: 'Please enter a valid UTR Number.' });
+      }
+      if (!upiVal || !validateUpi(upiVal)) {
+        return res.status(400).json({ message: 'Please enter a valid UPI ID.' });
+      }
     }
 
     const invoice = await Invoice.create({
@@ -69,24 +84,28 @@ const createInvoice = async (req, res) => {
       roundOff,
       grandTotal,
       status,
-      receivedAmount
+      receivedAmount,
+      paymentMethod,
+      paymentDetails
     });
 
     // Update Item stock
     for (const item of items) {
-      const dbItem = await Item.findById(item.item);
-      if (dbItem) {
-        if (type === 'Sale' || type === 'Delivery Challan' || type === 'Purchase Return' || type === 'Debit Note') {
-          dbItem.stockQty -= item.qty;
-        } else if (type === 'Purchase' || type === 'Sale Return' || type === 'Credit Note') {
-          dbItem.stockQty += item.qty;
+      if (item.item && mongoose.Types.ObjectId.isValid(item.item)) {
+        const dbItem = await Item.findById(item.item);
+        if (dbItem) {
+          if (type === 'Sale' || type === 'Delivery Challan' || type === 'Purchase Return' || type === 'Debit Note') {
+            dbItem.stockQty -= item.qty;
+          } else if (type === 'Purchase' || type === 'Sale Return' || type === 'Credit Note') {
+            dbItem.stockQty += item.qty;
+          }
+          await dbItem.save();
         }
-        await dbItem.save();
       }
     }
 
     // Update Party balance
-    if (party) {
+    if (party && mongoose.Types.ObjectId.isValid(party)) {
       const dbParty = await Party.findById(party);
       if (dbParty) {
         let currentMathBalance = dbParty.balanceType === 'To Receive' ? dbParty.balance : -dbParty.balance;
@@ -144,11 +163,25 @@ const createSentInvoice = async (req, res) => {
     const { 
       invoiceNumber, party, partyName, type, date, items, 
       subtotal, discountAmount, taxableAmount, gstAmount, 
-      roundOff, grandTotal, status, receivedAmount 
+      roundOff, grandTotal, status, receivedAmount,
+      paymentMethod, paymentDetails
     } = req.body;
 
     if (!invoiceNumber || !type || !items || items.length === 0) {
       return res.status(400).json({ message: 'Missing required fields or items' });
+    }
+
+    if (paymentMethod === 'Online') {
+      const { validateUtr, validateUpi } = require('../utils/validation');
+      const utrVal = paymentDetails?.utr;
+      const upiVal = paymentDetails?.transactionId;
+
+      if (!utrVal || !validateUtr(utrVal)) {
+        return res.status(400).json({ message: 'Please enter a valid UTR Number.' });
+      }
+      if (!upiVal || !validateUpi(upiVal)) {
+        return res.status(400).json({ message: 'Please enter a valid UPI ID.' });
+      }
     }
 
     const sentInvoice = await SentInvoice.create({
@@ -167,6 +200,8 @@ const createSentInvoice = async (req, res) => {
       grandTotal,
       status,
       receivedAmount,
+      paymentMethod,
+      paymentDetails,
       isSent: true
     });
 
@@ -181,7 +216,7 @@ const createSentInvoice = async (req, res) => {
 // @access  Private
 const getInvoiceById = async (req, res) => {
   try {
-    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+    const ownerId = (req.user.role === 'staff' ? req.user.ownerId : req.user.id).toString();
 
     const invoice = await Invoice.findById(req.params.id).populate('party');
     
@@ -204,15 +239,21 @@ const getInvoiceById = async (req, res) => {
 // @access  Private
 const deleteInvoice = async (req, res) => {
   try {
-    const ownerId = req.user.role === 'staff' ? req.user.ownerId : req.user.id;
+    const ownerId = (req.user.role === 'staff' ? req.user.ownerId : req.user.id).toString();
 
-    const invoice = await Invoice.findById(req.params.id);
+    let invoice = await Invoice.findById(req.params.id);
+    let isSentColl = false;
+    if (!invoice) {
+      const SentInvoice = require('../models/SentInvoice');
+      invoice = await SentInvoice.findById(req.params.id);
+      isSentColl = true;
+    }
 
     if (!invoice) {
       return res.status(404).json({ message: 'Invoice not found' });
     }
 
-    if (invoice.user.toString() !== ownerId) {
+    if (invoice.user.toString() !== ownerId && invoice.user.toString() !== req.user.id) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
@@ -220,19 +261,21 @@ const deleteInvoice = async (req, res) => {
     
     // Revert Item stock
     for (const item of invoice.items) {
-      const dbItem = await Item.findById(item.item);
-      if (dbItem) {
-        if (invoice.type === 'Sale' || invoice.type === 'Delivery Challan' || invoice.type === 'Purchase Return' || invoice.type === 'Debit Note') {
-          dbItem.stockQty += item.qty;
-        } else if (invoice.type === 'Purchase' || invoice.type === 'Sale Return' || invoice.type === 'Credit Note') {
-          dbItem.stockQty -= item.qty;
+      if (item.item && mongoose.Types.ObjectId.isValid(item.item)) {
+        const dbItem = await Item.findById(item.item);
+        if (dbItem) {
+          if (invoice.type === 'Sale' || invoice.type === 'Delivery Challan' || invoice.type === 'Purchase Return' || invoice.type === 'Debit Note') {
+            dbItem.stockQty += item.qty;
+          } else if (invoice.type === 'Purchase' || invoice.type === 'Sale Return' || invoice.type === 'Credit Note') {
+            dbItem.stockQty -= item.qty;
+          }
+          await dbItem.save();
         }
-        await dbItem.save();
       }
     }
 
     // Revert Party balance
-    if (invoice.party) {
+    if (invoice.party && mongoose.Types.ObjectId.isValid(invoice.party)) {
       const dbParty = await Party.findById(invoice.party);
       if (dbParty) {
         let currentMathBalance = dbParty.balanceType === 'To Receive' ? dbParty.balance : -dbParty.balance;
@@ -267,10 +310,62 @@ const deleteInvoice = async (req, res) => {
   }
 };
 
+// @desc    Update invoice status
+// @route   PATCH /api/invoices/:id/status
+// @access  Private
+const updateInvoiceStatus = async (req, res) => {
+  try {
+    const ownerId = (req.user.role === 'staff' ? req.user.ownerId : req.user.id).toString();
+    const { status, receivedAmount, paymentMethod, paymentDetails } = req.body;
+
+    if (!['Paid', 'Unpaid', 'Partial'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status. Must be Paid, Unpaid, or Partial.' });
+    }
+
+    let invoice = await Invoice.findById(req.params.id);
+    let isSentColl = false;
+    if (!invoice) {
+      const SentInvoice = require('../models/SentInvoice');
+      invoice = await SentInvoice.findById(req.params.id);
+      isSentColl = true;
+    }
+
+    if (!invoice) {
+      return res.status(404).json({ message: 'Invoice not found' });
+    }
+
+    if (invoice.user.toString() !== ownerId && invoice.user.toString() !== req.user.id) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    invoice.status = status;
+    if (status === 'Paid') {
+      invoice.receivedAmount = invoice.grandTotal;
+    } else if (status === 'Unpaid') {
+      invoice.receivedAmount = 0;
+      invoice.paymentMethod = undefined;
+      invoice.paymentDetails = undefined;
+    } else if (status === 'Partial' && receivedAmount !== undefined) {
+      invoice.receivedAmount = receivedAmount;
+    }
+
+    if (status !== 'Unpaid') {
+      if (paymentMethod) invoice.paymentMethod = paymentMethod;
+      if (paymentDetails) invoice.paymentDetails = paymentDetails;
+    }
+
+    await invoice.save();
+    res.status(200).json(invoice);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getInvoices,
   createInvoice,
   createSentInvoice,
   getInvoiceById,
-  deleteInvoice
+  deleteInvoice,
+  updateInvoiceStatus
 };

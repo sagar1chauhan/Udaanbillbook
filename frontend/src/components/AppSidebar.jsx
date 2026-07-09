@@ -34,20 +34,20 @@ import { useSidebar } from "@/components/ui/sidebar";
 const logo = "/udaan-logo-removebg-preview.png";
 
 const main = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Billing", url: "/billing", icon: ReceiptText },
-  { title: "Inventory", url: "/inventory", icon: Boxes },
-  { title: "Parties", url: "/parties", icon: Users },
-  { title: "Expenses", url: "/expenses", icon: Wallet },
-  { title: "Accounting", url: "/accounting", icon: Calculator },
-  { title: "GST & Tax", url: "/gst", icon: ShieldCheck },
-  { title: "Reports", url: "/reports", icon: BarChart3 },
+  { title: "Dashboard", url: "/vendor/dashboard", icon: LayoutDashboard },
+  { title: "Billing", url: "/vendor/billing", icon: ReceiptText },
+  { title: "Inventory", url: "/vendor/inventory", icon: Boxes },
+  { title: "Parties", url: "/vendor/parties", icon: Users },
+  { title: "Expenses", url: "/vendor/expenses", icon: Wallet },
+  { title: "Accounting", url: "/vendor/accounting", icon: Calculator },
+  { title: "GST & Tax", url: "/vendor/gst", icon: ShieldCheck },
+  { title: "Reports", url: "/vendor/reports", icon: BarChart3 },
 ];
 
 const adminItems = [
-  { title: "Staff Management", url: "/admin/users", icon: UserCog },
-  { title: "Support", url: "/tickets", icon: Ticket },
-  { title: "Settings", url: "/settings", icon: Settings }
+  { title: "Staff Management", url: "/vendor/staff-management", icon: UserCog },
+  { title: "Support", url: "/vendor/tickets", icon: Ticket },
+  { title: "Settings", url: "/vendor/settings", icon: Settings }
 ];
 
 export function AppSidebar() {
@@ -66,14 +66,32 @@ export function AppSidebar() {
   };
 
   // Filter sections based on permissions
-  const staffAllowed = ["Dashboard", "Billing", "Inventory", "Parties", "Expenses", "Accounting"];
   const filteredMain = main.filter(item => {
+    const featureKey = (item.url.split("/").pop() || "dashboard").toLowerCase();
     if (isVendor) return true;
-    if (["staff", "viewer", "user"].includes(userRole)) return staffAllowed.includes(item.title);
+    if (["staff", "viewer", "user"].includes(userRole)) {
+      // 1. Check custom permission
+      const permissions = user?.permissions || [];
+      const hasPermission = permissions.length === 0
+        ? ["dashboard", "billing", "inventory", "parties", "expenses", "accounting"].includes(featureKey)
+        : permissions.includes(featureKey);
+      
+      if (!hasPermission) return false;
+
+      // 2. Hide locked premium features from staff members entirely so no lock icons show up
+      return canAccessFeature(featureKey);
+    }
     return false;
   });
 
-  const isActive = (url) => (url === "/" ? path === "/" : path.startsWith(url));
+  const rolePrefix = (userRole === "staff" || userRole === "viewer") ? "/staff" : "/vendor";
+  const getRoleUrl = (url) => url.replace(/^\/vendor/, rolePrefix);
+
+  const isActive = (url) => {
+    const roleUrl = getRoleUrl(url);
+    return roleUrl === `${rolePrefix}/dashboard` ? path === roleUrl : path.startsWith(roleUrl);
+  };
+
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -88,7 +106,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-2 px-2 py-2">
           <img src={logo} alt="Udaan" className="h-9 w-9 rounded-xl object-cover shadow-[var(--shadow-glow)]" />
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-bold leading-tight">udaan BillBook</span>
+            <span className="text-sm font-bold leading-tight">Udaan BillBook</span>
             <span className="text-[11px] text-muted-foreground leading-tight">Business Accounting</span>
           </div>
         </div>
@@ -99,8 +117,8 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {filteredMain.map((item) => {
-                // To determine the feature name from the URL (e.g., /billing -> billing)
-                const featureKey = item.url === "/" ? "dashboard" : item.url.replace("/", "");
+                // To determine the feature name from the URL (e.g., /vendor/billing -> billing)
+                const featureKey = item.url.split("/").pop() || "dashboard";
                 const hasAccess = canAccessFeature(featureKey);
 
                 return (
@@ -112,7 +130,7 @@ export function AppSidebar() {
                       onClick={closeSidebar}
                       className={!hasAccess ? "opacity-50 hover:opacity-100" : ""}
                     >
-                      <Link to={hasAccess ? item.url : "/pricing"}>
+                      <Link to={hasAccess ? getRoleUrl(item.url) : `${rolePrefix}/pricing`}>
                         <item.icon className="h-4 w-4" />
                         <span className="flex-1">{item.title}</span>
                         {!hasAccess && <Lock className="h-3 w-3 text-muted-foreground ml-auto" />}
@@ -147,7 +165,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="border-t p-2">
         <SidebarMenu>
-          {userRole !== "admin" && (
+          {isVendor && (
             <SidebarMenuItem className="mb-2 group-data-[collapsible=icon]:hidden">
               {isFree ? (
                 <div className="flex flex-col gap-2 rounded-xl bg-muted/50 p-3 border border-border/50">
@@ -160,14 +178,14 @@ export function AppSidebar() {
                       <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Limited features</p>
                     </div>
                   </div>
-                  <Link to="/pricing" onClick={closeSidebar}>
+                  <Link to="/vendor/pricing" onClick={closeSidebar}>
                     <button className="w-full text-[11px] font-semibold bg-primary hover:bg-primary/90 text-primary-foreground py-1.5 rounded-lg transition-colors">
                       Upgrade to Premium
                     </button>
                   </Link>
                 </div>
               ) : (
-                <Link to="/pricing" onClick={closeSidebar}>
+                <Link to="/vendor/pricing" onClick={closeSidebar}>
                   <div className="flex items-center gap-3 rounded-xl bg-primary-soft p-3 hover:bg-primary/10 transition-colors cursor-pointer border border-primary/20">
                     <Sparkles className="h-5 w-5 text-primary" />
                     <div className="flex-1">

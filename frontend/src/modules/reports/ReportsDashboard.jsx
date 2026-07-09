@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,8 @@ import {
   ClipboardList, FileBarChart, ShieldCheck, ReceiptText,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useInvoices } from "@/contexts/InvoiceContext";
+import api from "@/lib/api";
 
 const fmt = (n) => "₹" + n.toLocaleString("en-IN");
 
@@ -166,7 +168,7 @@ const handleAction = (reportName, action) => {
 };
 
 // ─── Individual Report Row ──────────────────────────────────────────────
-function ReportRow({ report }) {
+function ReportRow({ report, handleAction }) {
   const Icon = report.icon;
   return (
     <div className="group flex items-center gap-3 rounded-xl px-3 py-3 transition-all duration-200 hover:bg-muted/40 hover:shadow-sm">
@@ -252,7 +254,7 @@ function ReportRow({ report }) {
 }
 
 // ─── Report Category Section ────────────────────────────────────────────
-function ReportCategorySection({ category, isExpanded, onToggle, searchQuery }) {
+function ReportCategorySection({ category, isExpanded, onToggle, searchQuery, handleAction }) {
   const Icon = category.icon;
 
   const filteredReports = searchQuery
@@ -293,7 +295,7 @@ function ReportCategorySection({ category, isExpanded, onToggle, searchQuery }) 
         <div className="px-3 pb-3 space-y-0.5 animate-in slide-in-from-top-2 duration-200">
           <Separator className="mb-2" />
           {filteredReports.map((report) => (
-            <ReportRow key={report.name} report={report} />
+            <ReportRow key={report.name} report={report} handleAction={handleAction} />
           ))}
         </div>
       )}
@@ -312,6 +314,42 @@ export function ReportsDashboard() {
     business: false,
   });
   const [showInsights, setShowInsights] = useState(false);
+  const { invoices, refreshInvoices } = useInvoices();
+  const [expenses, setExpenses] = useState([]);
+  const [parties, setParties] = useState([]);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      refreshInvoices();
+      
+      try {
+        const res = await api.get('/expenses');
+        setExpenses(res.data || []);
+      } catch (err) {
+        console.error("Error loading expenses:", err);
+      }
+
+      try {
+        const res = await api.get('/parties');
+        setParties(res.data || []);
+      } catch (err) {
+        console.error("Error loading parties:", err);
+      }
+
+      try {
+        const res = await api.get('/items');
+        setItems(res.data || []);
+      } catch (err) {
+        console.error("Error loading items:", err);
+      }
+
+      setLoading(false);
+    };
+    loadData();
+  }, []);
 
   const toggleCategory = (id) => {
     setExpandedCategories((prev) => ({
@@ -340,6 +378,275 @@ export function ReportsDashboard() {
     ? Object.fromEntries(reportCategories.map((c) => [c.id, true]))
     : expandedCategories;
 
+  // Real data computations
+  const salesVal = useMemo(() => {
+    return invoices.filter(i => i.type === "Sale").reduce((sum, i) => sum + (i.grandTotal || i.amount || 0), 0);
+  }, [invoices]);
+
+  const purchaseVal = useMemo(() => {
+    return invoices.filter(i => i.type === "Purchase").reduce((sum, i) => sum + (i.grandTotal || i.amount || 0), 0);
+  }, [invoices]);
+
+  const expensesVal = useMemo(() => {
+    return expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+  }, [expenses]);
+
+  const profitVal = useMemo(() => {
+    return salesVal - purchaseVal - expensesVal;
+  }, [salesVal, purchaseVal, expensesVal]);
+  
+  const gstPayableVal = useMemo(() => {
+    const salesGst = invoices.filter(i => i.type === "Sale").reduce((sum, i) => sum + (i.gstAmount || 0), 0);
+    const purchaseGst = invoices.filter(i => i.type === "Purchase").reduce((sum, i) => sum + (i.gstAmount || 0), 0);
+    return Math.max(0, salesGst - purchaseGst);
+  }, [invoices]);
+
+  const dynamicMonthlyData = useMemo(() => {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const now = new Date();
+    const last6 = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      last6.push({
+        monthName: months[d.getMonth()],
+        year: d.getFullYear(),
+        sales: 0,
+        expense: 0,
+        profit: 0
+      });
+    }
+
+    invoices.forEach(inv => {
+      const invDate = new Date(inv.dateRaw || inv.date);
+      const invMonthName = months[invDate.getMonth()];
+      const invYear = invDate.getFullYear();
+      const match = last6.find(l => l.monthName === invMonthName && l.year === invYear);
+      if (match) {
+        if (inv.type === "Sale") {
+          match.sales += (inv.grandTotal || 0);
+          match.profit += ((inv.grandTotal || 0) - (inv.taxableAmount || 0));
+        } else if (inv.type === "Purchase") {
+          match.expense += (inv.grandTotal || 0);
+        }
+      }
+    });
+
+    return last6.map(l => ({
+      m: l.monthName,
+      sales: l.sales,
+      expense: l.expense,
+      profit: l.sales - l.expense
+    }));
+  }, [invoices]);
+
+  const dynamicGstSplit = useMemo(() => {
+    let cgst = 0, sgst = 0, igst = 0;
+    invoices.filter(i => i.type === "Sale").forEach(inv => {
+      const amt = inv.gstAmount || 0;
+      cgst += amt / 2;
+      sgst += amt / 2;
+    });
+
+    return [
+      { name: "CGST 9%", value: cgst },
+      { name: "SGST 9%", value: sgst },
+      { name: "IGST 18%", value: igst }
+    ].filter(item => item.value > 0);
+  }, [invoices]);
+
+  const generateReportData = (reportName) => {
+    let headers = [];
+    let rows = [];
+    const nameLower = reportName.toLowerCase();
+
+    if (nameLower.includes("sale report") || nameLower.includes("gstr-1")) {
+      headers = ["Date", "Invoice No", "Customer", "Taxable Value (₹)", "GST Amount (₹)", "Total (₹)", "Status"];
+      rows = invoices.filter(i => i.type === "Sale").map(i => [
+        new Date(i.date).toLocaleDateString("en-IN"),
+        i.invoiceNumber,
+        i.partyName,
+        i.taxableAmount,
+        i.gstAmount,
+        i.grandTotal,
+        i.status
+      ]);
+    } 
+    else if (nameLower.includes("purchase report") || nameLower.includes("gstr-2")) {
+      headers = ["Date", "Purchase No", "Supplier", "Taxable Value (₹)", "GST Amount (₹)", "Total (₹)", "Status"];
+      rows = invoices.filter(i => i.type === "Purchase").map(i => [
+        new Date(i.date).toLocaleDateString("en-IN"),
+        i.invoiceNumber,
+        i.partyName,
+        i.taxableAmount,
+        i.gstAmount,
+        i.grandTotal,
+        i.status
+      ]);
+    } 
+    else if (nameLower.includes("day book")) {
+      headers = ["Date", "Type / Voucher No", "Party", "Taxable (₹)", "GST (₹)", "Total (₹)"];
+      const allTxns = [
+        ...invoices.map(i => ({ date: i.date, type: `${i.type} / ${i.invoiceNumber}`, party: i.partyName, taxable: i.taxableAmount, gst: i.gstAmount, total: i.grandTotal })),
+        ...expenses.map(e => ({ date: e.date, type: `Expense / ${e.category || "General"}`, party: "N/A", taxable: e.amount, gst: 0, total: e.amount }))
+      ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      rows = allTxns.map(t => [
+        new Date(t.date).toLocaleDateString("en-IN"),
+        t.type,
+        t.party,
+        t.taxable,
+        t.gst,
+        t.total
+      ]);
+    } 
+    else if (nameLower.includes("cash flow")) {
+      headers = ["Date", "Description", "Inflow (₹)", "Outflow (₹)"];
+      rows = [
+        ...invoices.filter(i => i.type === "Sale").map(i => [new Date(i.date).toLocaleDateString("en-IN"), `Sale Invoice ${i.invoiceNumber}`, i.receivedAmount || i.grandTotal, 0]),
+        ...invoices.filter(i => i.type === "Purchase").map(i => [new Date(i.date).toLocaleDateString("en-IN"), `Purchase Bill ${i.invoiceNumber}`, 0, i.grandTotal]),
+        ...expenses.map(e => [new Date(e.date).toLocaleDateString("en-IN"), `Expense: ${e.title || "General"}`, 0, e.amount])
+      ];
+    } 
+    else if (nameLower.includes("all parties")) {
+      headers = ["Party Name", "Type", "Mobile", "GSTIN", "Opening Balance (₹)"];
+      rows = parties.map(p => [
+        p.name,
+        p.type || "Customer",
+        p.phone || "N/A",
+        p.gstin || "N/A",
+        p.openingBalance || 0
+      ]);
+    } 
+    else if (nameLower.includes("stock summary") || nameLower.includes("low stock")) {
+      headers = ["Item Name", "HSN/SAC", "Sale Price (₹)", "Purchase Price (₹)", "Stock Quantity", "Min Threshold"];
+      let stockItems = items;
+      if (nameLower.includes("low stock")) {
+        stockItems = items.filter(item => (item.stock || 0) <= (item.minStock || 5));
+      }
+      rows = stockItems.map(item => [
+        item.name,
+        item.hsnSac || "N/A",
+        item.salePrice || 0,
+        item.purchasePrice || 0,
+        item.stock || 0,
+        item.minStock || 5
+      ]);
+    } 
+    else if (nameLower.includes("expense report")) {
+      headers = ["Date", "Expense Category", "Title / Description", "Amount (₹)"];
+      rows = expenses.map(e => [
+        new Date(e.date).toLocaleDateString("en-IN"),
+        e.category || "General",
+        e.title || "",
+        e.amount
+      ]);
+    } 
+    else {
+      headers = ["Date", "Description", "Amount (₹)"];
+      rows = invoices.map(i => [
+        new Date(i.date).toLocaleDateString("en-IN"),
+        `${i.type} Invoice ${i.invoiceNumber}`,
+        i.grandTotal
+      ]);
+    }
+    return { headers, rows };
+  };
+
+  const handleAction = (reportName, action) => {
+    toast.success(`${action} — ${reportName}`, {
+      description: `Generating live report data...`,
+    });
+
+    const { headers, rows } = generateReportData(reportName);
+
+    if (action === "View") {
+      const tableHeaders = headers.map(h => `<th>${h}</th>`).join("");
+      const tableRows = rows.map(r => `<tr>${r.map(val => `<td>${val}</td>`).join("")}</tr>`).join("");
+      
+      const htmlContent = `
+        <html>
+        <head>
+          <title>${reportName}</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 40px; background-color: #f8fafc; color: #1e293b; }
+            h2 { color: #0f172a; font-weight: 800; margin-bottom: 5px; }
+            p.subtitle { color: #64748b; font-size: 13px; margin-bottom: 25px; }
+            table { border-collapse: collapse; width: 100%; max-width: 1000px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+            th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #f1f5f9; }
+            th { background-color: #f8fafc; font-weight: 700; font-size: 11px; text-transform: uppercase; color: #475569; letter-spacing: 0.05em; }
+            td { font-size: 13px; color: #334155; }
+            tr:last-child td { border-bottom: none; }
+            tr:hover td { background-color: #f8fafc; }
+          </style>
+        </head>
+        <body>
+          <h2>${reportName}</h2>
+          <p class="subtitle">Generated dynamically from live database records on ${new Date().toLocaleString('en-IN')}</p>
+          <table>
+            <thead><tr>${tableHeaders}</tr></thead>
+            <tbody>${tableRows.length > 0 ? tableRows : `<tr><td colspan="${headers.length}" style="text-align: center; color: #94a3b8; padding: 40px 0;">No records found in database</td></tr>`}</tbody>
+          </table>
+        </body>
+        </html>
+      `;
+      const blob = new Blob([htmlContent], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } 
+    else if (action === "Excel") {
+      const csvContent = [
+        `Report: ${reportName}`,
+        `Generated: ${new Date().toLocaleString('en-IN')}`,
+        "",
+        headers.join(","),
+        ...rows.map(r => r.map(v => typeof v === 'string' ? `"${v.replace(/"/g, '""')}"` : v).join(","))
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${reportName.replace(/\s+/g, "_")}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } 
+    else if (action === "PDF") {
+      const tableHeaders = headers.map(h => `<th>${h}</th>`).join("");
+      const tableRows = rows.map(r => `<tr>${r.map(val => `<td>${val}</td>`).join("")}</tr>`).join("");
+      
+      const htmlContent = `
+        <html>
+        <head>
+          <title>${reportName}</title>
+          <style>
+            body { font-family: system-ui; padding: 20px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #cbd5e1; padding: 8px 12px; text-align: left; font-size: 12px; }
+            th { background-color: #f1f5f9; }
+          </style>
+        </head>
+        <body>
+          <h2 style="margin-bottom:0;">${reportName}</h2>
+          <p style="font-size:10px; color:#64748b; margin-top:2px;">Live database compilation - ${new Date().toLocaleDateString('en-IN')}</p>
+          <hr />
+          <table>
+            <thead><tr>${tableHeaders}</tr></thead>
+            <tbody>${tableRows.length > 0 ? tableRows : `<tr><td colspan="${headers.length}" style="text-align: center;">No records</td></tr>`}</tbody>
+          </table>
+          <script>window.onload = function() { window.print(); }</script>
+        </body>
+        </html>
+      `;
+      const blob = new Blob([htmlContent], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    }
+  };
+
+  if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading Report aggregates...</div>;
+
   return (
     <div className="space-y-6 pb-12">
       <PageHeader
@@ -364,11 +671,12 @@ export function ReportsDashboard() {
       />
 
       {/* ── Summary Stat Cards ─────────────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 animate-in fade-in duration-200">
         {[
-          { label: "Sales Report", value: fmt(1426000), icon: TrendingUp, tint: "bg-primary-soft text-primary", trend: "+18% YoY" },
-          { label: "Profit / Loss", value: fmt(867000), icon: Receipt, tint: "bg-success-soft text-success", trend: "Margin 60.8%" },
-          { label: "GST Payable", value: fmt(76760), icon: PieIcon, tint: "bg-accent-soft text-accent-foreground", trend: "Q4 FY26" },
+          { label: "Sales Report", value: fmt(salesVal), icon: TrendingUp, tint: "bg-primary-soft text-primary", trend: "Live Sales" },
+          { label: "Purchase Report", value: fmt(purchaseVal), icon: ShoppingCart, tint: "bg-blue-50 text-blue-600", trend: "Live Purchases" },
+          { label: "Profit / Loss", value: fmt(profitVal), icon: Receipt, tint: "bg-success-soft text-success", trend: "Live P&L" },
+          { label: "GST Payable", value: fmt(gstPayableVal), icon: PieIcon, tint: "bg-accent-soft text-accent-foreground", trend: "Live Offset Balance" },
         ].map((r) => (
           <Card key={r.label} className="border-0 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
             <CardContent className="p-5">
@@ -429,6 +737,7 @@ export function ReportsDashboard() {
             isExpanded={effectiveExpanded[category.id]}
             onToggle={() => toggleCategory(category.id)}
             searchQuery={searchQuery}
+            handleAction={handleAction}
           />
         ))}
       </div>
@@ -449,18 +758,22 @@ export function ReportsDashboard() {
                 <p className="text-xs text-muted-foreground">Last 6 months</p>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={monthly}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" />
-                    <XAxis dataKey="m" stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v / 1000}k`} />
-                    <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 12, fontSize: 12 }} formatter={(v) => fmt(v)} />
-                    <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <Line type="monotone" dataKey="sales" stroke="var(--color-primary)" strokeWidth={2.5} dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="expense" stroke="var(--color-accent)" strokeWidth={2.5} dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="profit" stroke="var(--color-chart-2)" strokeWidth={2.5} dot={{ r: 3 }} />
-                  </LineChart>
-                </ResponsiveContainer>
+                {dynamicMonthlyData.every(d => d.sales === 0 && d.expense === 0) ? (
+                  <div className="h-[300px] flex items-center justify-center text-xs text-muted-foreground">No monthly stats available.</div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={dynamicMonthlyData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" />
+                      <XAxis dataKey="m" stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v / 1000}k`} />
+                      <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 12, fontSize: 12 }} formatter={(v) => fmt(v)} />
+                      <Legend wrapperStyle={{ fontSize: 12 }} />
+                      <Line type="monotone" dataKey="sales" stroke="var(--color-primary)" strokeWidth={2.5} dot={{ r: 3 }} />
+                      <Line type="monotone" dataKey="expense" stroke="var(--color-accent)" strokeWidth={2.5} dot={{ r: 3 }} />
+                      <Line type="monotone" dataKey="profit" stroke="var(--color-chart-2)" strokeWidth={2.5} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
 
@@ -470,27 +783,33 @@ export function ReportsDashboard() {
                 <p className="text-xs text-muted-foreground">Current quarter</p>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={240}>
-                  <PieChart>
-                    <Pie data={gstSplit} dataKey="value" innerRadius={55} outerRadius={85} paddingAngle={3}>
-                      {gstSplit.map((_, i) => (
-                        <Cell key={i} fill={pieColors[i]} />
+                {dynamicGstSplit.length === 0 ? (
+                  <div className="h-[240px] flex items-center justify-center text-xs text-muted-foreground">No GST records.</div>
+                ) : (
+                  <>
+                    <ResponsiveContainer width="100%" height={240}>
+                      <PieChart>
+                        <Pie data={dynamicGstSplit} dataKey="value" innerRadius={55} outerRadius={85} paddingAngle={3}>
+                          {dynamicGstSplit.map((_, i) => (
+                            <Cell key={i} fill={pieColors[i % pieColors.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 12, fontSize: 12 }} formatter={(v) => fmt(v)} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="mt-2 space-y-1.5">
+                      {dynamicGstSplit.map((g, i) => (
+                        <div key={g.name} className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="h-2.5 w-2.5 rounded-full" style={{ background: pieColors[i % pieColors.length] }} />
+                            <span className="font-medium">{g.name}</span>
+                          </div>
+                          <span className="font-semibold">{fmt(g.value)}</span>
+                        </div>
                       ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 12, fontSize: 12 }} formatter={(v) => fmt(v)} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="mt-2 space-y-1.5">
-                  {gstSplit.map((g, i) => (
-                    <div key={g.name} className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full" style={{ background: pieColors[i] }} />
-                        <span className="font-medium">{g.name}</span>
-                      </div>
-                      <span className="font-semibold">{fmt(g.value)}</span>
                     </div>
-                  ))}
-                </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -500,17 +819,21 @@ export function ReportsDashboard() {
               <CardTitle className="text-base">Sales vs Expenses by Month</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={monthly}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" />
-                  <XAxis dataKey="m" stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v / 1000}k`} />
-                  <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 12, fontSize: 12 }} formatter={(v) => fmt(v)} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="sales" fill="var(--color-primary)" radius={[8, 8, 0, 0]} maxBarSize={28} />
-                  <Bar dataKey="expense" fill="var(--color-accent)" radius={[8, 8, 0, 0]} maxBarSize={28} />
-                </BarChart>
-              </ResponsiveContainer>
+              {dynamicMonthlyData.every(d => d.sales === 0 && d.expense === 0) ? (
+                <div className="h-[280px] flex items-center justify-center text-xs text-muted-foreground">No comparative stats available.</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={dynamicMonthlyData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" />
+                    <XAxis dataKey="m" stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v / 1000}k`} />
+                    <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 12, fontSize: 12 }} formatter={(v) => fmt(v)} />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <Bar dataKey="sales" fill="var(--color-primary)" radius={[8, 8, 0, 0]} maxBarSize={28} />
+                    <Bar dataKey="expense" fill="var(--color-accent)" radius={[8, 8, 0, 0]} maxBarSize={28} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
         </div>

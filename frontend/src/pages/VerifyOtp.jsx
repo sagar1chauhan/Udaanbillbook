@@ -88,6 +88,7 @@ export default function VerifyOtp() {
       });
 
       const user = res.data;
+      window.localStorage.removeItem("Udaan.admin_auth");
       
       // Still populate mockAuth to not break the rest of the frontend which relies on it for now.
       mockAuth.signIn({
@@ -96,16 +97,18 @@ export default function VerifyOtp() {
         phone: user.phone,
         email: user.email,
         role: user.role,
-        token: user.token
+        token: user.token,
+        subscription: user.subscription
       });
 
+      const redirectPath = (user.role?.toLowerCase() === "staff" || user.role?.toLowerCase() === "viewer") ? "/staff/dashboard" : "/vendor/dashboard";
       toast.success(user.role === "admin" ? "Admin access granted!" : search.mode === "register" ? "Account created!" : "Signed in successfully");
       
       if (state.returnUrl) {
         sessionStorage.setItem('resumeInvoiceFlow', 'true');
       }
       
-      navigate(state.returnUrl || "/");
+      navigate(state.returnUrl || redirectPath);
 
     } catch (error) {
       toast.error(error.response?.data?.message || "Invalid OTP");

@@ -58,17 +58,20 @@ export function LoginForm({ role }) {
       });
 
       const user = res.data;
+      window.localStorage.removeItem("Udaan.admin_auth");
       mockAuth.signIn({
         name: user.name,
         business: user.businessName,
         phone: user.phone,
         email: user.email,
         role: user.role,
-        token: user.token
+        token: user.token,
+        subscription: user.subscription
       });
 
+      const redirectPath = (user.role?.toLowerCase() === "staff" || user.role?.toLowerCase() === "viewer") ? "/staff/dashboard" : "/vendor/dashboard";
       toast.success(user.role === "admin" ? "Admin access granted!" : "Signed in successfully");
-      navigate("/");
+      navigate(redirectPath);
     } catch (error) {
       toast.error(error.response?.data?.message || "Invalid email or password");
     } finally {

@@ -78,7 +78,7 @@ const getDashboardSummary = async (userId) => {
     { $unwind: '$items' },
     { 
       $group: { 
-        _id: '$items.name',
+        _id: { $trim: { input: '$items.name' } },
         sold: { $sum: '$items.qty' },
         revenue: { $sum: { $multiply: ['$items.qty', '$items.rate'] } }
       } 

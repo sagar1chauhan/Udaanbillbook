@@ -38,12 +38,12 @@ export default function AdminLogin() {
         phone: user.phone,
         email: user.email,
         role: user.role,
-        token: user.token
+        token: user.token,
+        subscription: user.subscription
       });
 
-      toast.success("Admin access granted!");
-      // Redirect to SuperAdmin dashboard
-      navigate("/superadmin");
+      // Redirect to Admin dashboard
+      navigate("/admin");
     } catch (error) {
       toast.error(error.response?.data?.message || "Invalid email or password");
     } finally {

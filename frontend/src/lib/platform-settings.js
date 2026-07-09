@@ -110,7 +110,7 @@ const defaultSettings = {
     zoom: 100,
   },
   messageSettings: {
-    type: "Vyapar",
+    type: "Udaan",
     sendToParty: true,
     updateMsg: false,
     copyToSelf: false,

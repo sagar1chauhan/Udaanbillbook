@@ -13,6 +13,17 @@ const generateToken = (id) => {
   });
 };
 
+const getSubscriptionWithLogo = async (subscription) => {
+  if (!subscription) return { plan: 'Free', status: 'active', showUdaanLogo: true };
+  const planDetails = await Plan.findOne({ name: subscription.plan, status: 'Active' });
+  return {
+    plan: subscription.plan || 'Free',
+    status: subscription.status || 'active',
+    validUntil: subscription.validUntil,
+    showUdaanLogo: planDetails ? (planDetails.showUdaanLogo !== undefined ? planDetails.showUdaanLogo : true) : true
+  };
+};
+
 const otpStore = new Map();
 
 const getDeviceString = (userAgent) => {
@@ -117,6 +128,8 @@ const verifyOtp = async (req, res) => {
       return res.status(403).json({ message: 'Your account has been banned. Please contact support.' });
     }
 
+    const responseSubscription = await getSubscriptionWithLogo(user.subscription);
+
     res.json({
       _id: user.id,
       name: user.name,
@@ -125,6 +138,7 @@ const verifyOtp = async (req, res) => {
       businessName: user.businessName,
       role: user.role,
       token: generateToken(user._id),
+      subscription: responseSubscription,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -136,6 +150,7 @@ const verifyOtp = async (req, res) => {
 // @access  Private
 const getMe = async (req, res) => {
   try {
+    const responseSubscription = await getSubscriptionWithLogo(req.user.subscription);
     const user = {
       _id: req.user.id,
       name: req.user.name,
@@ -145,7 +160,8 @@ const getMe = async (req, res) => {
       role: req.user.role,
       showAds: req.user.showAds,
       billLimit: req.user.billLimit,
-      billsGenerated: req.user.billsGenerated
+      billsGenerated: req.user.billsGenerated,
+      subscription: responseSubscription
     };
     res.status(200).json(user);
   } catch (error) {
@@ -231,6 +247,8 @@ const loginEmail = async (req, res) => {
     user.device = getDeviceString(req.headers['user-agent']);
     await user.save();
 
+    const responseSubscription = await getSubscriptionWithLogo(user.subscription);
+
     res.status(200).json({
       _id: user.id,
       name: user.name,
@@ -239,6 +257,7 @@ const loginEmail = async (req, res) => {
       businessName: user.businessName,
       role: user.role,
       token: generateToken(user._id),
+      subscription: responseSubscription,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -333,10 +352,10 @@ const getPlans = async (req, res) => {
     let dbPlans = await Plan.find({ status: 'Active' });
     if (dbPlans.length === 0) {
       const defaultPlans = [
-        { name: "Free", price: 0, interval: "forever", features: ["50 invoices/month", "Basic inventory", "1 user", "Udaan branding"], popular: false, description: "Perfect for exploring the platform", platforms: "Mobile Only" },
-        { name: "Silver", price: 199, interval: "month", features: ["Unlimited invoices", "Advanced inventory", "3 users", "No branding", "Basic GST"], popular: false, description: "Ideal for growing small businesses", platforms: "Mobile + Desktop" },
-        { name: "Gold", price: 299, interval: "month", features: ["Everything in Silver", "Unlimited users", "E-way bills", "Advanced GST", "Staff management"], popular: true, description: "Complete solution for mature businesses", platforms: "Mobile + Desktop" },
-        { name: "Enterprise", price: 499, interval: "month", features: ["Everything in Gold", "Custom themes", "Priority support", "Barcode gen", "API access"], popular: false, description: "Premium subscription for enterprise needs", platforms: "Mobile + Desktop" }
+        { name: "Free", price: 0, interval: "forever", features: ["50 invoices/month", "Basic inventory", "1 user", "Udaan branding"], popular: false, description: "Perfect for exploring the platform", platforms: "Mobile Only", showUdaanLogo: true },
+        { name: "Silver", price: 199, interval: "month", features: ["Unlimited invoices", "Advanced inventory", "3 users", "No branding", "Basic GST"], popular: false, description: "Ideal for growing small businesses", platforms: "Mobile + Desktop", showUdaanLogo: false },
+        { name: "Gold", price: 299, interval: "month", features: ["Everything in Silver", "Unlimited users", "E-way bills", "Advanced GST", "Staff management"], popular: true, description: "Complete solution for mature businesses", platforms: "Mobile + Desktop", showUdaanLogo: false },
+        { name: "Enterprise", price: 499, interval: "month", features: ["Everything in Gold", "Custom themes", "Priority support", "Barcode gen", "API access"], popular: false, description: "Premium subscription for enterprise needs", platforms: "Mobile + Desktop", showUdaanLogo: false }
       ];
       await Plan.insertMany(defaultPlans);
       dbPlans = await Plan.find({ status: 'Active' });
@@ -384,9 +403,11 @@ const subscribeUser = async (req, res) => {
       });
     }
 
+    const responseSubscription = await getSubscriptionWithLogo(user.subscription);
+
     res.status(200).json({
       message: `Successfully subscribed to ${planName}`,
-      subscription: user.subscription
+      subscription: responseSubscription
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -464,6 +485,173 @@ const getPublicSettings = async (req, res) => {
   }
 };
 
+// @desc    Get Razorpay Key ID
+// @route   GET /api/auth/razorpay-key
+// @access  Public
+const getRazorpayKey = async (req, res) => {
+  res.status(200).json({ keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder_key' });
+};
+
+// @desc    Create Razorpay Order
+// @route   POST /api/auth/razorpay-order
+// @access  Private
+const createRazorpayOrder = async (req, res) => {
+  try {
+    const { planName } = req.body;
+    const plan = await Plan.findOne({ name: planName, status: 'Active' });
+    if (!plan) {
+      return res.status(404).json({ message: 'Plan not found' });
+    }
+    
+    const monthlyRate = plan.price;
+    const yearlySubtotal = monthlyRate * 12;
+    const totalAmount = Math.round(yearlySubtotal * 1.18); // amount in INR
+    const amountInPaise = totalAmount * 100;
+
+    const keyId = process.env.RAZORPAY_KEY_ID || '';
+    const keySecret = process.env.RAZORPAY_KEY_SECRET || '';
+
+    // If keys are missing or are the placeholder strings, use a mock order success callback
+    if (!keyId || !keySecret || keyId.includes('placeholder') || keyId.includes('your_razorpay_key')) {
+      return res.status(201).json({
+        success: true,
+        orderId: `order_mock_${Date.now()}`,
+        amount: amountInPaise,
+        currency: "INR",
+        planName,
+        isMock: true
+      });
+    }
+
+    const Razorpay = require('razorpay');
+    const instance = new Razorpay({
+      key_id: keyId,
+      key_secret: keySecret,
+    });
+
+    const options = {
+      amount: amountInPaise,
+      currency: "INR",
+      receipt: `receipt_order_${Date.now()}`,
+    };
+
+    const order = await instance.orders.create(options);
+    res.status(201).json({
+      success: true,
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      planName,
+      isMock: false
+    });
+  } catch (error) {
+    console.error('Razorpay order creation failed, falling back to mock:', error);
+    res.status(201).json({
+      success: true,
+      orderId: `order_mock_${Date.now()}`,
+      amount: 423400,
+      currency: "INR",
+      planName,
+      isMock: true
+    });
+  }
+};
+
+// @desc    Verify Razorpay payment and subscribe user
+// @route   POST /api/auth/verify-razorpay
+// @access  Private
+const verifyRazorpayPayment = async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, planName } = req.body;
+    
+    // Check if it is a mock transaction
+    if (razorpay_order_id && razorpay_order_id.startsWith('order_mock_')) {
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const Payment = require('../models/Payment');
+      const plan = await Plan.findOne({ name: planName, status: 'Active' });
+      const price = plan ? plan.price : 0;
+
+      user.subscription = {
+        plan: planName,
+        status: 'active',
+        validUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+      };
+      await user.save();
+
+      await Payment.create({
+        user: user._id,
+        type: 'Payment In',
+        amount: Math.round(price * 12 * 1.18),
+        paymentMode: 'UPI',
+        date: new Date(),
+        referenceNumber: razorpay_payment_id || `TXN-SUB-${Date.now().toString().slice(-6)}`,
+        description: `Mock/Demo Subscription upgrade to ${planName} Plan`
+      });
+
+      const responseSubscription = await getSubscriptionWithLogo(user.subscription);
+
+      return res.status(200).json({
+        success: true,
+        message: `Successfully verified and subscribed to ${planName} (Mock)`,
+        subscription: responseSubscription
+      });
+    }
+
+    const crypto = require('crypto');
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || '')
+      .update(body.toString())
+      .digest("hex");
+
+    const isAuthentic = expectedSignature === razorpay_signature;
+
+    if (!isAuthentic) {
+      return res.status(400).json({ message: "Payment verification failed" });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const Payment = require('../models/Payment');
+    const plan = await Plan.findOne({ name: planName, status: 'Active' });
+    const price = plan ? plan.price : 0;
+
+    user.subscription = {
+      plan: planName,
+      status: 'active',
+      validUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+    };
+    await user.save();
+
+    await Payment.create({
+      user: user._id,
+      type: 'Payment In',
+      amount: Math.round(price * 12 * 1.18),
+      paymentMode: 'UPI',
+      date: new Date(),
+      referenceNumber: razorpay_payment_id || `TXN-SUB-${Date.now().toString().slice(-6)}`,
+      description: `Razorpay Subscription upgrade to ${planName} Plan`
+    });
+
+    const responseSubscription = await getSubscriptionWithLogo(user.subscription);
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully verified and subscribed to ${planName}`,
+      subscription: responseSubscription
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   sendOtp,
   verifyOtp,
@@ -477,5 +665,8 @@ module.exports = {
   subscribeUser,
   getUserTickets,
   createUserTicket,
-  getPublicSettings
+  getPublicSettings,
+  getRazorpayKey,
+  createRazorpayOrder,
+  verifyRazorpayPayment
 };

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Trash2 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
@@ -34,6 +35,10 @@ export function AddProductDialog({
     mfgDate: "",
     modelNo: "",
     size: "",
+    unit: "Pcs",
+    gst: "0",
+    hsnSac: "",
+    discount: "",
     customFieldsData: {},
   });
 
@@ -56,6 +61,10 @@ export function AddProductDialog({
         mfgDate: "",
         modelNo: "",
         size: "",
+        unit: "Pcs",
+        gst: "0",
+        hsnSac: "",
+        discount: "",
         customFieldsData: {},
       });
 
@@ -83,18 +92,36 @@ export function AddProductDialog({
 
   if (!itemSettings) return null;
 
+  const isServiceOnly = itemSettings.whatDoYouSell === "Service";
+  const isProductOnly = itemSettings.whatDoYouSell === "Product";
+
+  const defaultCats = [];
+  if (!isServiceOnly) {
+    defaultCats.push({ name: "Grocery" }, { name: "Bakery" }, { name: "Dairy" }, { name: "Packaged" });
+  }
+  if (!isProductOnly) {
+    defaultCats.push({ name: "Services" });
+  }
+  defaultCats.push({ name: "Other" });
+
+  const titleText = isServiceOnly ? "Add Service" : "Add Product";
+  const descText = isServiceOnly 
+    ? "Setup service information and pricing preferences."
+    : "Setup inventory information and pricing preferences.";
+  const nameLabel = isServiceOnly ? "Service name" : "Product name";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Product</DialogTitle>
-          <DialogDescription>Setup inventory information and pricing preferences.</DialogDescription>
+          <DialogTitle>{titleText}</DialogTitle>
+          <DialogDescription>{descText}</DialogDescription>
         </DialogHeader>
         <form
           className="space-y-4"
           onSubmit={(e) => {
             e.preventDefault();
-            if (!f.name.trim()) return toast.error("Enter product name");
+            if (!f.name.trim()) return toast.error(`Enter ${isServiceOnly ? 'service' : 'product'} name`);
             if (!f.price) return toast.error("Enter price");
 
             const payload = {
@@ -114,6 +141,12 @@ export function AddProductDialog({
             if (itemSettings.mfgDate) payload.mfgDate = f.mfgDate.trim();
             if (itemSettings.modelNo) payload.modelNo = f.modelNo.trim();
             if (itemSettings.size) payload.size = f.size.trim();
+            if (itemSettings.itemsUnit) payload.unit = f.unit;
+            if (itemSettings.itemWiseTax) {
+              payload.gst = Number(f.gst) || 0;
+              payload.hsnSac = f.hsnSac.trim();
+            }
+            if (itemSettings.itemWiseDiscount) payload.discount = Number(f.discount) || 0;
             payload.customFieldsData = f.customFieldsData;
 
             if (onAdd) {
@@ -125,7 +158,7 @@ export function AddProductDialog({
           }}
         >
           <div className="space-y-1.5">
-            <Label htmlFor="pname">Product name</Label>
+            <Label htmlFor="pname">{nameLabel}</Label>
             <Input id="pname" value={f.name} onChange={(e) => set("name", e.target.value)} className="h-10 rounded-xl" />
           </div>
 
@@ -169,16 +202,25 @@ export function AddProductDialog({
                 <Select value={f.cat} onValueChange={(v) => set("cat", v)}>
                   <SelectTrigger className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {(categories.length > 0 ? categories : [
-                      { name: "Grocery" },
-                      { name: "Bakery" },
-                      { name: "Dairy" },
-                      { name: "Packaged" },
-                      { name: "Services" },
-                      { name: "Other" }
-                    ]).map((c) => (
+                    {(categories.length > 0 ? categories : defaultCats).map((c) => (
                       <SelectItem key={c._id || c.name} value={c.name}>{c.name}</SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {itemSettings.itemsUnit && (
+              <div className="space-y-1.5">
+                <Label htmlFor="punit">Measuring Unit</Label>
+                <Select value={f.unit} onValueChange={(v) => set("unit", v)}>
+                  <SelectTrigger id="punit" className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pcs">Pcs (Pieces)</SelectItem>
+                    <SelectItem value="Kgs">Kgs (Kilograms)</SelectItem>
+                    <SelectItem value="Ltrs">Ltrs (Litres)</SelectItem>
+                    <SelectItem value="Box">Box</SelectItem>
+                    <SelectItem value="Nos">Nos (Numbers)</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -197,6 +239,39 @@ export function AddProductDialog({
               </div>
             )}
           </div>
+
+          {/* Tax and Discount settings */}
+          {(itemSettings.itemWiseTax || itemSettings.itemWiseDiscount) && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t pt-3 mt-2">
+              {itemSettings.itemWiseTax && (
+                <>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="phsn">HSN/SAC Code</Label>
+                    <Input id="phsn" value={f.hsnSac} onChange={(e) => set("hsnSac", e.target.value)} className="h-10 rounded-xl" placeholder="e.g. 996601" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="pgst">Default GST Rate</Label>
+                    <Select value={f.gst} onValueChange={(v) => set("gst", v)}>
+                      <SelectTrigger id="pgst" className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">0%</SelectItem>
+                        <SelectItem value="5">5%</SelectItem>
+                        <SelectItem value="12">12%</SelectItem>
+                        <SelectItem value="18">18%</SelectItem>
+                        <SelectItem value="28">28%</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+              {itemSettings.itemWiseDiscount && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="pdisc_rate">Default Discount (%)</Label>
+                  <Input id="pdisc_rate" type="number" min={0} max={100} value={f.discount} onChange={(e) => set("discount", e.target.value)} className="h-10 rounded-xl" placeholder="0" />
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Description */}
           {itemSettings.description && (
@@ -366,6 +441,18 @@ export function AddPartyDialog({
     }
   };
 
+  const handleDeleteType = async (typeId) => {
+    try {
+      await api.delete(`/party-types/${typeId}`);
+      toast.success("Party type deleted");
+      const updatedTypes = await api.get('/party-types');
+      setPartyTypes(updatedTypes.data || []);
+      set("type", "Customer");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete party type");
+    }
+  };
+
   if (!partySettings) return null;
 
   return (
@@ -378,20 +465,46 @@ export function AddPartyDialog({
 
         {showAddType ? (
           <div className="space-y-4 py-2">
-            <h4 className="font-semibold text-sm">Add Party Type</h4>
-            <div className="space-y-1.5">
-              <Label htmlFor="new-type-name">Type Name</Label>
+            <h4 className="font-semibold text-sm">Manage Party Types</h4>
+            
+            {/* List of current types */}
+            <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+              <Label>Existing Types</Label>
+              <div className="space-y-1.5">
+                {partyTypes.map((t) => {
+                  const isDefault = ["Customer", "Supplier"].includes(t.name);
+                  return (
+                    <div key={t._id || t.name} className="flex justify-between items-center bg-slate-50 p-2 rounded-lg border border-slate-100 text-xs">
+                      <span className="font-semibold text-slate-800 capitalize">{t.name}</span>
+                      {!isDefault && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteType(t._id)}
+                          className="text-red-500 hover:text-red-700 p-1"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {isDefault && <span className="text-[10px] text-slate-400 font-medium italic">Default</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-1.5 pt-2 border-t border-dashed">
+              <Label htmlFor="new-type-name">Add New Type</Label>
               <Input
                 id="new-type-name"
                 value={newTypeName}
                 onChange={(e) => setNewTypeName(e.target.value)}
-                className="h-10 rounded-xl"
+                className="h-10 rounded-xl text-sm"
                 placeholder="e.g. Distributor"
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setShowAddType(false)}>Cancel</Button>
-              <Button type="button" onClick={handleCreateType} className="rounded-xl">Save Type</Button>
+              <Button type="button" variant="ghost" onClick={() => setShowAddType(false)}>Back</Button>
+              <Button type="button" onClick={handleCreateType} className="rounded-xl">Add Type</Button>
             </div>
           </div>
         ) : (

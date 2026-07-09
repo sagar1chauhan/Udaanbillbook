@@ -8,6 +8,7 @@ import { Info, ChevronRight } from "lucide-react";
 import { ItemTableCustomizationModal } from "./ItemTableCustomizationModal";
 import { ChangeTransactionNamesModal } from "./ChangeTransactionNamesModal";
 import { ChangeThemeModal } from "./ChangeThemeModal";
+import { InvoiceTemplateRenderer } from "@/components/invoice-templates/InvoiceTemplateRenderer";
 
 export function PrintSettingsTab({ settings, updateSettings, isMobile }) {
   const print = settings.printSettings || {};
@@ -67,25 +68,32 @@ export function PrintSettingsTab({ settings, updateSettings, isMobile }) {
     const value = print[inputKey] || "";
 
     return (
-      <div className="flex items-start gap-4 py-1.5 group">
-        <Checkbox 
-          checked={!!checked} 
-          onCheckedChange={(c) => handleUpdate(checkKey, !!c)} 
-          className="mt-2.5 h-5 w-5 rounded shadow-sm data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 border-slate-300" 
-        />
-        <div className="relative flex-1 max-w-[320px] flex items-center gap-2">
-          <div className="relative flex-1">
-            <Label className="absolute -top-2 left-2 bg-white px-1 text-[11px] text-slate-500 z-10">{label}</Label>
-            <Input 
-              type={inputType}
-              value={value} 
-              onChange={(e) => handleUpdate(inputKey, e.target.value)} 
-              className={`h-10 text-[13px] bg-white border-slate-300 focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:ring-offset-0 ${!checked ? "opacity-50" : ""}`} 
-              disabled={!checked}
-            />
-          </div>
-          <Info className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+      <div className="flex flex-col gap-1 py-1.5 group">
+        <div className="flex items-center gap-3 cursor-pointer">
+          <Checkbox 
+            checked={!!checked} 
+            onCheckedChange={(c) => handleUpdate(checkKey, !!c)} 
+            className="h-5 w-5 rounded shadow-sm data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 border-slate-300" 
+            id={`print-${checkKey}`}
+          />
+          <Label htmlFor={`print-${checkKey}`} className="text-[13px] cursor-pointer">
+            {label}
+          </Label>
         </div>
+        {!!checked && (
+          <div className="relative flex-1 max-w-[320px] flex items-center gap-2 pl-8 mt-1.5">
+            <div className="relative flex-1">
+              <Label className="absolute -top-2 left-2 bg-white px-1 text-[11px] text-slate-500 z-10">{label}</Label>
+              <Input 
+                type={inputType}
+                value={value} 
+                onChange={(e) => handleUpdate(inputKey, e.target.value)} 
+                className="h-10 text-[13px] bg-white border-slate-300 focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:ring-offset-0" 
+              />
+            </div>
+            <Info className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+          </div>
+        )}
       </div>
     );
   };
@@ -114,10 +122,9 @@ export function PrintSettingsTab({ settings, updateSettings, isMobile }) {
       {/* Scrollable Settings Panel */}
       <div className="w-full xl:w-[380px] shrink-0 space-y-8 overflow-y-auto h-full pr-4 pb-20 custom-scrollbar">
         
-        {/* Header Tabs */}
+        {/* Header Tabs (Thermal removed) */}
         <div className="flex gap-4 border-b">
-          <button className="text-[13px] font-bold text-blue-600 border-b-2 border-blue-600 pb-2 uppercase px-1">Regular Printer</button>
-          <button className="text-[13px] font-bold text-slate-500 pb-2 uppercase px-1">Thermal</button>
+          <span className="text-[13px] font-bold text-blue-600 border-b-2 border-blue-600 pb-2 uppercase px-1">Regular Printer</span>
         </div>
 
         <div className="space-y-3 px-1 pt-2">
@@ -169,40 +176,40 @@ export function PrintSettingsTab({ settings, updateSettings, isMobile }) {
 
         {/* Formatting Section */}
         <div className="space-y-4 px-1">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-[500px]">
-            <div className="flex items-center justify-between gap-4 group">
-              <Label className="text-[13px] text-slate-700">Paper Size</Label>
+          <div className="grid grid-cols-2 gap-4 max-w-[500px]">
+            <div className="flex flex-col gap-1 group">
+              <Label className="text-[13px] text-slate-600 font-medium">Paper Size</Label>
               <div className="flex items-center gap-2">
                 <Select value={print.paperSize || "A4"} onValueChange={(v) => handleUpdate("paperSize", v)}>
-                  <SelectTrigger className="w-32 h-9 text-[13px] bg-white"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full h-9 text-[13px] bg-white border-slate-300"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="A4">A4</SelectItem>
                     <SelectItem value="A5">A5</SelectItem>
                   </SelectContent>
                 </Select>
-                <Info className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Info className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-4 group">
-              <Label className="text-[13px] text-slate-700">Orientation</Label>
+            <div className="flex flex-col gap-1 group">
+              <Label className="text-[13px] text-slate-600 font-medium">Orientation</Label>
               <div className="flex items-center gap-2">
                 <Select value={print.orientation || "Portrait"} onValueChange={(v) => handleUpdate("orientation", v)}>
-                  <SelectTrigger className="w-32 h-9 text-[13px] bg-white"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full h-9 text-[13px] bg-white border-slate-300"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Portrait">Portrait</SelectItem>
                     <SelectItem value="Landscape">Landscape</SelectItem>
                   </SelectContent>
                 </Select>
-                <Info className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Info className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-4 group mt-2">
-              <Label className="text-[13px] text-slate-700">Company Name Text Size</Label>
+            <div className="flex flex-col gap-1 group">
+              <Label className="text-[13px] text-slate-600 font-medium">Company Name Text Size</Label>
               <div className="flex items-center gap-2">
                 <Select value={print.companyNameTextSize || "Large"} onValueChange={(v) => handleUpdate("companyNameTextSize", v)}>
-                  <SelectTrigger className="w-32 h-9 text-[13px] bg-white"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full h-9 text-[13px] bg-white border-slate-300"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Small">Small</SelectItem>
                     <SelectItem value="Medium">Medium</SelectItem>
@@ -210,15 +217,15 @@ export function PrintSettingsTab({ settings, updateSettings, isMobile }) {
                     <SelectItem value="Extra Large">Extra Large</SelectItem>
                   </SelectContent>
                 </Select>
-                <Info className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Info className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-4 group mt-2">
-              <Label className="text-[13px] text-slate-700">Invoice Text Size</Label>
+            <div className="flex flex-col gap-1 group">
+              <Label className="text-[13px] text-slate-600 font-medium">Invoice Text Size</Label>
               <div className="flex items-center gap-2">
                 <Select value={print.invoiceTextSize || "Medium"} onValueChange={(v) => handleUpdate("invoiceTextSize", v)}>
-                  <SelectTrigger className="w-32 h-9 text-[13px] bg-white"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full h-9 text-[13px] bg-white border-slate-300"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Small">Small</SelectItem>
                     <SelectItem value="Medium">Medium</SelectItem>
@@ -226,7 +233,7 @@ export function PrintSettingsTab({ settings, updateSettings, isMobile }) {
                     <SelectItem value="Extra Large">Extra Large</SelectItem>
                   </SelectContent>
                 </Select>
-                <Info className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Info className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </div>
             </div>
           </div>
@@ -319,26 +326,7 @@ export function PrintSettingsTab({ settings, updateSettings, isMobile }) {
             {renderControl("printReceivedByDetails", "Print Received by details")}
             {renderControl("printDeliveredByDetails", "Print Delivered by details")}
             
-            <div className="flex items-start gap-4 py-1.5 group">
-              <Checkbox 
-                checked={!!print.printSignatureText} 
-                onCheckedChange={(c) => handleUpdate("printSignatureText", !!c)} 
-                className="mt-2.5 h-5 w-5 rounded shadow-sm data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 border-slate-300" 
-              />
-              <div className="flex items-center gap-3">
-                <div className="relative w-48">
-                  <Label className="absolute -top-2 left-2 bg-white px-1 text-[11px] text-slate-500 z-10">Print Signature Text</Label>
-                  <Input 
-                    value={print.signatureText || "Authorized Signatory"} 
-                    onChange={(e) => handleUpdate("signatureText", e.target.value)} 
-                    className={`h-10 text-[13px] bg-white border-slate-300 focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:ring-offset-0 ${!print.printSignatureText ? "opacity-50" : ""}`} 
-                    disabled={!print.printSignatureText}
-                  />
-                </div>
-                <Info className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                <span className="text-[13px] text-blue-500 hover:underline cursor-pointer ml-1">Change Signature</span>
-              </div>
-            </div>
+            {renderControl("printSignatureText", "Print Signature Text")}
 
             {renderControl("paymentMode", "Payment Mode")}
             {renderControl("printAcknowledgement", "Print Acknowledgement")}
@@ -354,177 +342,46 @@ export function PrintSettingsTab({ settings, updateSettings, isMobile }) {
             <div style={{ width: 794 * scale, height: 1123 * scale }} className="shrink-0 flex justify-center relative">
               {/* The Invoice Preview Sheet */}
               <div 
-                className={`w-[210mm] bg-white shadow-md border absolute top-0 left-0 p-8 text-slate-800 font-sans origin-top-left ${print.themeName === 'Tally' ? 'border-2 border-slate-800' : ''}`}
+                className="w-[210mm] bg-white shadow-md border absolute top-0 left-0 p-8 text-slate-800 font-sans origin-top-left"
                 style={{ 
                   minHeight: "297mm",
-                  paddingTop: `${Math.max(32, 32 + Number(print.extraSpaceTop || 0))}px`,
-                  fontSize: `${getBodySize()}px`,
                   transform: `scale(${scale})`,
-                  borderColor: print.themeName === 'Tally' ? '#1e293b' : (print.themeColor || '#e2e8f0'),
-                  borderTopWidth: print.themeName === 'Advanced' ? '12px' : (print.themeName === 'Tally' ? '2px' : '1px')
                 }}
               >
-              <div className={`flex justify-between items-start mb-6 ${print.themeName === 'Tally' ? 'flex-col items-center text-center border-b border-slate-800 pb-4' : ''}`}>
-                <div>
-                  {print.printCompanyName && (
-                    <h1 className="font-bold leading-tight" style={{ fontSize: `${getHeaderSize()}px` }}>
-                      {print.companyName || "Company Name"}
-                    </h1>
-                  )}
-                  {print.printAddress && <p className="whitespace-pre-line text-slate-600 mt-1">{print.address}</p>}
-                  {print.printPhone && <p className="text-slate-600 mt-0.5">Ph. no.: {print.phone}</p>}
-                  {print.printEmail && <p className="text-slate-600">Email: {print.email}</p>}
-                </div>
-                {print.printCompanyLogo && (
-                  <div className="h-16 w-24 bg-slate-100 flex items-center justify-center text-slate-400 border text-xs">
-                    Image
-                  </div>
-                )}
+                <InvoiceTemplateRenderer
+                  invoice={{
+                    customer: "Classic enterprises",
+                    receivedAmount: 0,
+                    status: "Unpaid",
+                    paymentMethod: "Bank Transfer",
+                    paymentDetails: {
+                      bankName: "Axis Bank",
+                      accountNumber: "921020024898267",
+                      ifsc: "UTIB0003532"
+                    },
+                    lines: [
+                      { name: "ITEM 1", hsnSac: "1234", qty: 2, rate: 10, discount: 1, gst: 5 },
+                      { name: "ITEM 2", hsnSac: "6325", qty: 1, rate: 30, discount: 0, gst: 18 }
+                    ],
+                    reverseCharge: "No",
+                    challanNo: "CH-8921",
+                    vehicleNo: "DL-3C-AA-1122",
+                    dateOfSupply: new Date().toISOString(),
+                    placeOfSupply: "Delhi",
+                    billedToAddress: "Plot No. 1, Shop No. 8, Koramangala, Banglore, 560034",
+                    billedToGstin: "29AAECN7829F1ZA",
+                    billedToMobile: "8888888888",
+                    billedToState: "Karnataka",
+                    invoiceNumber: "INV-101",
+                    date: new Date().toISOString()
+                  }}
+                  printSettings={print}
+                  gstSettings={{ gstin: "07AQXPD2556K2ZB" }}
+                  templateName={print.themeName || "GST Boxed"}
+                  themeColor={print.themeColor || "slate"}
+                  numberToWords={(val) => "Forty Five Rupees and Eighty Paisa only"}
+                />
               </div>
-              
-              <div className={`text-center font-bold text-lg mb-6 uppercase tracking-wider ${print.themeName === 'Basic' || print.themeName === 'Tally' ? 'text-slate-800 border-b border-slate-300 pb-2 inline-block mx-auto' : ''}`} style={print.themeName !== 'Basic' && print.themeName !== 'Tally' ? { color: print.themeColor || '#9333ea' } : {}}>
-                {names.sale || "SALE"}
-              </div>
-
-              <div className="flex justify-between mb-6">
-                <div>
-                  <p className="font-bold mb-1">Bill To:</p>
-                  <p className="font-semibold">Classic enterprises</p>
-                  <p className="text-slate-600 max-w-[200px]">Plot No. 1, Shop No. 8, Koramangala, Banglore, 560034</p>
-                  <p className="text-slate-600 mt-1">Contact No.: 8888888888</p>
-                </div>
-                <div>
-                  <p className="font-bold mb-1">Shipping To:</p>
-                  <p className="text-slate-600 max-w-[200px]">Mehta Textiles, Marathalli Road, Banglore, Karnataka, 560034</p>
-                </div>
-                <div className="text-right space-y-1">
-                  <p className="font-bold mb-2">Invoice Details</p>
-                  <p>Invoice No: Inv. 101</p>
-                  <p>Date: 02-07-2019</p>
-                  <p>Time: 12:30 PM</p>
-                  <p>Due Date: 17-07-2019</p>
-                </div>
-              </div>
-
-              <table className={`w-full mb-4 ${print.themeName === 'Tally' ? 'border-collapse border border-slate-800' : ''}`}>
-                <thead>
-                  <tr className={`text-left text-[11px] ${print.themeName === 'Basic' || print.themeName === 'Tally' ? 'text-slate-800 border-b-2 border-slate-800' : ''}`} style={print.themeName !== 'Basic' && print.themeName !== 'Tally' ? { backgroundColor: print.themeColor || '#a855f7', color: 'white' } : {}}>
-                    {tableCols.slNo && <th className={`p-2 font-semibold ${print.themeName === 'Tally' ? 'border border-slate-800' : ''}`}>{colNames.slNo || "#"}</th>}
-                    {tableCols.itemName && <th className="p-2 font-semibold">{colNames.itemName || "Item name"}</th>}
-                    {tableCols.itemCode && <th className="p-2 font-semibold text-center">{colNames.itemCode || "Item Code"}</th>}
-                    {tableCols.hsnSac && <th className="p-2 font-semibold text-center">{colNames.hsnSac || "HSN/SAC"}</th>}
-                    {tableCols.quantity && <th className="p-2 font-semibold text-right">{colNames.quantity || "Quantity"}</th>}
-                    {tableCols.priceUnit && <th className="p-2 font-semibold text-right">{colNames.priceUnit || "Price/unit"}</th>}
-                    {tableCols.discount && <th className="p-2 font-semibold text-right">{colNames.discount || "Discount"}</th>}
-                    {tableCols.taxAmount && <th className="p-2 font-semibold text-right">{colNames.taxAmount || "GST"}</th>}
-                    {tableCols.amount && <th className="p-2 font-semibold text-right">{colNames.amount || "Amount"}</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  <tr>
-                    {tableCols.slNo && <td className="p-2">1</td>}
-                    {tableCols.itemName && <td className="p-2 font-semibold">ITEM 1</td>}
-                    {tableCols.itemCode && <td className="p-2 text-center">ITM1</td>}
-                    {tableCols.hsnSac && <td className="p-2 text-center">1234</td>}
-                    {tableCols.quantity && <td className="p-2 text-right">1 + 1</td>}
-                    {tableCols.priceUnit && <td className="p-2 text-right">{print.amountWithDecimal ? "₹ 10.00" : "₹ 10"}</td>}
-                    {tableCols.discount && <td className="p-2 text-right">₹ 0.10 (1%)</td>}
-                    {tableCols.taxAmount && (
-                      <td className="p-2 text-right">
-                        {print.amountWithDecimal ? "₹ 0.50" : "₹ 1"}<br/><span className="text-[10px] text-slate-500">(5%)</span>
-                      </td>
-                    )}
-                    {tableCols.amount && <td className="p-2 text-right font-semibold">{print.amountWithDecimal ? "₹ 10.40" : "₹ 10"}</td>}
-                  </tr>
-                  <tr>
-                    {tableCols.slNo && <td className="p-2">2</td>}
-                    {tableCols.itemName && <td className="p-2 font-semibold">ITEM 2</td>}
-                    {tableCols.itemCode && <td className="p-2 text-center">ITM2</td>}
-                    {tableCols.hsnSac && <td className="p-2 text-center">6325</td>}
-                    {tableCols.quantity && <td className="p-2 text-right">1</td>}
-                    {tableCols.priceUnit && <td className="p-2 text-right">{print.amountWithDecimal ? "₹ 30.00" : "₹ 30"}</td>}
-                    {tableCols.discount && <td className="p-2 text-right">₹ 0.00 (0%)</td>}
-                    {tableCols.taxAmount && (
-                      <td className="p-2 text-right">
-                        {print.amountWithDecimal ? "₹ 5.40" : "₹ 5"}<br/><span className="text-[10px] text-slate-500">(18%)</span>
-                      </td>
-                    )}
-                    {tableCols.amount && <td className="p-2 text-right font-semibold">{print.amountWithDecimal ? "₹ 35.40" : "₹ 35"}</td>}
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr className="border-t-2 border-slate-300 font-bold">
-                    <td colSpan={
-                      (tableCols.slNo ? 1 : 0) + 
-                      (tableCols.itemName ? 1 : 0) + 
-                      (tableCols.itemCode ? 1 : 0) + 
-                      (tableCols.hsnSac ? 1 : 0) || 1
-                    } className="p-2 text-center">Total</td>
-                    {tableCols.quantity && <td className="p-2 text-right">{print.totalItemQuantity ? "2 + 1" : ""}</td>}
-                    {tableCols.priceUnit && <td className="p-2 text-right"></td>}
-                    {tableCols.discount && <td className="p-2 text-right">{print.amountWithDecimal ? "₹ 0.10" : "₹ 0"}</td>}
-                    {tableCols.taxAmount && <td className="p-2 text-right">{print.amountWithDecimal ? "₹ 5.90" : "₹ 6"}</td>}
-                    {tableCols.amount && <td className="p-2 text-right">{print.amountWithDecimal ? "₹ 45.80" : "₹ 46"}</td>}
-                  </tr>
-                </tfoot>
-              </table>
-
-              <div className="flex justify-between mt-6">
-                <div className="w-1/2 pr-4 space-y-4">
-                  {print.printDescription && (
-                    <div>
-                      <p className="font-bold">Description</p>
-                      <p className="text-slate-600">Sale Description</p>
-                    </div>
-                  )}
-                  {print.amountInWords !== "None" && (
-                    <div>
-                      <p className="font-bold">INVOICE AMOUNT IN WORDS</p>
-                      <p className="text-slate-600">Forty Five Rupees and Eighty Paisa only</p>
-                    </div>
-                  )}
-                  {print.printTermsAndConditions && (
-                    <div>
-                      <p className="font-bold">TERMS AND CONDITIONS</p>
-                      <p className="text-slate-600">Thanks for doing business with us!</p>
-                    </div>
-                  )}
-                </div>
-                <div className="w-1/2 flex flex-col items-end">
-                  <div className="w-64 space-y-1.5">
-                    <div className="flex justify-between"><span className="text-slate-600">Sub Total</span><span>{print.amountWithDecimal ? "₹ 40.00" : "₹ 40"}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-600">Discount</span><span>{print.amountWithDecimal ? "₹ 0.10" : "₹ 0"}</span></div>
-                    {print.taxDetails && (
-                      <>
-                        <div className="flex justify-between"><span className="text-slate-600">SGST@2.5%</span><span>{print.amountWithDecimal ? "₹ 0.25" : "₹ 0"}</span></div>
-                        <div className="flex justify-between"><span className="text-slate-600">CGST@2.5%</span><span>{print.amountWithDecimal ? "₹ 0.25" : "₹ 0"}</span></div>
-                        <div className="flex justify-between"><span className="text-slate-600">SGST@9%</span><span>{print.amountWithDecimal ? "₹ 2.70" : "₹ 3"}</span></div>
-                        <div className="flex justify-between"><span className="text-slate-600">CGST@9%</span><span>{print.amountWithDecimal ? "₹ 2.70" : "₹ 3"}</span></div>
-                      </>
-                    )}
-                    <div className={`flex justify-between font-bold border-t pt-1.5 text-sm px-3 py-1.5 mt-2 ${print.themeName !== 'Basic' && print.themeName !== 'Tally' ? '-mr-3 -ml-3' : ''}`} style={print.themeName !== 'Basic' && print.themeName !== 'Tally' ? { backgroundColor: print.themeColor || '#a855f7', color: 'white' } : { borderColor: print.themeColor || '#a855f7', borderTopWidth: '2px', borderBottomWidth: '2px' }}>
-                      <span>Total</span><span>{print.amountWithDecimal ? "₹ 45.80" : "₹ 46"}</span>
-                    </div>
-                    {print.receivedAmount && (
-                      <div className="flex justify-between mt-2"><span className="text-slate-600">Received</span><span>{print.amountWithDecimal ? "₹ 0.00" : "₹ 0"}</span></div>
-                    )}
-                    {print.balanceAmount && (
-                      <div className="flex justify-between"><span className="font-semibold">Balance</span><span className="font-semibold">{print.amountWithDecimal ? "₹ 45.80" : "₹ 46"}</span></div>
-                    )}
-                    {print.currentBalanceParty && (
-                      <div className="flex justify-between text-slate-500 mt-3"><span className="text-[11px]">Current Balance</span><span className="text-[11px]">{print.amountWithDecimal ? "₹ 45.80" : "₹ 46"}</span></div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {print.printSignatureText && (
-                <div className="absolute bottom-12 right-12 text-right">
-                  <div className="h-16 border-b border-slate-400 border-dashed w-40 mb-2"></div>
-                  <p className="font-semibold">{print.signatureText}</p>
-                </div>
-              )}
-            </div>
             </div>
           </div>
         </div>

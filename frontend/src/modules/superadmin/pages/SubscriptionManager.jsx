@@ -22,7 +22,9 @@ export function SubscriptionManager() {
     features: "",
     popular: false,
     platforms: "Mobile + Desktop",
-    description: ""
+    description: "",
+    allowedTemplates: [],
+    showUdaanLogo: true
   });
 
   const fetchPlans = async () => {
@@ -48,7 +50,9 @@ export function SubscriptionManager() {
       features: "",
       popular: false,
       platforms: "Mobile + Desktop",
-      description: ""
+      description: "",
+      allowedTemplates: ["GST Boxed", "Classic White"],
+      showUdaanLogo: true
     });
     setIsOpen(true);
   };
@@ -61,7 +65,9 @@ export function SubscriptionManager() {
       features: plan.features.join("\n"),
       popular: plan.popular,
       platforms: plan.platforms,
-      description: plan.description || ""
+      description: plan.description || "",
+      allowedTemplates: plan.allowedTemplates || [],
+      showUdaanLogo: plan.showUdaanLogo !== undefined ? plan.showUdaanLogo : true
     });
     setIsOpen(true);
   };
@@ -79,7 +85,9 @@ export function SubscriptionManager() {
       features: formData.features.split("\n").map(f => f.trim()).filter(Boolean),
       popular: formData.popular,
       platforms: formData.platforms,
-      description: formData.description.trim()
+      description: formData.description.trim(),
+      allowedTemplates: formData.allowedTemplates,
+      showUdaanLogo: formData.showUdaanLogo
     };
 
     try {
@@ -214,7 +222,7 @@ export function SubscriptionManager() {
 
               {/* Features */}
               <div className="flex-1">
-                <ul className="space-y-2">
+                <ul className="space-y-2 mb-4">
                   {plan.features.map((feature, i) => (
                     <li key={i} className="flex items-center gap-2.5 text-xs">
                       <Check className={`h-3.5 w-3.5 shrink-0 ${accent.text}`} />
@@ -222,6 +230,24 @@ export function SubscriptionManager() {
                     </li>
                   ))}
                 </ul>
+                {plan.allowedTemplates && plan.allowedTemplates.length > 0 && (
+                  <div className="border-t border-white/5 pt-3">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1">Templates allowed</p>
+                    <div className="flex flex-wrap gap-1">
+                      {plan.allowedTemplates.map(t => (
+                        <span key={t} className="text-[9px] bg-white/5 px-2 py-0.5 rounded text-slate-400">{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="border-t border-white/5 pt-3 mt-3 flex items-center justify-between">
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Udaan Logo</p>
+                  {plan.showUdaanLogo ? (
+                    <span className="text-[9px] bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded text-amber-400 font-medium">Shown</span>
+                  ) : (
+                    <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded text-emerald-400 font-medium">Hidden</span>
+                  )}
+                </div>
               </div>
 
               {/* Glow */}
@@ -244,7 +270,7 @@ export function SubscriptionManager() {
             <h2 className="text-xl font-bold text-white mb-4">
               {editingPlan ? `Edit Plan: ${editingPlan.name}` : "Create New Plan"}
             </h2>
-            <form onSubmit={handleSave} className="space-y-4">
+            <form onSubmit={handleSave} className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
               <div>
                 <label className="block text-xs font-semibold text-slate-400 mb-1">Plan Name *</label>
                 <input
@@ -291,6 +317,44 @@ export function SubscriptionManager() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
               </div>
+
+              {/* Templates Access Selection Checkboxes */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-2">Allowed Bill Templates</label>
+                <div className="grid grid-cols-2 gap-2 bg-white/5 p-3 rounded-xl border border-white/10 max-h-36 overflow-y-auto">
+                  {[
+                    "GST Boxed", "Classic White", "Modern Green", "Stylish Blue", "Minimalist",
+                    "Crimson Rose", "Warm Amber", "Royal Purple", "Charcoal Dark", "Tally Classic"
+                  ].map((tpl) => {
+                    const isChecked = formData.allowedTemplates.includes(tpl);
+                    const handleToggleTemplate = () => {
+                      if (isChecked) {
+                        setFormData({
+                          ...formData,
+                          allowedTemplates: formData.allowedTemplates.filter(t => t !== tpl)
+                        });
+                      } else {
+                        setFormData({
+                          ...formData,
+                          allowedTemplates: [...formData.allowedTemplates, tpl]
+                        });
+                      }
+                    };
+                    return (
+                      <label key={tpl} className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          className="rounded bg-white/5 border-white/10 text-emerald-500 focus:ring-emerald-500"
+                          checked={isChecked}
+                          onChange={handleToggleTemplate}
+                        />
+                        {tpl}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-slate-400 mb-1">Features (One per line) *</label>
                 <textarea
@@ -312,6 +376,18 @@ export function SubscriptionManager() {
                 />
                 <label htmlFor="popular" className="text-xs font-semibold text-slate-300 select-none cursor-pointer">
                   Mark as Most Popular plan
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="showUdaanLogo"
+                  className="rounded bg-white/5 border-white/10 text-emerald-500 focus:ring-emerald-500"
+                  checked={formData.showUdaanLogo}
+                  onChange={(e) => setFormData({ ...formData, showUdaanLogo: e.target.checked })}
+                />
+                <label htmlFor="showUdaanLogo" className="text-xs font-semibold text-slate-300 select-none cursor-pointer">
+                  Show Udaan Logo on Invoice
                 </label>
               </div>
               <div className="flex justify-end gap-3 pt-2">

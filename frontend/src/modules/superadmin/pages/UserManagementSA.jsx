@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Search, Users, Ban, CheckCircle2, Eye, Mail, Phone, Monitor, Clock, Shield, X } from "lucide-react";
+import { Search, Users, Ban, CheckCircle2, Eye, Mail, Phone, Monitor, Clock, Shield, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -57,6 +57,22 @@ export function UserManagementSA() {
     }
   };
 
+  const handleDeleteUser = async (user) => {
+    if (!window.confirm(`Are you sure you want to delete user ${user.name}? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      await api.delete(`/admin/users/${user._id}`);
+      toast.success(`${user.name} deleted successfully`);
+      setUsers(prev => prev.filter(u => u._id !== user._id));
+      if (selectedUser && selectedUser._id === user._id) {
+        setSelectedUser(null);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete user");
+    }
+  };
+
   const filtered = users.filter(u => {
     const nameMatch = (u.name || "").toLowerCase().includes(search.toLowerCase());
     const emailMatch = (u.email || "").toLowerCase().includes(search.toLowerCase());
@@ -109,7 +125,7 @@ export function UserManagementSA() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/8">
-                {["User", "Business", "Role", "Status", "Last Login", "Device", "Actions"].map(h => (
+                {["User", "Business", "Plan", "Role", "Status", "Last Login", "Device", "Actions"].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">{h}</th>
                 ))}
               </tr>
@@ -131,6 +147,20 @@ export function UserManagementSA() {
                     </div>
                   </td>
                   <td className="px-4 py-3.5 text-xs text-slate-300">{u.businessName || u.business || "N/A"}</td>
+                  <td className="px-4 py-3.5">
+                    {u.role === "admin" || u.role === "staff" ? (
+                      <span className="text-slate-500">-</span>
+                    ) : (
+                      <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
+                        u.subscription?.plan === "Enterprise" ? "bg-purple-500/15 text-purple-400" :
+                        u.subscription?.plan === "Gold" ? "bg-amber-500/15 text-amber-400" :
+                        u.subscription?.plan === "Silver" ? "bg-blue-500/15 text-blue-400" :
+                        "bg-slate-500/15 text-slate-400"
+                      }`}>
+                        {u.subscription?.plan || "Free"}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3.5">
                     <span className={`text-[11px] font-semibold capitalize ${u.role === "admin" || u.role === "Admin" ? "text-purple-400" : "text-slate-400"}`}>{u.role || "vendor"}</span>
                   </td>
@@ -154,6 +184,7 @@ export function UserManagementSA() {
                       ) : (
                         <button className="rounded-lg p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors" title="Unban" onClick={() => handleToggleStatus(u)}><CheckCircle2 className="h-3.5 w-3.5" /></button>
                       )}
+                      <button className="rounded-lg p-1.5 text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition-colors" title="Delete" onClick={() => handleDeleteUser(u)}><Trash2 className="h-3.5 w-3.5" /></button>
                     </div>
                   </td>
                 </tr>
@@ -216,6 +247,24 @@ export function UserManagementSA() {
                 <div className="space-y-1 sm:col-span-2">
                   <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Business Address</p>
                   <p className="text-white font-medium">{selectedUser.businessAddress || "N/A"}</p>
+                </div>
+
+                 <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Active Plan</p>
+                  <div>
+                    {selectedUser.role === "admin" || selectedUser.role === "staff" ? (
+                      <span className="text-slate-400 font-medium">-</span>
+                    ) : (
+                      <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                        selectedUser.subscription?.plan === "Enterprise" ? "bg-purple-500/15 text-purple-400" :
+                        selectedUser.subscription?.plan === "Gold" ? "bg-amber-500/15 text-amber-400" :
+                        selectedUser.subscription?.plan === "Silver" ? "bg-blue-500/15 text-blue-400" :
+                        "bg-slate-500/15 text-slate-400"
+                      }`}>
+                        {selectedUser.subscription?.plan || "Free"}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-1">

@@ -33,13 +33,32 @@ const roleIcon = { Admin: Shield, Staff: ShieldCheck, Viewer: Eye };
 
 export function ChangePermissionsDialog({ open, onOpenChange, staff, onSave }) {
   const [role, setRole] = useState("Staff");
-  const [perms, setPerms] = useState(ROLE_PRESETS.Staff);
+  const [perms, setPerms] = useState({
+    billing: true,
+    inventory: true,
+    parties: true,
+    expenses: true,
+    reports: false,
+    gst: false,
+    settings: false,
+    dashboard: true
+  });
 
   useEffect(() => {
     if (staff) {
       const r = staff.role || "Staff";
-      setRole(r);
-      setPerms({ ...(ROLE_PRESETS[r] || ROLE_PRESETS.Staff), ...(staff.permissions || {}) });
+      const capitalizedRole = r.charAt(0).toUpperCase() + r.slice(1);
+      setRole(capitalizedRole);
+      
+      const permissionsArray = Array.isArray(staff.permissions) ? staff.permissions : [];
+      const permissionsObject = {};
+      PERMISSIONS.forEach((p) => {
+        permissionsObject[p.key] = permissionsArray.includes(p.key);
+      });
+      // Always include dashboard
+      permissionsObject["dashboard"] = permissionsArray.includes("dashboard") || capitalizedRole === "Admin";
+      
+      setPerms(permissionsObject);
     }
   }, [staff]);
 
@@ -53,7 +72,16 @@ export function ChangePermissionsDialog({ open, onOpenChange, staff, onSave }) {
   };
 
   const handleSave = () => {
-    onSave({ ...staff, role, permissions: perms });
+    const permissionsArray = Object.keys(perms).filter((key) => perms[key]);
+    if (!permissionsArray.includes("dashboard")) {
+      permissionsArray.push("dashboard");
+    }
+
+    onSave({ 
+      ...staff, 
+      role: role.toLowerCase(), 
+      permissions: permissionsArray 
+    });
     toast.success(`Permissions updated for ${staff.name}`);
     onOpenChange(false);
   };
@@ -61,7 +89,7 @@ export function ChangePermissionsDialog({ open, onOpenChange, staff, onSave }) {
   if (!staff) return null;
 
   const RoleIcon = roleIcon[role] || Shield;
-  const enabledCount = Object.values(perms).filter(Boolean).length;
+  const enabledCount = Object.keys(perms).filter(k => perms[k] && k !== "dashboard").length;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

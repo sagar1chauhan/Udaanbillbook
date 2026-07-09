@@ -1,0 +1,107 @@
+import React from "react";
+
+export function CorporateTemplate({ invoice, printSet, gstSet, activeColor, numberToWords }) {
+  const { customer, lines, totals, meta, paymentDetails } = invoice;
+  return (
+    <div className="font-sans bg-white border border-slate-300 text-slate-800 text-[10px] leading-relaxed shadow-sm p-6 space-y-6">
+      
+      {/* Branding top block */}
+      <div className="flex flex-col sm:flex-row justify-between items-start border-b-2 pb-4 border-slate-100 gap-4">
+        <div>
+          {printSet.printCompanyName && (
+            <h1 className={`text-lg font-black tracking-tight ${activeColor.text}`}>
+              {printSet.companyName || "KESHAV TRAVELS"}
+            </h1>
+          )}
+          {printSet.printAddress && (
+            <p className="text-[9px] text-slate-500 max-w-sm whitespace-pre-line leading-tight">
+              {printSet.address || "S-99/134 first floor moti lal nehru camp JNU, New Delhi"}
+            </p>
+          )}
+        </div>
+        <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-right space-y-1 font-mono text-[9px] min-w-[200px]">
+          <h3 className={`text-[10px] font-bold uppercase tracking-wider ${activeColor.text}`}>Invoice Summary</h3>
+          <p>Invoice # : <span className="font-bold">{meta.invoiceNumber}</span></p>
+          <p>Date : {meta.date}</p>
+          {gstSet.gstin && <p>GSTIN : {gstSet.gstin}</p>}
+        </div>
+      </div>
+
+      {/* Customer details block */}
+      <div className="border border-slate-100 rounded-lg p-3 bg-slate-50/30">
+        <h4 className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2">Billed & Shipped To</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <p className="font-bold text-slate-900 text-xs">{customer}</p>
+            {meta.billedToAddress && <p className="text-slate-500">{meta.billedToAddress}</p>}
+            {meta.billedToMobile && <p className="text-slate-500">Phone: {meta.billedToMobile}</p>}
+          </div>
+          <div className="space-y-1 font-mono text-[9px]">
+            {meta.billedToGstin && <p><span className="text-slate-400">GSTIN:</span> {meta.billedToGstin}</p>}
+            {meta.vehicleNo && <p><span className="text-slate-400">Vehicle No:</span> {meta.vehicleNo}</p>}
+            {meta.placeOfSupply && <p><span className="text-slate-400">Place of Supply:</span> {meta.placeOfSupply}</p>}
+          </div>
+        </div>
+      </div>
+
+      {/* Product table */}
+      <table className="w-full text-left border-t border-b border-slate-200">
+        <thead>
+          <tr className="text-[9px] font-bold text-slate-500 uppercase py-2">
+            <th className="py-2.5">Item</th>
+            <th className="py-2.5 text-center w-24">HSN</th>
+            <th className="py-2.5 text-center w-16">Qty</th>
+            <th className="py-2.5 text-right w-24">Rate</th>
+            <th className="py-2.5 text-right w-24">Tax Amount</th>
+            <th className="py-2.5 text-right w-28">Line Total</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {lines.map((l, idx) => {
+            const q = Number(l.qty) || 0;
+            const r = Number(l.rate) || 0;
+            const d = Number(l.discount) || 0;
+            const g = Number(l.gst) || 0;
+
+            const rateAfterDisc = r * (1 - d / 100);
+            const lineTotal = q * rateAfterDisc;
+            const taxableVal = lineTotal / (1 + g / 100);
+            const totalTax = lineTotal - taxableVal;
+
+            return (
+              <tr key={idx} className="text-[10px] text-slate-700">
+                <td className="py-2 font-bold text-slate-900">{l.name || "Product Description"}</td>
+                <td className="py-2 text-center font-mono">{l.hsnSac || "-"}</td>
+                <td className="py-2 text-center">{q}</td>
+                <td className="py-2 text-right font-mono">{r.toFixed(2)}</td>
+                <td className="py-2 text-right font-mono">{totalTax.toFixed(2)} <span className="text-[8px] text-slate-400">({g}%)</span></td>
+                <td className="py-2 text-right font-extrabold font-mono text-slate-900">{lineTotal.toFixed(2)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      {/* Corporate Summary Layout */}
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-6">
+        <div className="space-y-4 flex-1">
+          <div className="text-[9px] text-slate-500 space-y-1">
+            <h5 className="font-bold text-slate-700 uppercase">Remittance Details:</h5>
+            <p>Please transfer the amount to Axis Bank Account no. {paymentDetails.accountNumber || "921020024898267"}, IFSC: {paymentDetails.ifsc || "UTIB0003532"}</p>
+          </div>
+          <div className="text-[9px] text-slate-500 italic">
+            <span className="font-bold uppercase not-italic text-slate-700">In Words:</span> {numberToWords(totals.grand)}
+          </div>
+        </div>
+
+        <div className="bg-slate-50 border rounded-lg p-4 font-mono text-[9px] w-64 space-y-1.5 shrink-0">
+          <div className="flex justify-between"><span>Taxable Subtotal</span><span>{totals.taxableAmount.toFixed(2)}</span></div>
+          <div className="flex justify-between"><span>Tax Amount: GST</span><span>{totals.gstAmount.toFixed(2)}</span></div>
+          <div className={`flex justify-between font-extrabold text-[11px] border-t pt-1.5 ${activeColor.text}`}>
+            <span>Total Outstanding</span><span>{totals.grand.toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -39,6 +39,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { GstCalculatorDialog } from "@/components/GstCalculatorDialog";
+import { useMockAuth } from "@/lib/auth-store";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const salesData = [
   { d: "Mon", sales: 18400, expense: 7200 },
@@ -110,6 +112,12 @@ export function MainDashboard() {
   const [isGstCalculatorOpen, setIsGstCalculatorOpen] = useState(false);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { user } = useMockAuth();
+  const { canAccessFeature } = useSubscription();
+
+  const userRole = user?.role?.toLowerCase() || "user";
+  const isVendor = userRole === "vendor" || userRole === "admin";
+  const permissions = user?.permissions || [];
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -127,8 +135,31 @@ export function MainDashboard() {
 
   const totalSales = data?.sales?.totalSales || 0;
   const invoiceCount = data?.sales?.invoiceCount || 0;
+  const totalPurchases = data?.purchases || 0;
   const totalExpenses = data?.expenses || 0;
   const netProfit = data?.netProfit || 0;
+
+  const rolePrefix = (userRole === "staff" || userRole === "viewer") ? "/staff" : "/vendor";
+  const getRoleUrl = (url) => url.replace(/^\/vendor/, rolePrefix);
+
+  const allActions = [
+    { label: "Sale", feature: "billing", icon: ClipboardCheck, color: "text-red-500", bg: "bg-red-50/50", border: "border-red-100", link: "/vendor/billing?type=sale" },
+    { label: "Purchase", feature: "billing", icon: ShoppingBasket, color: "text-blue-600", bg: "bg-blue-50/50", border: "border-blue-100", link: "/vendor/billing?type=purchase" },
+    { label: "Expenses", feature: "expenses", icon: ReceiptText, color: "text-blue-600", bg: "bg-blue-50/50", border: "border-blue-100", link: "/vendor/expenses" },
+    { label: "Estimate", feature: "billing", icon: FileText, color: "text-emerald-600", bg: "bg-emerald-50/50", border: "border-emerald-100", link: "/vendor/billing" },
+    { label: "Customers", feature: "parties", icon: UserCheck, color: "text-emerald-600", bg: "bg-emerald-50/50", border: "border-emerald-100", link: "/vendor/parties?type=customer" },
+    { label: "Suppliers", feature: "parties", icon: Truck, color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200", link: "/vendor/parties?type=supplier" },
+    { label: "Products", feature: "inventory", icon: Package, color: "text-blue-600", bg: "bg-blue-50/50", border: "border-blue-100", link: "/vendor/inventory" },
+  ];
+
+  const allowedActions = allActions.filter((action) => {
+    if (isVendor) return true;
+    if (!canAccessFeature(action.feature)) return false;
+    const hasPermission = permissions.length === 0
+      ? ["dashboard", "billing", "inventory", "parties", "expenses", "accounting"].includes(action.feature)
+      : permissions.includes(action.feature);
+    return hasPermission;
+  });
 
   return (
     <div className="space-y-6">
@@ -151,7 +182,7 @@ export function MainDashboard() {
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Kpi label="Total Sales" value={fmt(totalSales)} delta={`+${invoiceCount} Bills`} up icon={IndianRupee} tint="bg-primary-soft text-primary" />
-        <Kpi label="Invoices" value={invoiceCount.toString()} delta="Real-time" up icon={ReceiptText} tint="bg-accent-soft text-accent" />
+        <Kpi label="Total Purchase" value={fmt(totalPurchases)} delta="Real-time" up icon={ShoppingBasket} tint="bg-accent-soft text-accent" />
         <Kpi label="Expenses" value={fmt(totalExpenses)} delta="Total spent" up={false} icon={Wallet} tint="bg-secondary text-secondary-foreground" />
         <Kpi label="Net Profit" value={fmt(netProfit)} delta="Calculated" up icon={PiggyBank} tint="bg-success-soft text-success" />
       </div>
@@ -159,17 +190,8 @@ export function MainDashboard() {
       <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-[var(--shadow-card)] border-0">
         <h2 className="text-sm font-semibold mb-4 text-slate-800">Quick Actions</h2>
         <div className="grid grid-cols-4 gap-y-6 gap-x-2">
-          {[
-            { label: "Sale", icon: ClipboardCheck, color: "text-red-500", bg: "bg-red-50/50", border: "border-red-100", link: "/sale/new" },
-            { label: "Purchase", icon: ShoppingBasket, color: "text-blue-600", bg: "bg-blue-50/50", border: "border-blue-100", link: "/purchase/new" },
-            { label: "Expenses", icon: ReceiptText, color: "text-blue-600", bg: "bg-blue-50/50", border: "border-blue-100", link: "/expenses" },
-            { label: "Estimate", icon: FileText, color: "text-emerald-600", bg: "bg-emerald-50/50", border: "border-emerald-100", link: "/sale/new" },
-            { label: "Customers", icon: UserCheck, color: "text-emerald-600", bg: "bg-emerald-50/50", border: "border-emerald-100", link: "/parties" },
-            { label: "Suppliers", icon: Truck, color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200", link: "/parties" },
-            { label: "Products", icon: Package, color: "text-blue-600", bg: "bg-blue-50/50", border: "border-blue-100", link: "/inventory" },
-            { label: "More", icon: MoreHorizontal, color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200", link: "/" },
-          ].map((action) => (
-            <Link key={action.label} to={action.link} className="flex flex-col items-center gap-2 group">
+          {allowedActions.map((action) => (
+            <Link key={action.label} to={getRoleUrl(action.link)} className="flex flex-col items-center gap-2 group">
               <div className={`flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full border ${action.border} ${action.bg} ${action.color} transition-transform group-hover:scale-105 shadow-sm`}>
                 <action.icon className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>

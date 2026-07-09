@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   Building2, CreditCard, TrendingUp, Users, Clock,
   AlertTriangle, Ticket, ArrowUpRight, ArrowDownRight,
@@ -13,9 +14,9 @@ import api from "@/lib/api";
 import { fmt } from "../data/mockData";
 
 /* ──────── KPI Card ──────── */
-function KpiCard({ label, value, delta, up, icon: Icon, gradient, iconBg }) {
-  return (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/8 p-4 md:p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/5"
+function KpiCard({ label, value, delta, up, icon: Icon, gradient, iconBg, url }) {
+  const cardContent = (
+    <div className={`group relative overflow-hidden rounded-2xl border border-white/8 p-4 md:p-5 transition-all duration-300 ${url ? "hover:border-emerald-500/30 cursor-pointer" : ""} hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/5`}
       style={{ background: "oklch(0.19 0.035 257)" }}
     >
       <div className="flex items-start justify-between">
@@ -44,6 +45,11 @@ function KpiCard({ label, value, delta, up, icon: Icon, gradient, iconBg }) {
       <div className={`absolute -bottom-6 -right-6 h-24 w-24 rounded-full opacity-20 blur-2xl ${gradient || "bg-emerald-500"}`} />
     </div>
   );
+
+  if (url) {
+    return <Link to={url}>{cardContent}</Link>;
+  }
+  return cardContent;
 }
 
 /* ──────── Chart Card Wrapper ──────── */
@@ -116,6 +122,20 @@ export function SADashboard() {
     );
   }
 
+  if (!data) {
+    return (
+      <div className="flex h-96 flex-col items-center justify-center text-center space-y-4">
+        <p className="text-rose-400 font-semibold">Failed to load platform dashboard data.</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   const kpis = data.platformKPIs;
   const revenueChartData = data.revenueChartData;
   const businessGrowthData = data.businessGrowthData;
@@ -143,18 +163,18 @@ export function SADashboard() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
-        <KpiCard label="Total Businesses" value={kpis.totalBusinesses.toLocaleString()} delta="+12.4%" up icon={Building2} gradient="bg-blue-500" iconBg="bg-blue-500/15" />
-        <KpiCard label="Active Subscriptions" value={kpis.activeSubscriptions.toLocaleString()} delta="+8.1%" up icon={CreditCard} gradient="bg-emerald-500" />
-        <KpiCard label="Monthly Revenue" value={fmt(kpis.monthlyRevenue)} delta="+18.4%" up icon={TrendingUp} gradient="bg-purple-500" iconBg="bg-purple-500/15" />
-        <KpiCard label="Active Users" value={kpis.activeUsers.toLocaleString()} delta="+15.2%" up icon={Users} gradient="bg-amber-500" iconBg="bg-amber-500/15" />
+        <KpiCard label="Total Vendors" value={kpis.totalBusinesses.toLocaleString()} delta="+12.4%" up icon={Building2} gradient="bg-blue-500" iconBg="bg-blue-500/15" url="/admin/businesses" />
+        <KpiCard label="Active Subscriptions" value={kpis.activeSubscriptions.toLocaleString()} delta="+8.1%" up icon={CreditCard} gradient="bg-emerald-500" url="/admin/subscriptions" />
+        <KpiCard label="Monthly Revenue" value={fmt(kpis.monthlyRevenue)} delta="+18.4%" up icon={TrendingUp} gradient="bg-purple-500" iconBg="bg-purple-500/15" url="/admin/revenue" />
+        <KpiCard label="Active Vendors" value={kpis.activeUsers.toLocaleString()} delta="+15.2%" up icon={Users} gradient="bg-amber-500" iconBg="bg-amber-500/15" url="/admin/users" />
       </div>
 
       {/* Secondary KPIs */}
       <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
-        <KpiCard label="Platform Growth" value={`${kpis.platformGrowth}%`} icon={Zap} gradient="bg-emerald-500" />
-        <KpiCard label="Pending Approvals" value={kpis.pendingApprovals.toString()} icon={Clock} gradient="bg-amber-500" iconBg="bg-amber-500/15" />
-        <KpiCard label="Failed Payments" value={kpis.failedPayments.toString()} icon={AlertTriangle} gradient="bg-rose-500" iconBg="bg-rose-500/15" />
-        <KpiCard label="Support Tickets" value={kpis.supportTickets.toString()} icon={Ticket} gradient="bg-purple-500" iconBg="bg-purple-500/15" />
+        <KpiCard label="Platform Growth" value={`${kpis.platformGrowth}%`} icon={Zap} gradient="bg-emerald-500" url="/admin/analytics" />
+        <KpiCard label="Pending Approvals" value={kpis.pendingApprovals.toString()} icon={Clock} gradient="bg-amber-500" iconBg="bg-amber-500/15" url="/admin/businesses" />
+        <KpiCard label="Failed Payments" value={kpis.failedPayments.toString()} icon={AlertTriangle} gradient="bg-rose-500" iconBg="bg-rose-500/15" url="/admin/revenue" />
+        <KpiCard label="Support Tickets" value={kpis.supportTickets.toString()} icon={Ticket} gradient="bg-purple-500" iconBg="bg-purple-500/15" url="/admin/tickets" />
       </div>
 
       {/* Charts Row */}

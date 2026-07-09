@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,8 +22,30 @@ export function PartiesDashboard() {
   const [partyTypes, setPartyTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState("all");
-  const [search, setSearch] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const tab = searchParams.get("type") || "all";
+  const setTab = (val) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (val && val !== "all") {
+        next.set("type", val);
+      } else {
+        next.delete("type");
+      }
+      return next;
+    });
+  };
+
+  const search = searchParams.get("q") || "";
+  const setSearch = (val) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (val) next.set("q", val);
+      else next.delete("q");
+      return next;
+    });
+  };
 
   const fetchParties = async () => {
     try {
@@ -46,9 +69,14 @@ export function PartiesDashboard() {
     }
   };
 
+  const fetchedRef = React.useRef(false);
+
   React.useEffect(() => {
-    fetchParties();
-    fetchPartyTypes();
+    if (!fetchedRef.current) {
+      fetchedRef.current = true;
+      fetchParties();
+      fetchPartyTypes();
+    }
   }, []);
 
   const handleAddParty = async (payload) => {
@@ -72,7 +100,7 @@ export function PartiesDashboard() {
                           p.phone.includes(search);
     if (!matchesSearch) return false;
     if (tab === "all") return true;
-    return p.type === tab;
+    return (p.type || "").toLowerCase() === tab.toLowerCase();
   });
 
   const callParty = (p) => {

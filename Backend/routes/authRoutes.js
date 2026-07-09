@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { sendOtp, verifyOtp, getMe, loginEmail, getStaff, addStaff, updateStaff, deleteStaff, getPlans, subscribeUser, getPublicSettings, getUserTickets, createUserTicket } = require('../controllers/authController');
+const { sendOtp, verifyOtp, getMe, loginEmail, getStaff, addStaff, updateStaff, deleteStaff, getPlans, subscribeUser, getPublicSettings, getUserTickets, createUserTicket, getRazorpayKey, createRazorpayOrder, verifyRazorpayPayment } = require('../controllers/authController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
 router.post('/send-otp', sendOtp);
@@ -10,6 +10,9 @@ router.get('/me', protect, getMe);
 router.get('/plans', getPlans);
 router.post('/subscribe', protect, subscribeUser);
 router.get('/settings', getPublicSettings);
+router.get('/razorpay-key', getRazorpayKey);
+router.post('/razorpay-order', protect, createRazorpayOrder);
+router.post('/verify-razorpay', protect, verifyRazorpayPayment);
 
 router.route('/tickets')
   .get(protect, getUserTickets)

@@ -25,6 +25,7 @@ export const mockAuth = {
   },
   signOut() {
     window.localStorage.removeItem(KEY);
+    window.localStorage.removeItem("Udaan.admin_auth");
     listeners.forEach((l) => l());
   },
   updateUser(updates) {
@@ -40,6 +41,14 @@ export const mockAuth = {
     return () => listeners.delete(l);
   },
 };
+
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key === KEY || e.key === "Udaan.admin_auth") {
+      listeners.forEach((l) => l());
+    }
+  });
+}
 
 export function useMockAuth() {
   const [user, setUser] = useState(null);

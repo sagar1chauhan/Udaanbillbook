@@ -1,3 +1,4 @@
+// Trigger server reload to apply auth logging
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -9,7 +10,11 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
