@@ -27,19 +27,25 @@ export function SubscriptionManager() {
     showUdaanLogo: true
   });
 
-  const fetchPlans = async () => {
+  const [availableTemplates, setAvailableTemplates] = useState([]);
+
+  const fetchPlansAndTemplates = async () => {
     try {
-      const response = await api.get("/admin/subscriptions");
-      setSubscriptionPlans(response.data);
+      const [plansRes, templatesRes] = await Promise.all([
+        api.get("/admin/subscriptions"),
+        api.get("/admin/invoice-templates")
+      ]);
+      setSubscriptionPlans(plansRes.data);
+      setAvailableTemplates(templatesRes.data);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to fetch plans");
+      toast.error(error.response?.data?.message || "Failed to fetch data");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPlans();
+    fetchPlansAndTemplates();
   }, []);
 
   const handleOpenCreate = () => {
@@ -99,7 +105,7 @@ export function SubscriptionManager() {
         toast.success("Plan created successfully");
       }
       setIsOpen(false);
-      fetchPlans();
+      fetchPlansAndTemplates();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to save plan");
     }
@@ -110,7 +116,7 @@ export function SubscriptionManager() {
       try {
         await api.delete(`/admin/subscriptions/${planId}`);
         toast.success("Plan deleted/archived successfully");
-        fetchPlans();
+        fetchPlansAndTemplates();
       } catch (error) {
         toast.error(error.response?.data?.message || "Failed to delete plan");
       }
@@ -322,10 +328,8 @@ export function SubscriptionManager() {
               <div>
                 <label className="block text-xs font-semibold text-slate-400 mb-2">Allowed Bill Templates</label>
                 <div className="grid grid-cols-2 gap-2 bg-white/5 p-3 rounded-xl border border-white/10 max-h-36 overflow-y-auto">
-                  {[
-                    "GST Boxed", "Classic White", "Modern Green", "Stylish Blue", "Minimalist",
-                    "Crimson Rose", "Warm Amber", "Royal Purple", "Charcoal Dark", "Tally Classic"
-                  ].map((tpl) => {
+                  {availableTemplates.map((templateObj) => {
+                    const tpl = templateObj.name;
                     const isChecked = formData.allowedTemplates.includes(tpl);
                     const handleToggleTemplate = () => {
                       if (isChecked) {

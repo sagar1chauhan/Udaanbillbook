@@ -13,6 +13,56 @@ import { useMockAuth } from "@/lib/auth-store";
 import { InvoiceTemplateRenderer } from "@/components/invoice-templates/InvoiceTemplateRenderer";
 import { usePlatformSettings } from "@/lib/platform-settings";
 
+function TemplatePreviewMini({ previewColor, previewStyle }) {
+  const base = "h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden";
+
+  if (previewStyle === "boxed") {
+    return (
+      <div className={base}>
+        <div className={`h-1.5 ${previewColor} w-full rounded-sm`} />
+        <div className="h-1 bg-slate-100 w-2/3" />
+        <div className="flex-1 border border-slate-200" />
+      </div>
+    );
+  }
+  if (previewStyle === "minimal") {
+    return (
+      <div className={`${base} justify-center`}>
+        <div className={`h-0.5 ${previewColor} w-3/4`} />
+        <div className="h-3 w-full space-y-0.5 mt-1">
+          <div className="h-0.5 bg-slate-200 w-full" />
+          <div className="h-0.5 bg-slate-200 w-full" />
+        </div>
+      </div>
+    );
+  }
+  if (previewStyle === "double-border") {
+    return (
+      <div className={`${base} border-double border-4 border-slate-700`}>
+        <div className="h-1 bg-slate-200 w-full" />
+        <div className="flex-1 border-t border-slate-300" />
+      </div>
+    );
+  }
+  if (previewStyle === "center-header") {
+    return (
+      <div className={`${base} justify-between`}>
+        <div className={`h-1 ${previewColor} w-1/3 mx-auto`} />
+        <div className="h-2 border-t border-b border-slate-100 w-full" />
+        <div className="h-1 bg-slate-300 w-1/4 self-end" />
+      </div>
+    );
+  }
+  // default: header-bar
+  return (
+    <div className={base}>
+      <div className={`h-2.5 ${previewColor} w-full`} />
+      <div className="h-1 bg-slate-100 w-1/2" />
+      <div className="flex-1 border-t border-slate-100" />
+    </div>
+  );
+}
+
 function SignaturePad({ value, onChange }) {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -259,6 +309,21 @@ export default function NewSale() {
   const [activePane, setActivePane] = useState("form");
   const [invoiceTemplate, setInvoiceTemplate] = useState(() => getInitialState("invoiceTemplate", "GST Boxed"));
   const [themeColor, setThemeColor] = useState(() => getInitialState("themeColor", "slate"));
+
+  // Dynamic templates from API
+  const [availableTemplates, setAvailableTemplates] = useState([]);
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const res = await api.get("/settings/invoice-templates");
+        setAvailableTemplates(res.data);
+      } catch (err) {
+        // Fallback: if API fails, use empty array (hardcoded templates removed)
+        console.error("Failed to fetch invoice templates", err);
+      }
+    };
+    fetchTemplates();
+  }, []);
 
   // Initialize seller details & footer from settings once settings are loaded
   useEffect(() => {
@@ -1487,6 +1552,7 @@ export default function NewSale() {
                 gstin: sellerGstin
               }}
               templateName={invoiceTemplate}
+              templateData={availableTemplates.find(t => t.name === invoiceTemplate)}
               themeColor={themeColor}
               numberToWords={numberToWords}
             />
@@ -1533,135 +1599,8 @@ export default function NewSale() {
                 </span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                {[
-                  {
-                    id: "GST Boxed",
-                    name: "GST Boxed",
-                    desc: "Classic Tally Grid",
-                    plan: "Free",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden">
-                        <div className="h-1.5 bg-slate-800 w-full" />
-                        <div className="h-1 bg-slate-100 w-2/3" />
-                        <div className="flex-1 border border-slate-200" />
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Classic White",
-                    name: "Classic White",
-                    desc: "Clean Minimal",
-                    plan: "Free",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden justify-between">
-                        <div className="h-1 bg-slate-400 w-1/3 mx-auto" />
-                        <div className="h-2 border-t border-b border-slate-100 w-full" />
-                        <div className="h-1 bg-slate-300 w-1/4 self-end" />
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Modern Green",
-                    name: "Modern Green",
-                    desc: "Emerald Solid",
-                    plan: "Silver",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden">
-                        <div className="h-2.5 bg-emerald-600 w-full" />
-                        <div className="h-1 bg-slate-100 w-1/2" />
-                        <div className="flex-1 border-t border-slate-100" />
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Stylish Blue",
-                    name: "Stylish Blue",
-                    desc: "Navy Corporate",
-                    plan: "Gold",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden">
-                        <div className="h-2.5 bg-slate-900 w-full border-b border-blue-600" />
-                        <div className="flex-1 border-t border-slate-100" />
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Minimalist",
-                    name: "Minimalist",
-                    desc: "Compact Mono",
-                    plan: "Gold",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-200 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden justify-center">
-                        <div className="h-0.5 bg-slate-400 w-3/4 animate-pulse" />
-                        <div className="h-3 w-full space-y-0.5 mt-1">
-                          <div className="h-0.5 bg-slate-200 w-full" />
-                          <div className="h-0.5 bg-slate-200 w-full" />
-                        </div>
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Crimson Rose",
-                    name: "Crimson Rose",
-                    desc: "Red Highlight",
-                    plan: "Gold",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden">
-                        <div className="h-2.5 bg-rose-600 w-full" />
-                        <div className="flex-1 border-t border-slate-100" />
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Warm Amber",
-                    name: "Warm Amber",
-                    desc: "Amber Gold",
-                    plan: "Enterprise",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden">
-                        <div className="h-2.5 bg-amber-500 w-full" />
-                        <div className="flex-1 border-t border-slate-100" />
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Royal Purple",
-                    name: "Royal Purple",
-                    desc: "Royal Violet",
-                    plan: "Enterprise",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden">
-                        <div className="h-2.5 bg-purple-600 w-full" />
-                        <div className="flex-1 border-t border-slate-100" />
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Charcoal Dark",
-                    name: "Charcoal Dark",
-                    desc: "Sleek Dark",
-                    plan: "Enterprise",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden">
-                        <div className="h-2.5 bg-slate-800 w-full" />
-                        <div className="flex-1 border-t border-slate-100" />
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Tally Classic",
-                    name: "Tally Classic",
-                    desc: "Retro Monochrome",
-                    plan: "Enterprise",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden border-double border-4 border-slate-700">
-                        <div className="h-1 bg-slate-200 w-full" />
-                        <div className="flex-1 border-t border-slate-300" />
-                      </div>
-                    )
-                  }
-                ].map((tpl) => {
-                  const requiredPlan = tpl.plan;
+                {availableTemplates.map((tpl) => {
+                  const requiredPlan = tpl.planTier;
                   const currentPlan = user?.subscription?.plan || "Free";
                   
                   const plansOrder = ["Free", "Silver", "Gold", "Enterprise"];
@@ -1669,27 +1608,27 @@ export default function NewSale() {
 
                   const handleSelect = () => {
                     if (!hasAccess) {
-                      toast.error(`"${tpl.id}" is a premium template. Please upgrade to ${requiredPlan} Plan to unlock this format.`);
+                      toast.error(`"${tpl.name}" is a premium template. Please upgrade to ${requiredPlan} Plan to unlock this format.`);
                       return;
                     }
-                    setInvoiceTemplate(tpl.id);
+                    setInvoiceTemplate(tpl.name);
                   };
 
                   return (
                     <button
-                      key={tpl.id}
+                      key={tpl._id}
                       onClick={handleSelect}
                       className={`flex flex-col items-center p-2.5 rounded-lg border text-center transition-all relative ${
                         !hasAccess ? "opacity-50 hover:opacity-70 bg-slate-100/50" : ""
                       } ${
-                        invoiceTemplate === tpl.id
+                        invoiceTemplate === tpl.name
                           ? "border-emerald-500 bg-emerald-50/50 shadow-sm ring-1 ring-emerald-500 scale-105"
                           : "border-slate-200 hover:border-slate-300 bg-slate-50/30"
                       }`}
                     >
-                      {tpl.preview}
+                      <TemplatePreviewMini previewColor={tpl.previewColor} previewStyle={tpl.previewStyle} />
                       <span className="text-[10px] font-bold text-slate-800 leading-tight block">{tpl.name}</span>
-                      <span className="text-[8px] text-slate-500 block leading-tight mt-0.5">{tpl.desc}</span>
+                      <span className="text-[8px] text-slate-500 block leading-tight mt-0.5">{tpl.description}</span>
                       {!hasAccess && (
                         <span className="absolute top-1 right-1 text-[8px] bg-amber-500 text-white px-1.5 py-0.2 rounded font-extrabold uppercase scale-90">
                           {requiredPlan}

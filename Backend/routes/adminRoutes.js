@@ -21,7 +21,11 @@ const {
   updatePlatformSettingsData,
   getAdminProfile,
   updateAdminProfile,
-  updateBillingSettings
+  updateBillingSettings,
+  getInvoiceTemplates,
+  createInvoiceTemplate,
+  updateInvoiceTemplate,
+  deleteInvoiceTemplate
 } = require('../controllers/adminController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
@@ -50,5 +54,11 @@ router.get('/settings', getPlatformSettingsData);
 router.put('/settings', updatePlatformSettingsData);
 router.get('/profile', getAdminProfile);
 router.put('/profile', updateAdminProfile);
+
+// Invoice Template CRUD
+router.get('/invoice-templates', getInvoiceTemplates);
+router.post('/invoice-templates', createInvoiceTemplate);
+router.put('/invoice-templates/:id', updateInvoiceTemplate);
+router.delete('/invoice-templates/:id', deleteInvoiceTemplate);
 
 module.exports = router;
