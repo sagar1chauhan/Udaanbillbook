@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 
-export function CustomHTMLTemplate({ invoice, printSet, customHtml, activeColor }) {
+export function CustomHTMLTemplate({ invoice, printSet, gstSet, customHtml, activeColor }) {
   if (!customHtml) return null;
 
   let html = customHtml;
@@ -20,6 +20,11 @@ export function CustomHTMLTemplate({ invoice, printSet, customHtml, activeColor 
   html = html.replace(/{{paymentMethod}}/g, invoice.paymentMethod || '');
   html = html.replace(/{{status}}/g, invoice.status || '');
   
+  html = html.replace(/{{sellerGstin}}/g, gstSet?.gstin || '');
+  html = html.replace(/{{buyerGstin}}/g, invoice.meta?.billedToGstin || '');
+  html = html.replace(/{{sellerState}}/g, printSet?.state || invoice.meta?.placeOfSupply || '');
+  html = html.replace(/{{buyerState}}/g, invoice.meta?.billedToState || invoice.meta?.placeOfSupply || '');
+  
   // Handle items table if placeholder exists
   if (html.includes('{{itemsTable}}')) {
     const tableHtml = renderToString(
@@ -33,14 +38,19 @@ export function CustomHTMLTemplate({ invoice, printSet, customHtml, activeColor 
           </tr>
         </thead>
         <tbody>
-          {invoice.lines.map((item, idx) => (
-            <tr key={idx}>
-              <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{item.item}</td>
-              <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>{item.qty}</td>
-              <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>{item.price.toFixed(2)}</td>
-              <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>{(item.qty * item.price).toFixed(2)}</td>
-            </tr>
-          ))}
+          {invoice.lines.map((item, idx) => {
+            const q = Number(item.qty) || 0;
+            const r = Number(item.rate || item.price) || 0;
+            const lineTotal = q * r;
+            return (
+              <tr key={idx}>
+                <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{item.name || item.item}</td>
+                <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>{q}</td>
+                <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>{r.toFixed(2)}</td>
+                <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>{lineTotal.toFixed(2)}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     );

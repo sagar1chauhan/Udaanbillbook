@@ -6617,3 +6617,684 @@
 [2026-07-11T08:02:21.513Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
 [2026-07-11T08:02:21.520Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
 [2026-07-11T08:02:21.559Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T06:55:43.424Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T06:55:43.433Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T06:55:43.441Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T06:55:43.443Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T06:55:43.491Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T06:55:43.498Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T06:55:43.591Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T06:55:43.594Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T06:55:43.598Z] Received token: eyJhbGciOiJIUzI... for path: /api/reports/dashboard
+[2026-07-13T06:55:43.600Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T06:55:43.638Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T06:55:43.670Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T06:55:44.342Z] Received token: eyJhbGciOiJIUzI... for path: /api/reports/dashboard
+[2026-07-13T06:55:44.344Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T06:55:44.410Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T06:56:18.157Z] Received token: eyJhbGciOiJIUzI... for path: /api/admin/dashboard
+[2026-07-13T06:56:18.160Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T06:56:18.165Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T06:56:18.167Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T06:56:18.216Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T06:56:18.232Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T06:56:18.633Z] Received token: eyJhbGciOiJIUzI... for path: /api/admin/dashboard
+[2026-07-13T06:56:18.636Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T06:56:18.703Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T06:56:24.098Z] Received token: eyJhbGciOiJIUzI... for path: /api/admin/invoice-templates
+[2026-07-13T06:56:24.102Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T06:56:24.170Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T06:56:24.892Z] Received token: eyJhbGciOiJIUzI... for path: /api/admin/invoice-templates
+[2026-07-13T06:56:24.895Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T06:56:24.967Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T06:58:49.718Z] Received token: eyJhbGciOiJIUzI... for path: /api/admin/invoice-templates/6a51ea059b6f4c8eaad72657
+[2026-07-13T06:58:49.719Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T06:58:49.763Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T06:58:50.648Z] Received token: eyJhbGciOiJIUzI... for path: /api/admin/invoice-templates
+[2026-07-13T06:58:50.650Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T06:58:50.695Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T06:59:00.759Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T06:59:00.760Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T06:59:00.763Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T06:59:00.765Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T06:59:00.799Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T06:59:00.812Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T06:59:01.205Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T06:59:01.208Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T06:59:01.251Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:01:37.710Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:01:37.712Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:01:37.716Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:01:37.719Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:01:37.762Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:01:37.765Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:01:37.799Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:01:37.801Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:01:37.827Z] Received token: eyJhbGciOiJIUzI... for path: /api/reports/dashboard
+[2026-07-13T07:01:37.829Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:01:37.839Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:01:37.869Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:01:37.871Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:01:37.874Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:01:37.881Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:01:37.883Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:01:37.917Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:01:37.920Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:01:38.304Z] Received token: eyJhbGciOiJIUzI... for path: /api/reports/dashboard
+[2026-07-13T07:01:38.306Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:01:38.346Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:01:59.709Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:01:59.712Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:01:59.722Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:01:59.724Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:01:59.759Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:01:59.770Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:02:00.192Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:02:00.195Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:02:00.237Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:02:04.876Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:02:04.878Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:02:04.920Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:02:10.892Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/razorpay-order
+[2026-07-13T07:02:10.894Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:02:10.935Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:02:12.494Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/verify-razorpay
+[2026-07-13T07:02:12.495Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:02:12.539Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:02:15.384Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:02:15.385Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:02:15.388Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:02:15.390Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:02:15.428Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:02:15.451Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:02:18.793Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:02:18.795Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:02:18.797Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:02:18.799Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:02:18.835Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:02:18.840Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:02:19.841Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:02:19.845Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:02:19.889Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:18:37.059Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:18:37.067Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:18:37.081Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:18:37.083Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:18:37.131Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:18:37.140Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:18:41.649Z] Received token: eyJhbGciOiJIUzI... for path: /api/admin/dashboard
+[2026-07-13T07:18:41.652Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:18:41.699Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:18:41.974Z] Received token: eyJhbGciOiJIUzI... for path: /api/admin/dashboard
+[2026-07-13T07:18:41.977Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:18:42.013Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:18:46.871Z] Received token: eyJhbGciOiJIUzI... for path: /api/admin/invoice-templates
+[2026-07-13T07:18:46.881Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:18:46.926Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:18:47.446Z] Received token: eyJhbGciOiJIUzI... for path: /api/admin/invoice-templates
+[2026-07-13T07:18:47.456Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:18:47.504Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:19:05.641Z] Received token: eyJhbGciOiJIUzI... for path: /api/admin/invoice-templates/6a51ea059b6f4c8eaad72657
+[2026-07-13T07:19:05.644Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:19:05.684Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:19:06.889Z] Received token: eyJhbGciOiJIUzI... for path: /api/admin/invoice-templates
+[2026-07-13T07:19:06.891Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:19:06.929Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:19:19.837Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:19:19.844Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:19:19.847Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:19:19.850Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:19:19.853Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:19:19.857Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:19:19.861Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:19:19.864Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:19:19.885Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:19:19.894Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:19:19.906Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:19:19.910Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:19:35.932Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:19:35.936Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T07:19:35.984Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T07:20:24.480Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:20:24.489Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:20:24.503Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:20:24.511Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:20:24.539Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:20:24.554Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:20:24.816Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:20:24.819Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:20:24.823Z] Received token: eyJhbGciOiJIUzI... for path: /api/reports/dashboard
+[2026-07-13T07:20:24.826Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:20:24.860Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:20:24.863Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:20:25.311Z] Received token: eyJhbGciOiJIUzI... for path: /api/reports/dashboard
+[2026-07-13T07:20:25.318Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:20:25.365Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:20:27.617Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:20:27.626Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:20:27.667Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:20:31.457Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/razorpay-order
+[2026-07-13T07:20:31.462Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:20:31.505Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:20:33.062Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/verify-razorpay
+[2026-07-13T07:20:33.068Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:20:33.130Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:20:35.880Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:20:35.882Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:20:35.889Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:20:35.895Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:20:35.939Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:20:35.952Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:20:38.727Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:20:38.729Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:20:38.732Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:20:38.734Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:20:38.771Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:20:38.773Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:20:40.209Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:20:40.221Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:20:40.268Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:11.829Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:21:11.832Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:11.839Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:21:11.842Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:11.845Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:21:11.849Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:11.874Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:11.888Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:11.893Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:12.943Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:21:12.950Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:13.010Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:16.769Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:21:16.775Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:16.777Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:21:16.779Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:16.781Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:21:16.783Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:16.812Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:16.822Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:16.834Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:17.754Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:21:17.757Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:17.798Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:21.930Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:21:21.933Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:21.936Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:21:21.939Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:21.942Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:21:21.943Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:21.974Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:21.979Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:21.987Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:22.901Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:21:22.906Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:22.951Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:25.708Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:21:25.711Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:25.713Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:21:25.717Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:25.720Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:21:25.723Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:25.754Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:25.761Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:25.767Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:26.554Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:21:26.561Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:26.606Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:29.398Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:21:29.401Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:29.415Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:21:29.418Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:29.422Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:21:29.427Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:29.451Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:29.463Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:29.466Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:30.250Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:21:30.253Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:30.292Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:32.803Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:21:32.805Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:32.809Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:21:32.812Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:32.814Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:21:32.816Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:32.842Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:32.850Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:32.855Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:33.503Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:21:33.506Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:33.543Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:36.023Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:21:36.025Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:36.029Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:21:36.035Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:36.038Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:21:36.040Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:36.066Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:36.071Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:36.090Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:36.661Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:21:36.667Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:36.711Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:59.026Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:21:59.030Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:59.037Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:21:59.039Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:59.041Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:21:59.043Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:59.070Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:59.083Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:59.087Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:21:59.639Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:21:59.643Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:21:59.679Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:04.445Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:22:04.448Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:04.454Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:22:04.457Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:04.458Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:22:04.460Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:04.491Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:04.494Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:04.503Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:04.639Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:22:04.643Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:04.706Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:06.045Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:22:06.047Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:06.052Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:22:06.055Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:06.058Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:22:06.060Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:06.094Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:06.097Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:06.104Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:07.251Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:22:07.254Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:07.256Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:22:07.259Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:07.261Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:22:07.263Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:07.295Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:07.300Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:07.313Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:08.211Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:22:08.213Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:08.216Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:22:08.218Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:08.220Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:22:08.223Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:08.258Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:08.262Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:08.275Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:08.801Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:22:08.805Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:08.809Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:22:08.811Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:08.816Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:22:08.821Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:08.854Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:08.861Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:08.865Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:09.340Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:22:09.346Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:09.396Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:11.381Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:22:11.385Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:11.390Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:22:11.392Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:11.396Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:22:11.398Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:11.435Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:11.439Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:11.449Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:11.977Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:22:11.980Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:12.027Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:18.193Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:22:18.198Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:18.201Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:22:18.203Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:18.205Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:22:18.207Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:18.239Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:18.246Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:18.250Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:22:18.827Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:22:18.837Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:22:18.884Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:32.777Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:27:32.781Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:32.788Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:27:32.789Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:32.791Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:27:32.794Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:32.832Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:32.837Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:32.841Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:33.398Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:27:33.403Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:33.463Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:36.129Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:27:36.134Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:36.138Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:27:36.140Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:36.141Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:27:36.143Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:36.178Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:36.181Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:36.187Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:36.765Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:27:36.775Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:36.836Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:38.680Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:27:38.683Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:38.688Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:27:38.691Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:38.694Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:27:38.696Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:38.728Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:38.730Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:38.737Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:39.220Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:27:39.225Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:39.271Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:41.343Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:27:41.349Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:41.351Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:27:41.353Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:41.354Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:27:41.356Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:41.390Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:41.396Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:41.400Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:41.987Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:27:41.996Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:42.050Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:44.069Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:27:44.072Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:44.075Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:27:44.079Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:44.081Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:27:44.084Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:44.119Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:44.123Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:44.126Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:44.731Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:27:44.738Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:44.784Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:46.919Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:27:46.923Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:46.926Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:27:46.928Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:46.929Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:27:46.931Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:46.970Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:46.973Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:46.976Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:47.532Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:27:47.538Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:47.586Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:56.707Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:27:56.710Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:56.713Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:27:56.715Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:56.719Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:27:56.723Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:56.755Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:56.760Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:56.763Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:57.507Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:27:57.514Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:57.565Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:59.516Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:27:59.519Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:59.523Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:27:59.525Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:59.527Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:27:59.531Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:27:59.562Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:59.569Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:27:59.576Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:28:00.277Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:28:00.281Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:28:00.291Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:28:00.293Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:28:00.298Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:28:00.301Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:28:00.331Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:28:00.335Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:28:00.337Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:28:00.736Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:28:00.741Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:28:00.786Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:28:23.213Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:28:23.216Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:28:23.222Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:28:23.226Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:28:23.229Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:28:23.231Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:28:23.260Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:28:23.279Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:28:23.283Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:28:23.824Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:28:23.829Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:28:23.879Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:28:34.196Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:28:34.201Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:28:34.211Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:28:34.213Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:28:34.216Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:28:34.219Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:28:34.258Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:28:34.265Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:28:34.274Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:28:34.893Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:28:34.897Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:28:34.949Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:37:08.165Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:37:08.171Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:37:08.183Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:37:08.186Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:37:08.190Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:37:08.193Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:37:08.233Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:37:08.246Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:37:08.252Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:37:08.450Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:37:08.457Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:37:08.527Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:38:26.800Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:38:26.807Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:38:26.821Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:38:26.827Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:38:26.831Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:38:26.834Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:38:26.888Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:38:26.899Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:38:26.907Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:38:27.095Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:38:27.098Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:38:27.157Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:39:37.104Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:39:37.114Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:39:37.122Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:39:37.125Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:39:37.128Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:39:37.130Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:39:37.169Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:39:37.172Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:39:37.176Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:39:37.344Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:39:37.348Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:39:37.404Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:39:55.050Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:39:55.053Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:39:55.060Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:39:55.064Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:39:55.067Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:39:55.070Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:39:55.226Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:39:55.230Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:39:55.241Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:39:55.474Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:39:55.477Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:39:55.537Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:40:44.588Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:40:44.598Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:40:44.602Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:40:44.604Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:40:44.609Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:40:44.612Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:40:44.651Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:40:44.656Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:40:44.659Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:40:44.839Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:40:44.843Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:40:44.899Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:43:29.804Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:43:29.807Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:43:29.812Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:43:29.815Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:43:29.818Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:43:29.821Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:43:29.852Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:43:29.859Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:43:29.869Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:43:30.050Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:43:30.052Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:43:30.112Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:43:33.512Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:43:33.515Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:43:33.516Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:43:33.518Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:43:33.521Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:43:33.524Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:43:33.549Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:43:33.561Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:43:33.576Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:43:33.747Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:43:33.752Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:43:33.819Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:43:49.297Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:43:49.299Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:43:49.302Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:43:49.305Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:43:49.309Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:43:49.312Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:43:49.346Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:43:49.349Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:43:49.372Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:43:49.562Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:43:49.567Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:43:49.627Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:44:39.985Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:44:39.999Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:44:40.010Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:44:40.017Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:44:40.027Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:44:40.034Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:44:40.057Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:44:40.066Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:44:40.073Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:44:40.237Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:44:40.239Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:44:40.300Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:44:46.094Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:44:46.096Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:44:46.102Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:44:46.106Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:44:46.107Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:44:46.110Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:44:46.153Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:44:46.155Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:44:46.181Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:44:46.368Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:44:46.372Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:44:46.428Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:44:51.455Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:44:51.458Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:44:51.461Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:44:51.464Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:44:51.472Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:44:51.474Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:44:51.498Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:44:51.507Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:44:51.517Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:44:51.698Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:44:51.703Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:44:51.761Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:44:53.777Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:44:53.780Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:44:53.785Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:44:53.788Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:44:53.790Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:44:53.792Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:44:53.821Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:44:53.829Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:44:53.847Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:44:54.016Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:44:54.018Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:44:54.089Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:45:50.791Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:45:50.794Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:45:50.798Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:45:50.800Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:45:50.803Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:45:50.805Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:45:50.833Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:45:50.842Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:45:50.854Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:45:51.029Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:45:51.031Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:45:51.083Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:45:54.464Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:45:54.467Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:45:54.470Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T07:45:54.473Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:45:54.477Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T07:45:54.480Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:45:54.506Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:45:54.519Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:45:54.523Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T07:45:54.699Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T07:45:54.704Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T07:45:54.761Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T08:03:55.766Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T08:03:55.778Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T08:03:55.797Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T08:03:55.811Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T08:03:55.815Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T08:03:55.820Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T08:03:55.860Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T08:03:55.862Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T08:03:55.866Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T08:03:56.052Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T08:03:56.060Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T08:03:56.124Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T08:39:30.564Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T08:39:30.568Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T08:39:30.578Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T08:39:30.583Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T08:39:30.588Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T08:39:30.597Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T08:39:30.941Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T08:39:30.977Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T08:39:31.126Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-13T08:39:31.132Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-13T08:39:31.184Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T08:39:31.298Z] Authenticated user: undefined (Role: vendor)
+[2026-07-13T08:44:13.474Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-13T08:44:13.482Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T08:44:13.500Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-13T08:44:13.502Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T08:44:13.546Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T08:44:13.549Z] Received token: eyJhbGciOiJIUzI... for path: /api/admin/dashboard
+[2026-07-13T08:44:13.551Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T08:44:13.556Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T08:44:13.609Z] Authenticated user: admin@udaan.com (Role: admin)
+[2026-07-13T08:44:14.069Z] Received token: eyJhbGciOiJIUzI... for path: /api/admin/dashboard
+[2026-07-13T08:44:14.071Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
+[2026-07-13T08:44:14.124Z] Authenticated user: admin@udaan.com (Role: admin)

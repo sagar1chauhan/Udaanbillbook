@@ -8,6 +8,7 @@ import { BusinessTemplate } from "./BusinessTemplate";
 import { CorporateTemplate } from "./CorporateTemplate";
 import { RetailTemplate } from "./RetailTemplate";
 import { ProfessionalTemplate } from "./ProfessionalTemplate";
+import { EWayBillTemplate } from "./EWayBillTemplate";
 import { CustomHTMLTemplate } from "./CustomHTMLTemplate";
 
 export function normalizeInvoice(inv) {
@@ -89,8 +90,11 @@ export function InvoiceTemplateRenderer({ invoice, printSettings, gstSettings, t
 
   // Resolve template components
   const templateJSX = (() => {
+    if (templateName === "E way bill") {
+      return <EWayBillTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
+    }
     if (templateData?.isCustom) {
-      return <CustomHTMLTemplate invoice={normalized} printSet={printSet} customHtml={templateData.customHtml} activeColor={activeColor} />;
+      return <CustomHTMLTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} customHtml={templateData.customHtml} activeColor={activeColor} numberToWords={numberToWords} />;
     }
     switch (templateName) {
       case "GST Boxed":
