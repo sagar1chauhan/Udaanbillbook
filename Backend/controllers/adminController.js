@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Plan = require('../models/Plan');
 const Ticket = require('../models/Ticket');
 const PlatformSettings = require('../models/PlatformSettings');
+const InvoiceTemplate = require('../models/InvoiceTemplate');
 const Invoice = require('../models/Invoice');
 const Payment = require('../models/Payment');
 const Item = require('../models/Item');
@@ -853,6 +854,27 @@ const updateAdminProfile = async (req, res) => {
   }
 };
 
+// @desc    Update billing settings (limit & ads) for a vendor
+// @route   PUT /api/admin/users/:id/billing-settings
+// @access  Private
+const updateBillingSettings = async (req, res) => {
+  try {
+    const { billLimit, showAds } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    if (billLimit !== undefined) user.billLimit = Number(billLimit);
+    if (showAds !== undefined) user.showAds = Boolean(showAds);
+
+    await user.save();
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Delete user (SuperAdmin only)
 // @route   DELETE /api/admin/users/:id
 // @access  Private
@@ -867,6 +889,103 @@ const deleteUser = async (req, res) => {
     }
     await user.deleteOne();
     res.status(200).json({ message: 'User deleted successfully', id: req.params.id });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// =============================================
+// INVOICE TEMPLATE CRUD (Admin-managed)
+// =============================================
+
+// @desc    Get all invoice templates
+// @route   GET /api/admin/invoice-templates
+// @access  Private (Admin)
+const getInvoiceTemplates = async (req, res) => {
+  try {
+    const templates = await InvoiceTemplate.find({}).sort({ sortOrder: 1 });
+    res.status(200).json(templates);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Create a new invoice template
+// @route   POST /api/admin/invoice-templates
+// @access  Private (Admin)
+const createInvoiceTemplate = async (req, res) => {
+  try {
+    const { name, description, componentKey, planTier, previewColor, previewStyle, isActive, sortOrder, isCustom, customHtml } = req.body;
+
+    if (!name || !componentKey) {
+      return res.status(400).json({ message: 'Name and componentKey are required' });
+    }
+
+    const existing = await InvoiceTemplate.findOne({ name });
+    if (existing) {
+      return res.status(400).json({ message: `Template "${name}" already exists` });
+    }
+
+    const template = await InvoiceTemplate.create({
+      name,
+      description: description || '',
+      componentKey,
+      planTier: planTier || 'Free',
+      previewColor: previewColor || 'bg-slate-800',
+      previewStyle: previewStyle || 'header-bar',
+      isActive: isActive !== undefined ? isActive : true,
+      sortOrder: sortOrder || 0,
+      isCustom: isCustom || false,
+      customHtml: customHtml || ''
+    });
+
+    res.status(201).json(template);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Update an invoice template
+// @route   PUT /api/admin/invoice-templates/:id
+// @access  Private (Admin)
+const updateInvoiceTemplate = async (req, res) => {
+  try {
+    const template = await InvoiceTemplate.findById(req.params.id);
+    if (!template) {
+      return res.status(404).json({ message: 'Template not found' });
+    }
+
+    const { name, description, componentKey, planTier, previewColor, previewStyle, isActive, sortOrder, isCustom, customHtml } = req.body;
+
+    if (name !== undefined) template.name = name;
+    if (description !== undefined) template.description = description;
+    if (componentKey !== undefined) template.componentKey = componentKey;
+    if (planTier !== undefined) template.planTier = planTier;
+    if (previewColor !== undefined) template.previewColor = previewColor;
+    if (previewStyle !== undefined) template.previewStyle = previewStyle;
+    if (isActive !== undefined) template.isActive = isActive;
+    if (sortOrder !== undefined) template.sortOrder = sortOrder;
+    if (isCustom !== undefined) template.isCustom = isCustom;
+    if (customHtml !== undefined) template.customHtml = customHtml;
+
+    const updated = await template.save();
+    res.status(200).json(updated);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete an invoice template
+// @route   DELETE /api/admin/invoice-templates/:id
+// @access  Private (Admin)
+const deleteInvoiceTemplate = async (req, res) => {
+  try {
+    const template = await InvoiceTemplate.findById(req.params.id);
+    if (!template) {
+      return res.status(404).json({ message: 'Template not found' });
+    }
+    await template.deleteOne();
+    res.status(200).json({ message: 'Template deleted successfully', id: req.params.id });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -892,5 +1011,10 @@ module.exports = {
   getPlatformSettingsData,
   updatePlatformSettingsData,
   getAdminProfile,
-  updateAdminProfile
+  updateAdminProfile,
+  updateBillingSettings,
+  getInvoiceTemplates,
+  createInvoiceTemplate,
+  updateInvoiceTemplate,
+  deleteInvoiceTemplate
 };

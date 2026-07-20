@@ -41,6 +41,7 @@ import { SupportTickets } from "./modules/superadmin/pages/SupportTickets";
 import { ActivityLog } from "./modules/superadmin/pages/ActivityLog";
 import { SASettings } from "./modules/superadmin/pages/SASettings";
 import { BusinessCategories } from "./modules/superadmin/pages/BusinessCategories";
+import { InvoiceTemplateManager } from "./modules/superadmin/pages/InvoiceTemplateManager";
 
 function SubscriptionGuard({ children, feature }) {
   const { canAccessFeature, hydrated } = useSubscription();
@@ -183,6 +184,7 @@ export default function App() {
           <Route path="/admin/activity" element={<ActivityLog />} />
           <Route path="/admin/settings" element={<SASettings />} />
           <Route path="/admin/categories" element={<BusinessCategories />} />
+          <Route path="/admin/templates" element={<InvoiceTemplateManager />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -50,6 +50,18 @@ const userSchema = new mongoose.Schema({
   permissions: [{
     type: String
   }],
+  showAds: {
+    type: Boolean,
+    default: false
+  },
+  billLimit: {
+    type: Number,
+    default: -1
+  },
+  billsGenerated: {
+    type: Number,
+    default: 0
+  },
   ownerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'

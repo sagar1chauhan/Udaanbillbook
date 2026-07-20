@@ -8,6 +8,8 @@ import { BusinessTemplate } from "./BusinessTemplate";
 import { CorporateTemplate } from "./CorporateTemplate";
 import { RetailTemplate } from "./RetailTemplate";
 import { ProfessionalTemplate } from "./ProfessionalTemplate";
+import { EWayBillTemplate } from "./EWayBillTemplate";
+import { CustomHTMLTemplate } from "./CustomHTMLTemplate";
 
 export function normalizeInvoice(inv) {
   if (!inv) return null;
@@ -53,7 +55,7 @@ export function normalizeInvoice(inv) {
   };
 }
 
-export function InvoiceTemplateRenderer({ invoice, printSettings, gstSettings, templateName, themeColor, numberToWords }) {
+export function InvoiceTemplateRenderer({ invoice, printSettings, gstSettings, templateName, templateData, themeColor, numberToWords }) {
   const { user } = useMockAuth();
   if (!invoice) return null;
   const normalized = normalizeInvoice(invoice);
@@ -88,6 +90,12 @@ export function InvoiceTemplateRenderer({ invoice, printSettings, gstSettings, t
 
   // Resolve template components
   const templateJSX = (() => {
+    if (templateName === "E way bill") {
+      return <EWayBillTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;
+    }
+    if (templateData?.isCustom) {
+      return <CustomHTMLTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} customHtml={templateData.customHtml} activeColor={activeColor} numberToWords={numberToWords} />;
+    }
     switch (templateName) {
       case "GST Boxed":
         return <GSTBoxedTemplate invoice={normalized} printSet={printSet} gstSet={gstSet} activeColor={activeColor} numberToWords={numberToWords} />;

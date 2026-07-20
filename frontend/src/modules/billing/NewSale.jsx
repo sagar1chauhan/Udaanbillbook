@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { ArrowLeft, Printer, Plus, Send, Trash2, Eye } from "lucide-react";
+import { ArrowLeft, ReceiptText, Printer, Plus, Send, Trash2, X, ShieldCheck, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -12,6 +12,56 @@ import { validateUtr, validateUpi } from "@/lib/validation";
 import { useMockAuth } from "@/lib/auth-store";
 import { InvoiceTemplateRenderer } from "@/components/invoice-templates/InvoiceTemplateRenderer";
 import { usePlatformSettings } from "@/lib/platform-settings";
+
+function TemplatePreviewMini({ previewColor, previewStyle }) {
+  const base = "h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden";
+
+  if (previewStyle === "boxed") {
+    return (
+      <div className={base}>
+        <div className={`h-1.5 ${previewColor} w-full rounded-sm`} />
+        <div className="h-1 bg-slate-100 w-2/3" />
+        <div className="flex-1 border border-slate-200" />
+      </div>
+    );
+  }
+  if (previewStyle === "minimal") {
+    return (
+      <div className={`${base} justify-center`}>
+        <div className={`h-0.5 ${previewColor} w-3/4`} />
+        <div className="h-3 w-full space-y-0.5 mt-1">
+          <div className="h-0.5 bg-slate-200 w-full" />
+          <div className="h-0.5 bg-slate-200 w-full" />
+        </div>
+      </div>
+    );
+  }
+  if (previewStyle === "double-border") {
+    return (
+      <div className={`${base} border-double border-4 border-slate-700`}>
+        <div className="h-1 bg-slate-200 w-full" />
+        <div className="flex-1 border-t border-slate-300" />
+      </div>
+    );
+  }
+  if (previewStyle === "center-header") {
+    return (
+      <div className={`${base} justify-between`}>
+        <div className={`h-1 ${previewColor} w-1/3 mx-auto`} />
+        <div className="h-2 border-t border-b border-slate-100 w-full" />
+        <div className="h-1 bg-slate-300 w-1/4 self-end" />
+      </div>
+    );
+  }
+  // default: header-bar
+  return (
+    <div className={base}>
+      <div className={`h-2.5 ${previewColor} w-full`} />
+      <div className="h-1 bg-slate-100 w-1/2" />
+      <div className="flex-1 border-t border-slate-100" />
+    </div>
+  );
+}
 
 function SignaturePad({ value, onChange }) {
   const canvasRef = useRef(null);
@@ -260,6 +310,21 @@ export default function NewSale() {
   const [invoiceTemplate, setInvoiceTemplate] = useState(() => getInitialState("invoiceTemplate", "GST Boxed"));
   const [themeColor, setThemeColor] = useState(() => getInitialState("themeColor", "slate"));
 
+  // Dynamic templates from API
+  const [availableTemplates, setAvailableTemplates] = useState([]);
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const res = await api.get("/settings/invoice-templates");
+        setAvailableTemplates(res.data);
+      } catch (err) {
+        // Fallback: if API fails, use empty array (hardcoded templates removed)
+        console.error("Failed to fetch invoice templates", err);
+      }
+    };
+    fetchTemplates();
+  }, []);
+
   // Initialize seller details & footer from settings once settings are loaded
   useEffect(() => {
     if (settings?.printSettings) {
@@ -328,6 +393,33 @@ export default function NewSale() {
     sellerName, sellerAddress, sellerEmail, sellerPhone, sellerGstin,
     terms, description, receivedBy, deliveredBy, acknowledgement, signatureText, signatureUrl, signatureImgUrl, partyBalance
   ]);
+
+  const [showAdModal, setShowAdModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showSubModal, setShowSubModal] = useState(false);
+  const [pendingSave, setPendingSave] = useState(null);
+  const [regForm, setRegForm] = useState({ businessName: "", address: "", type: "Retail" });
+
+  useEffect(() => {
+    const saved = sessionStorage.getItem('pendingNewSale');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.customer) setCustomer(data.customer);
+        if (data.receivedAmount !== undefined) setReceivedAmount(data.receivedAmount);
+        if (data.lines) setLines(data.lines);
+        if (data.pendingSave) {
+          setPendingSave(data.pendingSave);
+          const isResume = sessionStorage.getItem('resumeInvoiceFlow') === 'true';
+          if (isResume) {
+            sessionStorage.removeItem('resumeInvoiceFlow');
+            setTimeout(() => continueFlow(null, true), 300);
+          }
+        }
+      } catch(e) {}
+      sessionStorage.removeItem('pendingNewSale');
+    }
+  }, []);
 
   const handleUtrChange = (val) => {
     setPaymentDetails({ ...paymentDetails, utr: val });
@@ -492,6 +584,52 @@ export default function NewSale() {
       paymentDetails: status === "Unpaid" ? {} : paymentDetails
     };
 
+    setPendingSave({ isSend, payload });
+
+    try {
+      const { data: user } = await api.get('/auth/me');
+      
+      if (user.showAds) {
+        setShowAdModal(true);
+        return; // wait for ad to finish
+      }
+      
+      continueFlow(user);
+    } catch (err) {
+      toast.error("Failed to check user settings.");
+    }
+  };
+
+  const continueFlow = async (user = null, forceResume = false) => {
+    if (!user) {
+      try {
+        const res = await api.get('/auth/me');
+        user = res.data;
+      } catch (e) {
+        toast.error("Failed to check user settings.");
+        return;
+      }
+    }
+
+    if (user.billsGenerated === 0 && !forceResume) {
+      sessionStorage.setItem('pendingNewSale', JSON.stringify({
+        customer, receivedAmount, lines, pendingSave
+      }));
+      navigate('/register', { state: { returnUrl: '/sale/new' } });
+      return;
+    }
+
+    if (user.billLimit !== -1 && user.billsGenerated >= user.billLimit) {
+      setShowSubModal(true);
+      return;
+    }
+
+    executeSave();
+  };
+
+  const executeSave = async () => {
+    if (!pendingSave) return;
+    const { isSend, payload } = pendingSave;
     try {
       const endpoint = isSend ? "/invoices/send" : "/invoices";
       await api.post(endpoint, payload);
@@ -502,7 +640,13 @@ export default function NewSale() {
       const rolePrefix = (userRole === "staff" || userRole === "viewer") ? "/staff" : "/vendor";
       navigate(`${rolePrefix}/billing`);
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || "Failed to save sale invoice");
+      if (err.response?.data?.message === 'LIMIT_REACHED') {
+        setShowSubModal(true);
+      } else {
+        toast.error(err.response?.data?.message || err.message || "Failed to save sale invoice");
+      }
+    } finally {
+      setPendingSave(null);
     }
   };
 
@@ -1408,6 +1552,7 @@ export default function NewSale() {
                 gstin: sellerGstin
               }}
               templateName={invoiceTemplate}
+              templateData={availableTemplates.find(t => t.name === invoiceTemplate)}
               themeColor={themeColor}
               numberToWords={numberToWords}
             />
@@ -1454,135 +1599,8 @@ export default function NewSale() {
                 </span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                {[
-                  {
-                    id: "GST Boxed",
-                    name: "GST Boxed",
-                    desc: "Classic Tally Grid",
-                    plan: "Free",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden">
-                        <div className="h-1.5 bg-slate-800 w-full" />
-                        <div className="h-1 bg-slate-100 w-2/3" />
-                        <div className="flex-1 border border-slate-200" />
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Classic White",
-                    name: "Classic White",
-                    desc: "Clean Minimal",
-                    plan: "Free",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden justify-between">
-                        <div className="h-1 bg-slate-400 w-1/3 mx-auto" />
-                        <div className="h-2 border-t border-b border-slate-100 w-full" />
-                        <div className="h-1 bg-slate-300 w-1/4 self-end" />
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Modern Green",
-                    name: "Modern Green",
-                    desc: "Emerald Solid",
-                    plan: "Silver",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden">
-                        <div className="h-2.5 bg-emerald-600 w-full" />
-                        <div className="h-1 bg-slate-100 w-1/2" />
-                        <div className="flex-1 border-t border-slate-100" />
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Stylish Blue",
-                    name: "Stylish Blue",
-                    desc: "Navy Corporate",
-                    plan: "Gold",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden">
-                        <div className="h-2.5 bg-slate-900 w-full border-b border-blue-600" />
-                        <div className="flex-1 border-t border-slate-100" />
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Minimalist",
-                    name: "Minimalist",
-                    desc: "Compact Mono",
-                    plan: "Gold",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-200 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden justify-center">
-                        <div className="h-0.5 bg-slate-400 w-3/4 animate-pulse" />
-                        <div className="h-3 w-full space-y-0.5 mt-1">
-                          <div className="h-0.5 bg-slate-200 w-full" />
-                          <div className="h-0.5 bg-slate-200 w-full" />
-                        </div>
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Crimson Rose",
-                    name: "Crimson Rose",
-                    desc: "Red Highlight",
-                    plan: "Gold",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden">
-                        <div className="h-2.5 bg-rose-600 w-full" />
-                        <div className="flex-1 border-t border-slate-100" />
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Warm Amber",
-                    name: "Warm Amber",
-                    desc: "Amber Gold",
-                    plan: "Enterprise",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden">
-                        <div className="h-2.5 bg-amber-500 w-full" />
-                        <div className="flex-1 border-t border-slate-100" />
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Royal Purple",
-                    name: "Royal Purple",
-                    desc: "Royal Violet",
-                    plan: "Enterprise",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden">
-                        <div className="h-2.5 bg-purple-600 w-full" />
-                        <div className="flex-1 border-t border-slate-100" />
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Charcoal Dark",
-                    name: "Charcoal Dark",
-                    desc: "Sleek Dark",
-                    plan: "Enterprise",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden">
-                        <div className="h-2.5 bg-slate-800 w-full" />
-                        <div className="flex-1 border-t border-slate-100" />
-                      </div>
-                    )
-                  },
-                  {
-                    id: "Tally Classic",
-                    name: "Tally Classic",
-                    desc: "Retro Monochrome",
-                    plan: "Enterprise",
-                    preview: (
-                      <div className="h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden border-double border-4 border-slate-700">
-                        <div className="h-1 bg-slate-200 w-full" />
-                        <div className="flex-1 border-t border-slate-300" />
-                      </div>
-                    )
-                  }
-                ].map((tpl) => {
-                  const requiredPlan = tpl.plan;
+                {availableTemplates.map((tpl) => {
+                  const requiredPlan = tpl.planTier;
                   const currentPlan = user?.subscription?.plan || "Free";
                   
                   const plansOrder = ["Free", "Silver", "Gold", "Enterprise"];
@@ -1590,27 +1608,27 @@ export default function NewSale() {
 
                   const handleSelect = () => {
                     if (!hasAccess) {
-                      toast.error(`"${tpl.id}" is a premium template. Please upgrade to ${requiredPlan} Plan to unlock this format.`);
+                      toast.error(`"${tpl.name}" is a premium template. Please upgrade to ${requiredPlan} Plan to unlock this format.`);
                       return;
                     }
-                    setInvoiceTemplate(tpl.id);
+                    setInvoiceTemplate(tpl.name);
                   };
 
                   return (
                     <button
-                      key={tpl.id}
+                      key={tpl._id}
                       onClick={handleSelect}
                       className={`flex flex-col items-center p-2.5 rounded-lg border text-center transition-all relative ${
                         !hasAccess ? "opacity-50 hover:opacity-70 bg-slate-100/50" : ""
                       } ${
-                        invoiceTemplate === tpl.id
+                        invoiceTemplate === tpl.name
                           ? "border-emerald-500 bg-emerald-50/50 shadow-sm ring-1 ring-emerald-500 scale-105"
                           : "border-slate-200 hover:border-slate-300 bg-slate-50/30"
                       }`}
                     >
-                      {tpl.preview}
+                      <TemplatePreviewMini previewColor={tpl.previewColor} previewStyle={tpl.previewStyle} />
                       <span className="text-[10px] font-bold text-slate-800 leading-tight block">{tpl.name}</span>
-                      <span className="text-[8px] text-slate-500 block leading-tight mt-0.5">{tpl.desc}</span>
+                      <span className="text-[8px] text-slate-500 block leading-tight mt-0.5">{tpl.description}</span>
                       {!hasAccess && (
                         <span className="absolute top-1 right-1 text-[8px] bg-amber-500 text-white px-1.5 py-0.2 rounded font-extrabold uppercase scale-90">
                           {requiredPlan}
@@ -1623,6 +1641,100 @@ export default function NewSale() {
             </div>
           </div>
         </div>
+
+      {/* Ad Modal */}
+      {showAdModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <div className="bg-emerald-50 p-6 flex flex-col items-center justify-center text-center">
+              <span className="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-2">Advertisement</span>
+              <h3 className="text-xl font-bold text-slate-800 mb-4">Upgrade Your Business Today!</h3>
+              <div className="h-32 w-full bg-emerald-100 rounded-xl mb-4 flex items-center justify-center text-emerald-800/50">
+                [ Sponsored Content ]
+              </div>
+              <p className="text-sm text-slate-600">Get 50% off on premium subscriptions this month.</p>
+            </div>
+            <div className="p-4 flex justify-end">
+              <Button onClick={() => { setShowAdModal(false); continueFlow(); }} className="bg-emerald-600 hover:bg-emerald-700">
+                Skip Ad & Continue
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Register Modal */}
+      {showRegisterModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <ShieldCheck className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800">Complete Profile</h3>
+                  <p className="text-xs text-slate-500">Required before your first bill</p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Business Name</label>
+                  <Input value={regForm.businessName} onChange={e => setRegForm({...regForm, businessName: e.target.value})} placeholder="e.g. Udaan Store" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Business Type</label>
+                  <Input value={regForm.type} onChange={e => setRegForm({...regForm, type: e.target.value})} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Address</label>
+                  <Input value={regForm.address} onChange={e => setRegForm({...regForm, address: e.target.value})} />
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-slate-50 border-t flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => { setShowRegisterModal(false); setPendingSave(null); }}>Cancel</Button>
+              <Button onClick={() => {
+                // Mock save profile
+                setShowRegisterModal(false);
+                setShowSubModal(true); // show sub modal next
+              }} className="bg-blue-600 hover:bg-blue-700">Save Details</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Subscription Modal */}
+      {showSubModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <h3 className="text-xl font-bold text-slate-800 mb-2">Choose a Plan</h3>
+              <p className="text-sm text-slate-500 mb-6">Select a subscription plan to continue generating bills.</p>
+              
+              <div className="space-y-3">
+                <div className="border border-emerald-200 bg-emerald-50 p-4 rounded-xl cursor-pointer hover:bg-emerald-100 transition-colors" onClick={() => { setShowSubModal(false); executeSave(); }}>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="font-bold text-emerald-800">Free Trial</span>
+                    <span className="font-bold text-emerald-600">₹0/mo</span>
+                  </div>
+                  <p className="text-xs text-emerald-600 text-left">Generate up to 10 bills free</p>
+                </div>
+                <div className="border border-slate-200 p-4 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => { navigate('/pricing'); }}>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="font-bold text-slate-800">Pro Plan</span>
+                    <span className="font-bold text-blue-600">₹499/mo</span>
+                  </div>
+                  <p className="text-xs text-slate-500 text-left">Unlimited bills + Priority support</p>
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-slate-50 border-t flex justify-end">
+              <Button variant="ghost" onClick={() => { setShowSubModal(false); setPendingSave(null); }}>Cancel</Button>
+            </div>
+          </div>
+        </div>
+      )}
 
         {/* Floating Bottom Action bar */}
       <div className="sticky bottom-0 shrink-0 bg-white border-t p-4 flex gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:justify-center">

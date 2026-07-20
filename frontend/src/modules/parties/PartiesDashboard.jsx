@@ -114,7 +114,6 @@ export function PartiesDashboard() {
     <div className="space-y-6">
       <PageHeader
         title="Parties"
-        subtitle={`${parties.length} customers & suppliers · digital khata`}
         actions={
           <Button className="rounded-xl" onClick={() => setOpen(true)}>
             <Plus className="mr-1 h-4 w-4" /> Add Party
@@ -130,17 +129,17 @@ export function PartiesDashboard() {
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         <Card className="border-0 bg-gradient-to-br from-success-soft to-card shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-          <CardContent className="p-3 sm:p-5">
-            <p className="text-xs font-medium text-muted-foreground">You'll Receive</p>
-            <p className="mt-1 text-xl sm:text-3xl font-bold text-success">{fmt(totalReceivable)}</p>
-            <p className="mt-1 text-[10px] sm:text-xs text-muted-foreground">From {parties.filter((p) => p.balance > 0).length} parties</p>
+          <CardContent className="p-2 sm:p-5 min-w-0">
+            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground truncate">You'll Receive</p>
+            <p className="mt-0.5 sm:mt-1 text-sm sm:text-3xl font-bold text-success truncate">{fmt(totalReceivable)}</p>
+            <p className="mt-0.5 sm:mt-1 text-[9px] sm:text-xs text-muted-foreground truncate">From {parties.filter((p) => p.balance > 0).length} parties</p>
           </CardContent>
         </Card>
         <Card className="border-0 bg-gradient-to-br from-accent-soft to-card shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-          <CardContent className="p-3 sm:p-5">
-            <p className="text-xs font-medium text-muted-foreground">You'll Pay</p>
-            <p className="mt-1 text-xl sm:text-3xl font-bold text-accent-foreground">{fmt(totalPayable)}</p>
-            <p className="mt-1 text-[10px] sm:text-xs text-muted-foreground">To {parties.filter((p) => p.balance < 0).length} suppliers</p>
+          <CardContent className="p-2 sm:p-5 min-w-0">
+            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground truncate">You'll Pay</p>
+            <p className="mt-0.5 sm:mt-1 text-sm sm:text-3xl font-bold text-accent-foreground truncate">{fmt(totalPayable)}</p>
+            <p className="mt-0.5 sm:mt-1 text-[9px] sm:text-xs text-muted-foreground truncate">To {parties.filter((p) => p.balance < 0).length} suppliers</p>
           </CardContent>
         </Card>
       </div>

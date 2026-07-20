@@ -1,4 +1,5 @@
 const Settings = require('../models/Settings');
+const InvoiceTemplate = require('../models/InvoiceTemplate');
 
 // @desc    Get user settings
 // @route   GET /api/settings
@@ -97,9 +98,22 @@ const uploadSignature = async (req, res) => {
   }
 };
 
+// @desc    Get active invoice templates (vendor-facing)
+// @route   GET /api/settings/invoice-templates
+// @access  Private
+const getActiveInvoiceTemplates = async (req, res) => {
+  try {
+    const templates = await InvoiceTemplate.find({ isActive: true }).sort({ sortOrder: 1 });
+    res.status(200).json(templates);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getSettings,
   updateSettings,
   uploadLogo,
-  uploadSignature
+  uploadSignature,
+  getActiveInvoiceTemplates
 };

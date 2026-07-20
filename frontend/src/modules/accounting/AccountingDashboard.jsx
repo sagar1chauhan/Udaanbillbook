@@ -558,12 +558,12 @@ export function AccountingDashboard() {
         title="ERP Accounting & Khata"
         subtitle="Vyapar-grade multi-book accounting, ledgers, statements and financial reports."
         actions={
-          <div className="flex gap-2">
-            <Button variant="outline" className="rounded-xl border-slate-200" onClick={handleOpeningBalance}>
-              <Calculator className="mr-2 h-4 w-4 text-emerald-600" /> Opening Balance: {fmt(openingBalance)}
+          <div className="flex w-full flex-nowrap items-center gap-1.5 sm:gap-2">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none px-2 rounded-xl border-slate-200 h-8 text-[11px] sm:px-4 sm:h-9 sm:text-sm" onClick={handleOpeningBalance}>
+              <Calculator className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600" /> Bal: {fmt(openingBalance)}
             </Button>
-            <Button className="rounded-xl bg-emerald-600 hover:bg-emerald-700" onClick={() => setActiveTab("receipts")}>
-              <Plus className="mr-2 h-4 w-4" /> Receipt In
+            <Button size="sm" className="flex-1 sm:flex-none px-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 h-8 text-[11px] sm:px-4 sm:h-9 sm:text-sm" onClick={() => setActiveTab("receipts")}>
+              <Plus className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Receipt In
             </Button>
           </div>
         }
@@ -583,8 +583,8 @@ export function AccountingDashboard() {
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         {/* Left Side Sub-Navigation */}
-        <div className="w-full lg:w-64 bg-white rounded-2xl p-3 border shadow-sm shrink-0 space-y-1">
-          <p className="text-[10px] font-bold text-slate-400 uppercase px-3 mb-2 tracking-wider">Accounting Books</p>
+        <div className="w-full lg:w-64 bg-white rounded-2xl p-2 sm:p-3 border shadow-sm shrink-0 flex flex-row lg:flex-col overflow-x-auto lg:overflow-visible gap-2 lg:gap-1 lg:space-y-1 [&::-webkit-scrollbar]:hidden">
+          <p className="hidden lg:block text-[10px] font-bold text-slate-400 uppercase px-3 mb-2 tracking-wider">Accounting Books</p>
           {[
             { id: "overview", label: "Overview Dashboard", icon: Wallet },
             { id: "ledger", label: "General Ledger", icon: BookOpen },
@@ -600,15 +600,15 @@ export function AccountingDashboard() {
             <button
               key={nav.id}
               onClick={() => setActiveTab(nav.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-semibold transition-all ${
+              className={`w-max lg:w-full shrink-0 flex items-center gap-2 lg:gap-3 px-3 py-2 sm:py-2.5 rounded-xl text-left text-[11px] sm:text-xs font-semibold transition-all ${
                 activeTab === nav.id 
                   ? "bg-emerald-50 text-emerald-700 shadow-sm" 
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 border lg:border-transparent border-slate-200"
               }`}
             >
-              <nav.icon className={`h-4 w-4 ${activeTab === nav.id ? "text-emerald-600" : "text-slate-400"}`} />
+              <nav.icon className={`h-3.5 w-3.5 lg:h-4 lg:w-4 ${activeTab === nav.id ? "text-emerald-600" : "text-slate-400"}`} />
               {nav.label}
-              {activeTab === nav.id && <ChevronRight className="ml-auto h-3 w-3" />}
+              {activeTab === nav.id && <ChevronRight className="hidden lg:block ml-auto h-3 w-3" />}
             </button>
           ))}
         </div>
@@ -629,17 +629,17 @@ export function AccountingDashboard() {
                   { label: "Today's Collection", val: stats.todayCollection, style: "bg-blue-600 text-white" }
                 ].map((k, idx) => (
                   <Card key={idx} className={`border-0 shadow-sm rounded-xl overflow-hidden ${k.style}`}>
-                    <CardContent className="p-3">
-                      <p className="text-[10px] font-semibold opacity-85 uppercase tracking-wider">{k.label}</p>
-                      <p className="text-lg font-black mt-1.5 truncate">{fmt(k.val)}</p>
-                      <p className="text-[9px] opacity-75 mt-1">▲ +2.4% vs yesterday</p>
+                    <CardContent className="p-2.5 sm:p-3 min-w-0">
+                      <p className="text-[9px] sm:text-[10px] font-semibold opacity-85 uppercase tracking-wider truncate">{k.label}</p>
+                      <p className="text-base sm:text-lg font-black mt-1 sm:mt-1.5 truncate">{fmt(k.val)}</p>
+                      <p className="text-[8px] sm:text-[9px] opacity-75 mt-0.5 sm:mt-1 truncate">▲ +2.4% vs yesterday</p>
                     </CardContent>
                   </Card>
                 ))}
               </div>
 
               {/* Monthly Stats Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                 {[
                   { label: "Today's Expense", val: stats.todayExpense, color: "text-red-500" },
                   { label: "Monthly Sales", val: stats.monthlySales, color: "text-slate-800" },
@@ -647,13 +647,13 @@ export function AccountingDashboard() {
                   { label: "Monthly Profit", val: stats.monthlyProfit, color: "text-emerald-600" }
                 ].map((s, idx) => (
                   <Card key={idx} className="border-0 shadow-sm bg-white rounded-xl">
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-muted-foreground">{s.label}</p>
-                        <p className={`text-lg font-bold mt-1 ${s.color}`}>{fmt(s.val)}</p>
+                    <CardContent className="p-2 sm:p-4 flex items-center justify-between min-w-0">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{s.label}</p>
+                        <p className={`text-sm sm:text-lg font-bold mt-0.5 sm:mt-1 truncate ${s.color}`}>{fmt(s.val)}</p>
                       </div>
-                      <div className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center">
-                        <TrendingUp className="h-4 w-4 text-slate-400" />
+                      <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-slate-50 flex shrink-0 items-center justify-center">
+                        <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400" />
                       </div>
                     </CardContent>
                   </Card>
@@ -754,7 +754,7 @@ export function AccountingDashboard() {
                 </div>
 
                 {/* Filter Controls */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4 pt-2">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 mt-3 sm:mt-4 pt-1 sm:pt-2">
                   <select 
                     value={ledgerFilter.dateRange} 
                     onChange={(e) => setLedgerFilter({...ledgerFilter, dateRange: e.target.value})}
@@ -866,25 +866,25 @@ export function AccountingDashboard() {
           {activeTab === "cashbook" && (
             <div className="space-y-6">
               {/* Cash Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border shadow-sm rounded-xl bg-white">
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Opening Cash Balance</p>
-                    <p className="text-xl font-bold mt-1 text-slate-800">{fmt(openingBalance)}</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                <Card className="border shadow-sm rounded-xl bg-white col-span-2 md:col-span-1">
+                  <CardContent className="p-3 sm:p-4 min-w-0">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Opening Cash Balance</p>
+                    <p className="text-base sm:text-xl font-bold mt-0.5 sm:mt-1 text-slate-800 truncate">{fmt(openingBalance)}</p>
                   </CardContent>
                 </Card>
                 <Card className="border shadow-sm rounded-xl bg-white">
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Total Cash Deposits (IN)</p>
-                    <p className="text-xl font-bold mt-1 text-emerald-600">
+                  <CardContent className="p-3 sm:p-4 min-w-0">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Deposits (IN)</p>
+                    <p className="text-base sm:text-xl font-bold mt-0.5 sm:mt-1 text-emerald-600 truncate">
                       {fmt(combinedEntries.filter(e => e.mode === "Cash").reduce((sum, e) => sum + e.debit, 0))}
                     </p>
                   </CardContent>
                 </Card>
                 <Card className="border shadow-sm rounded-xl bg-white">
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Total Cash Withdrawals (OUT)</p>
-                    <p className="text-xl font-bold mt-1 text-red-500">
+                  <CardContent className="p-3 sm:p-4 min-w-0">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Withdrawals (OUT)</p>
+                    <p className="text-base sm:text-xl font-bold mt-0.5 sm:mt-1 text-red-500 truncate">
                       {fmt(combinedEntries.filter(e => e.mode === "Cash").reduce((sum, e) => sum + e.credit, 0))}
                     </p>
                   </CardContent>
@@ -986,7 +986,7 @@ export function AccountingDashboard() {
                 </CardTitle>
                 <CardDescription>Log sales collections or manual capital additions.</CardDescription>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <form onSubmit={handleReceipt} className="space-y-4">
                   <div>
                     <label className="text-xs font-semibold text-slate-600 mb-1 block">Customer / Party Name</label>
@@ -1002,7 +1002,7 @@ export function AccountingDashboard() {
                     </select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="text-xs font-semibold text-slate-600 mb-1 block">Amount (₹)</label>
                       <Input 
@@ -1028,7 +1028,7 @@ export function AccountingDashboard() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="text-xs font-semibold text-slate-600 mb-1 block">Reference / Voucher No</label>
                       <Input 
@@ -1066,9 +1066,9 @@ export function AccountingDashboard() {
                 </CardTitle>
                 <CardDescription>Log vendor supplier payments, salaries or business expenses.</CardDescription>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <form onSubmit={handlePayment} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="text-xs font-semibold text-slate-600 mb-1 block">Supplier / Party (Optional)</label>
                       <select
@@ -1093,7 +1093,7 @@ export function AccountingDashboard() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <div>
                       <label className="text-xs font-semibold text-slate-600 mb-1 block">Category</label>
                       <select
@@ -1133,7 +1133,7 @@ export function AccountingDashboard() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="text-xs font-semibold text-slate-600 mb-1 block">Reference / Voucher No</label>
                       <Input 
@@ -1171,9 +1171,9 @@ export function AccountingDashboard() {
                 </CardTitle>
                 <CardDescription>Adjust bookkeeping entry (Debit vs Credit accounts).</CardDescription>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <form onSubmit={handleJournal} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="text-xs font-semibold text-slate-600 mb-1 block">Debit Account (Dr)</label>
                       <select
@@ -1240,9 +1240,9 @@ export function AccountingDashboard() {
                 </CardTitle>
                 <CardDescription>Transfer cash to bank, bank to cash, or bank to bank.</CardDescription>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <form onSubmit={handleContra} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="text-xs font-semibold text-slate-600 mb-1 block">From Account</label>
                       <select

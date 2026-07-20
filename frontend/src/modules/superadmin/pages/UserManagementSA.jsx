@@ -43,6 +43,20 @@ export function UserManagementSA() {
     }
   };
 
+  const handleUpdateBilling = async () => {
+    try {
+      const res = await api.put(`/admin/users/${selectedUser._id}/billing-settings`, {
+        billLimit: selectedUser.billLimit,
+        showAds: selectedUser.showAds
+      });
+      toast.success(`Billing settings updated for ${selectedUser.name}`);
+      setUsers(prev => prev.map(u => u._id === selectedUser._id ? res.data : u));
+      setSelectedUser(res.data);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update billing settings");
+    }
+  };
+
   const handleDeleteUser = async (user) => {
     if (!window.confirm(`Are you sure you want to delete user ${user.name}? This action cannot be undone.`)) {
       return;
@@ -268,6 +282,46 @@ export function UserManagementSA() {
                   <p className="text-white font-medium">
                     {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : "N/A"}
                   </p>
+                </div>
+              </div>
+
+              {/* Billing Settings */}
+              <div className="mt-6 pt-6 border-t border-white/8 space-y-4">
+                <h4 className="text-sm font-bold text-white uppercase tracking-wider">Billing & Ads Settings</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Bill Limit (-1 for unlimited)</label>
+                    <input 
+                      type="number" 
+                      value={selectedUser.billLimit ?? -1} 
+                      onChange={(e) => setSelectedUser({ ...selectedUser, billLimit: Number(e.target.value) })}
+                      className="w-full h-9 rounded-lg bg-white/5 border border-white/10 text-white px-3 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
+                    />
+                  </div>
+                  <div className="space-y-1.5 flex flex-col justify-center">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Show Ads Before Billing</label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedUser.showAds || false}
+                        onChange={(e) => setSelectedUser({ ...selectedUser, showAds: e.target.checked })}
+                        className="rounded border-white/20 bg-white/5 text-emerald-500 focus:ring-emerald-500/30 h-4 w-4"
+                      />
+                      <span className="text-white text-sm">Enable Ads</span>
+                    </label>
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Bills Generated</p>
+                    <p className="text-white font-medium text-lg">{selectedUser.billsGenerated || 0}</p>
+                  </div>
+                </div>
+                <div className="flex justify-end pt-2">
+                  <button 
+                    onClick={handleUpdateBilling}
+                    className="rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 text-sm font-semibold transition-colors"
+                  >
+                    Save Billing Settings
+                  </button>
                 </div>
               </div>
             </div>

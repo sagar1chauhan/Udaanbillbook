@@ -56,13 +56,14 @@ const sendOtp = async (req, res) => {
 
     const user = await User.findOne({ phone });
 
-    if (mode === 'register' && user) {
-      return res.status(400).json({ message: 'User already exists. Please login instead.' });
-    }
+    // Allow all modes to send OTP
+    // if (mode === 'register' && user) {
+    //   return res.status(400).json({ message: 'User already exists. Please login instead.' });
+    // }
 
-    if (mode === 'login' && !user) {
-      return res.status(404).json({ message: 'User not found. Please register first.' });
-    }
+    // if (mode === 'login' && !user) {
+    //   return res.status(404).json({ message: 'User not found. Please register first.' });
+    // }
 
     // Generate simulated dynamic 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -96,33 +97,26 @@ const verifyOtp = async (req, res) => {
 
     let user = await User.findOne({ phone });
 
-    if (mode === 'register') {
-      if (user) {
-        // If user already exists but trying to register, just update them or login
-        user.name = name || user.name;
-        user.businessName = business || user.businessName;
-        user.businessAddress = address || user.businessAddress;
-        user.businessType = businessType || user.businessType;
-        user.email = email || user.email;
-        user.role = (phone === "9876543210" ? "admin" : "vendor");
-        await user.save();
-      } else {
-        // Create new user
-        user = await User.create({
-          phone,
-          name: name || "User",
-          businessName: business,
-          businessAddress: address,
-          businessType: businessType,
-          email,
-          role: (phone === "9876543210" ? "admin" : "vendor")
-        });
-      }
-    } else {
-      // Login mode
-      if (!user) {
-        return res.status(404).json({ message: 'User not found. Please register first.' });
-      }
+    if (!user) {
+      // Auto-create new user
+      user = await User.create({
+        phone,
+        name: name || "User",
+        businessName: business,
+        businessAddress: address,
+        businessType: businessType,
+        email,
+        role: (phone === "9876543210" ? "admin" : "vendor")
+      });
+    } else if (mode === 'register') {
+      // If user already exists but trying to register, just update them
+      user.name = name || user.name;
+      user.businessName = business || user.businessName;
+      user.businessAddress = address || user.businessAddress;
+      user.businessType = businessType || user.businessType;
+      user.email = email || user.email;
+      user.role = (phone === "9876543210" ? "admin" : "vendor");
+      await user.save();
     }
     
     // Set login stats
@@ -164,6 +158,9 @@ const getMe = async (req, res) => {
       email: req.user.email,
       businessName: req.user.businessName,
       role: req.user.role,
+      showAds: req.user.showAds,
+      billLimit: req.user.billLimit,
+      billsGenerated: req.user.billsGenerated,
       subscription: responseSubscription
     };
     res.status(200).json(user);

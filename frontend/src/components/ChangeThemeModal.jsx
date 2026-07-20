@@ -1,20 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Check } from "lucide-react";
+import api from "@/lib/api";
 
 export function ChangeThemeModal({ isOpen, onClose, settings, updateSettings }) {
-  const [selectedTheme, setSelectedTheme] = useState(settings?.printSettings?.themeName || "Advanced");
+  const [selectedTheme, setSelectedTheme] = useState(settings?.printSettings?.themeName || "GST Boxed");
   const [selectedColor, setSelectedColor] = useState(settings?.printSettings?.themeColor || "#a855f7"); // Default purple
 
-  const themes = [
-    { id: "Advanced", name: "Advanced Invoice Format", isFree: true, image: "https://via.placeholder.com/150x200?text=Advanced" },
-    { id: "Basic", name: "Basic Invoice", isFree: true, image: "https://via.placeholder.com/150x200?text=Basic" },
-    { id: "Simple", name: "Simple Invoice Format", isFree: true, image: "https://via.placeholder.com/150x200?text=Simple" },
-    { id: "Tally", name: "Tally Theme", isFree: false, image: "https://via.placeholder.com/150x200?text=Tally" },
-    { id: "French", name: "French Elite", isFree: false, image: "https://via.placeholder.com/150x200?text=French" },
-  ];
+  const [availableTemplates, setAvailableTemplates] = useState([]);
+  
+  useEffect(() => {
+    if (isOpen) {
+      api.get("/settings/invoice-templates")
+        .then(res => setAvailableTemplates(res.data))
+        .catch(err => console.error("Failed to fetch templates:", err));
+    }
+  }, [isOpen]);
 
   const colors = [
     "#a855f7", // Purple
@@ -63,21 +66,21 @@ export function ChangeThemeModal({ isOpen, onClose, settings, updateSettings }) 
 
             <ScrollArea className="flex-1 p-4 bg-slate-100">
               <div className="grid grid-cols-2 gap-4">
-                {themes.map((theme) => (
+                {availableTemplates.map((theme) => (
                   <div
-                    key={theme.id}
-                    className={`bg-white rounded-lg border overflow-hidden cursor-pointer transition-all hover:shadow-md ${selectedTheme === theme.id ? "ring-2 ring-blue-500 border-transparent shadow-md" : "border-slate-200"}`}
-                    onClick={() => setSelectedTheme(theme.id)}
+                    key={theme.name}
+                    className={`bg-white rounded-lg border overflow-hidden cursor-pointer transition-all hover:shadow-md ${selectedTheme === theme.name ? "ring-2 ring-blue-500 border-transparent shadow-md" : "border-slate-200"}`}
+                    onClick={() => setSelectedTheme(theme.name)}
                   >
                     <div className="relative aspect-[3/4] bg-slate-100 p-2 border-b">
-                      {theme.isFree && (
+                      {theme.planTier === "Free" && (
                         <div className="absolute top-0 right-0 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg z-10">
                           Free
                         </div>
                       )}
                       {/* Placeholder for theme image - in a real app, use actual thumbnails */}
                       <div className="w-full h-full bg-white shadow-sm border border-slate-200 relative overflow-hidden">
-                         <div className="absolute top-0 left-0 w-full h-4" style={{ backgroundColor: selectedColor, borderTopWidth: theme.id === 'Advanced' ? '4px' : '0' }}></div>
+                         <div className="absolute top-0 left-0 w-full h-4" style={{ backgroundColor: selectedColor, borderTopWidth: theme.name === 'GST Boxed' ? '4px' : '0' }}></div>
                          <div className="p-2 pt-6">
                            <div className="w-1/2 h-2 bg-slate-200 mb-2"></div>
                            <div className="w-1/3 h-2 bg-slate-200 mb-4"></div>
@@ -101,7 +104,7 @@ export function ChangeThemeModal({ isOpen, onClose, settings, updateSettings }) 
           <div className="hidden md:flex w-1/2 bg-slate-200 items-center justify-center p-8">
             <div className="w-full max-w-[300px] aspect-[1/1.4] bg-white shadow-lg border relative overflow-hidden flex flex-col">
                <div className="h-12 w-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: selectedColor }}>
-                  {themes.find(t => t.id === selectedTheme)?.name || "TAX INVOICE"}
+                  {availableTemplates.find(t => t.name === selectedTheme)?.name || "TAX INVOICE"}
                </div>
                <div className="p-4 flex-1">
                   <div className="w-32 h-3 bg-slate-200 mb-2"></div>

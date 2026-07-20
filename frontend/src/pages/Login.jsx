@@ -4,8 +4,9 @@ import { AuthShell } from "@/components/AuthShell";
 import { LoginForm } from "@/modules/auth/LoginForm";
 
 export default function Login({ role }) {
-  const title = "Staff / Vendor Login";
-  const subtitle = "Sign in to handle billing and inventory workflows.";
+  const isAdmin = role === "admin";
+  const title = isAdmin ? "Admin Login" : "Staff / Vendor Login";
+  const subtitle = isAdmin ? "Sign in as Admin to manage business settings and full operations." : "Sign in to handle billing and inventory workflows.";
   return (
     <AuthShell
       title={title}
