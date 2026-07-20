@@ -217,27 +217,26 @@ export function BillingDashboard() {
     <div className="space-y-6">
       <PageHeader
         title="Billing & Invoices"
-        subtitle={`${stats.total} invoices · ${fmt(stats.collectedThisMonth)} collected`}
         actions={
-          <>
-            <Button variant="outline" className="rounded-xl" onClick={() => toast.success("Exporting invoices…")}>
-              <FileDown className="mr-1 h-4 w-4" /> Export
+          <div className="flex w-full flex-nowrap items-center gap-1.5 sm:gap-2">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none px-2 rounded-xl h-8 text-[11px] sm:px-4 sm:h-9 sm:text-sm" onClick={() => toast.success("Exporting invoices…")}>
+              <FileDown className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Export
             </Button>
             {!isViewer && (
               <>
-                <Button asChild className="rounded-xl bg-red-500 hover:bg-red-600">
+                <Button asChild size="sm" className="flex-1 sm:flex-none px-2 rounded-xl bg-red-500 hover:bg-red-600 h-8 text-[11px] sm:px-4 sm:h-9 sm:text-sm">
                   <Link to={`${rolePrefix}/sale/new`}>
-                    <Plus className="mr-1 h-4 w-4" /> Sale
+                    <Plus className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Sale
                   </Link>
                 </Button>
-                <Button asChild className="rounded-xl bg-blue-600 hover:bg-blue-700">
+                <Button asChild size="sm" className="flex-1 sm:flex-none px-2 rounded-xl bg-blue-600 hover:bg-blue-700 h-8 text-[11px] sm:px-4 sm:h-9 sm:text-sm">
                   <Link to={`${rolePrefix}/purchase/new`}>
-                    <Plus className="mr-1 h-4 w-4" /> Purchase
+                    <Plus className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Purchase
                   </Link>
                 </Button>
               </>
             )}
-          </>
+          </div>
         }
       />
 
@@ -246,16 +245,15 @@ export function BillingDashboard() {
           { label: "Total Invoices", value: stats.total.toString(), tint: "bg-primary-soft text-primary" },
           { label: "Paid", value: fmt(stats.paid), tint: "bg-success-soft text-success" },
           { label: "Unpaid", value: fmt(stats.unpaid), tint: "bg-destructive/10 text-destructive" },
-          { label: "Partially Paid", value: fmt(stats.partial), tint: "bg-accent-soft text-accent-foreground" },
         ].map((s) => (
           <Card key={s.label} className="border-0 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-            <CardContent className="flex items-center gap-3 p-4">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${s.tint}`}>
-                <ReceiptText className="h-5 w-5" />
+            <CardContent className="flex items-center gap-2 sm:gap-3 p-2 sm:p-4 min-w-0">
+              <div className={`flex h-7 w-7 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg sm:rounded-xl ${s.tint}`}>
+                <ReceiptText className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">{s.label}</p>
-                <p className="text-lg font-bold">{s.value}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{s.label}</p>
+                <p className="text-sm sm:text-lg font-bold truncate">{s.value}</p>
               </div>
             </CardContent>
           </Card>
@@ -273,10 +271,10 @@ export function BillingDashboard() {
                 <TabsTrigger value="partial" className="rounded-lg">Partial</TabsTrigger>
               </TabsList>
             </Tabs>
-            <div className="flex w-full gap-2 sm:w-auto">
+            <div className="flex w-full gap-2 sm:w-auto items-center">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="h-10 rounded-full border border-slate-200 bg-white px-4 py-1 text-xs sm:text-sm font-semibold shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring flex items-center gap-1.5 cursor-pointer">
+                  <Button variant="outline" className="hidden sm:flex h-10 rounded-full border border-slate-200 bg-white px-4 py-1 text-xs sm:text-sm font-semibold shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring items-center gap-1.5 cursor-pointer">
                     {typeFilter === "all" ? "All Types" : typeFilter === "sale" ? "Sales Only" : "Purchases Only"}
                     <span className="text-[10px] text-slate-500">▼</span>
                   </Button>
@@ -317,11 +315,18 @@ export function BillingDashboard() {
                     <Filter className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 rounded-xl">
-                  <DropdownMenuItem onClick={() => setTab("all")} className="cursor-pointer">All Statuses</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTab("paid")} className="cursor-pointer">Paid</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTab("unpaid")} className="cursor-pointer">Unpaid</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTab("partial")} className="cursor-pointer">Partial</DropdownMenuItem>
+                <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg border border-slate-100 p-1.5">
+                  <div className="px-2 py-1.5 text-[10px] uppercase font-bold text-slate-400 tracking-wider">Status</div>
+                  <DropdownMenuItem onClick={() => setTab("all")} className={`cursor-pointer rounded-lg ${tab === "all" ? "bg-slate-50 font-bold text-emerald-700" : ""}`}>All Statuses</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTab("paid")} className={`cursor-pointer rounded-lg ${tab === "paid" ? "bg-slate-50 font-bold text-emerald-700" : ""}`}>Paid</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTab("unpaid")} className={`cursor-pointer rounded-lg ${tab === "unpaid" ? "bg-slate-50 font-bold text-emerald-700" : ""}`}>Unpaid</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTab("partial")} className={`cursor-pointer rounded-lg ${tab === "partial" ? "bg-slate-50 font-bold text-emerald-700" : ""}`}>Partial</DropdownMenuItem>
+                  
+                  <div className="h-px bg-slate-100 my-1.5 mx-1" />
+                  <div className="px-2 py-1.5 text-[10px] uppercase font-bold text-slate-400 tracking-wider">Type</div>
+                  <DropdownMenuItem onClick={() => setTypeFilter("all")} className={`cursor-pointer rounded-lg ${typeFilter === "all" ? "bg-slate-50 font-bold text-emerald-700" : ""}`}>All Types</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTypeFilter("sale")} className={`cursor-pointer rounded-lg ${typeFilter === "sale" ? "bg-slate-50 font-bold text-emerald-700" : ""}`}>Sales Only</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTypeFilter("purchase")} className={`cursor-pointer rounded-lg ${typeFilter === "purchase" ? "bg-slate-50 font-bold text-emerald-700" : ""}`}>Purchases Only</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -443,27 +448,28 @@ export function BillingDashboard() {
             <h3 className="text-lg font-bold">Create your next GST invoice</h3>
             <p className="text-sm text-muted-foreground">Auto-calculated CGST/SGST · WhatsApp share · PDF download</p>
           </div>
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:flex-nowrap">
             <Button
               variant="outline"
-              className="rounded-xl"
+              size="sm"
+              className="rounded-xl h-8 text-xs sm:h-9 sm:text-sm w-full sm:w-auto"
               onClick={() => window.open("https://wa.me/?text=" + encodeURIComponent("Sharing invoice from Udaan"), "_blank")}
             >
-              <Share2 className="mr-1 h-4 w-4" /> Share via WhatsApp
+              <Share2 className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Share via WhatsApp
             </Button>
             {!isViewer && (
-              <>
-                <Button asChild className="rounded-xl bg-red-500 hover:bg-red-600">
+              <div className="flex w-full gap-2 sm:w-auto">
+                <Button asChild size="sm" className="flex-1 sm:flex-none rounded-xl bg-red-500 hover:bg-red-600 h-8 text-xs sm:h-9 sm:text-sm">
                   <Link to={`${rolePrefix}/sale/new`}>
-                    <Plus className="mr-1 h-4 w-4" /> Sale
+                    <Plus className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Sale
                   </Link>
                 </Button>
-                <Button asChild className="rounded-xl bg-blue-600 hover:bg-blue-700">
+                <Button asChild size="sm" className="flex-1 sm:flex-none rounded-xl bg-blue-600 hover:bg-blue-700 h-8 text-xs sm:h-9 sm:text-sm">
                   <Link to={`${rolePrefix}/purchase/new`}>
-                    <Plus className="mr-1 h-4 w-4" /> Purchase
+                    <Plus className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Purchase
                   </Link>
                 </Button>
-              </>
+              </div>
             )}
           </div>
         </CardContent>

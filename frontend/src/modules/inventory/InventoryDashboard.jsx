@@ -214,23 +214,22 @@ export function InventoryDashboard() {
     <div className="space-y-6">
       <PageHeader
         title="Inventory"
-        subtitle={`${inventory.length} products · ${uniqueCategoriesCount} categories · ${lowCount} low stock`}
         actions={
-          <>
-            <Button variant="outline" className="rounded-xl" onClick={() => setIsBulkOpen(true)}>
-              <Upload className="mr-1 h-4 w-4" /> Bulk Upload
+          <div className="flex w-full flex-nowrap items-center gap-1.5 sm:gap-2">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none px-1.5 sm:px-4 rounded-xl h-8 text-[10px] sm:h-9 sm:text-sm" onClick={() => setIsBulkOpen(true)}>
+              <Upload className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Bulk
             </Button>
             {!isViewer && (
               <>
-                <Button variant="outline" className="rounded-xl border-blue-200 text-blue-700 hover:bg-blue-50" onClick={() => setIsAddCatOpen(true)}>
-                  <Plus className="mr-1 h-4 w-4" /> Add Category
+                <Button variant="outline" size="sm" className="flex-1 sm:flex-none px-1.5 sm:px-4 rounded-xl border-blue-200 text-blue-700 hover:bg-blue-50 h-8 text-[10px] sm:h-9 sm:text-sm" onClick={() => setIsAddCatOpen(true)}>
+                  <Plus className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Category
                 </Button>
-                <Button className="rounded-xl" onClick={() => setOpen(true)}>
-                  <Plus className="mr-1 h-4 w-4" /> Add Product
+                <Button size="sm" className="flex-1 sm:flex-none px-1.5 sm:px-4 rounded-xl h-8 text-[10px] sm:h-9 sm:text-sm" onClick={() => setOpen(true)}>
+                  <Plus className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Product
                 </Button>
               </>
             )}
-          </>
+          </div>
         }
       />
 
@@ -353,46 +352,46 @@ export function InventoryDashboard() {
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         <Card className="border-0 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-          <CardContent className="flex items-center gap-3 p-3 sm:p-5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-soft text-primary">
-              <Boxes className="h-5 w-5" />
+          <CardContent className="flex items-center gap-2 sm:gap-3 p-2 sm:p-5 min-w-0">
+            <div className="flex h-7 w-7 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-primary-soft text-primary">
+              <Boxes className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Total Stock Value</p>
-              <p className="text-xl font-bold">{fmt(totalValue)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-          <CardContent className="flex items-center gap-3 p-3 sm:p-5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
-              <AlertTriangle className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Low Stock Items</p>
-              <p className="text-xl font-bold">{lowCount}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Total Stock Value</p>
+              <p className="text-sm sm:text-xl font-bold truncate">{fmt(totalValue)}</p>
             </div>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-          <CardContent className="flex items-center gap-3 p-3 sm:p-5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
-              <Ban className="h-5 w-5" />
+          <CardContent className="flex items-center gap-2 sm:gap-3 p-2 sm:p-5 min-w-0">
+            <div className="flex h-7 w-7 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-destructive/10 text-destructive">
+              <AlertTriangle className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Out of Stock</p>
-              <p className="text-xl font-bold">{outOfStockCount}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Low Stock Items</p>
+              <p className="text-sm sm:text-xl font-bold truncate">{lowCount}</p>
             </div>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-          <CardContent className="flex items-center gap-3 p-3 sm:p-5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-soft text-accent-foreground">
-              <ScanLine className="h-5 w-5" />
+          <CardContent className="flex items-center gap-2 sm:gap-3 p-2 sm:p-5 min-w-0">
+            <div className="flex h-7 w-7 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-orange-100 text-orange-600">
+              <Ban className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Categories</p>
-              <p className="text-xl font-bold">{uniqueCategoriesCount}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Out of Stock</p>
+              <p className="text-sm sm:text-xl font-bold truncate">{outOfStockCount}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-0 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+          <CardContent className="flex items-center gap-2 sm:gap-3 p-2 sm:p-5 min-w-0">
+            <div className="flex h-7 w-7 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-accent-soft text-accent">
+              <ScanLine className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Categories</p>
+              <p className="text-sm sm:text-xl font-bold truncate">{uniqueCategoriesCount}</p>
             </div>
           </CardContent>
         </Card>
