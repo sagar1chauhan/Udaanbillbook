@@ -62,6 +62,12 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  fcmTokens: [{
+    type: String,
+  }],
+  fcmTokenMobile: [{
+    type: String,
+  }],
   ownerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'

@@ -4,6 +4,9 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
+// Initialize Firebase Admin SDK
+require('./config/firebase');
+
 // Connect to MongoDB
 connectDB();
 
@@ -31,6 +34,7 @@ app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/settings', require('./routes/settingsRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
