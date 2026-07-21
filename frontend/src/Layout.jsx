@@ -6,6 +6,7 @@ import { AppTopbar } from "@/components/AppTopbar";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { Toaster } from "@/components/ui/sonner";
 import { useMockAuth, mockAuth } from "@/lib/auth-store";
+import { useNotifications } from "@/hooks/useNotifications";
 import api from "@/lib/api";
 
 const PUBLIC_ROUTES = ["/login", "/register", "/verify-otp", "/admin/login", "/user/login", "/vendor", "/staff"];
@@ -14,6 +15,9 @@ export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, hydrated } = useMockAuth();
+
+  // Initialize push notifications for authenticated users
+  useNotifications();
   const isPublic = PUBLIC_ROUTES.some((p) => {
     if (p === "/vendor" || p === "/staff") {
       return location.pathname === p;

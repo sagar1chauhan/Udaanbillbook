@@ -4,6 +4,9 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
+// Initialize Firebase Admin SDK
+require('./config/firebase');
+
 // Connect to MongoDB
 connectDB();
 

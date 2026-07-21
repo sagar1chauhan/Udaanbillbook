@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import api from "@/lib/api";
 import {
   AreaChart,
@@ -30,6 +30,8 @@ import {
   Truck,
   Package,
   MoreHorizontal,
+  Bell,
+  Loader2,
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
@@ -40,6 +42,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { GstCalculatorDialog } from "@/components/GstCalculatorDialog";
 import { useMockAuth } from "@/lib/auth-store";
+import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
 
 const salesData = [
@@ -112,6 +115,7 @@ export function MainDashboard() {
   const [isGstCalculatorOpen, setIsGstCalculatorOpen] = useState(false);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sendingTest, setSendingTest] = useState(false);
   const { user } = useMockAuth();
   const { canAccessFeature } = useSubscription();
 
@@ -162,6 +166,24 @@ export function MainDashboard() {
     return hasPermission;
   });
 
+  const handleTestNotification = useCallback(async () => {
+    setSendingTest(true);
+    try {
+      const res = await api.post('/notifications/test', {
+        title: '🔔 Test Notification',
+        body: 'Push notifications are working! — Udaan BillBook',
+      });
+      toast.success('Notification sent!', {
+        description: `Success: ${res.data.successCount || 0}, Failed: ${res.data.failureCount || 0}`,
+      });
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message;
+      toast.error('Notification failed', { description: msg });
+    } finally {
+      setSendingTest(false);
+    }
+  }, []);
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -173,6 +195,9 @@ export function MainDashboard() {
             </Button>
             <Button variant="outline" size="icon" className="rounded-xl shrink-0" onClick={() => setIsGstCalculatorOpen(true)} title="GST Calculator">
               <Calculator className="h-4 w-4" />
+            </Button>
+            <Button className="rounded-xl flex-1 px-2 text-xs sm:text-sm sm:px-4 sm:flex-none" onClick={() => setSearchParams({ "create-invoice": "true" })}>
+              <Plus className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" /> <span className="truncate">New Invoice</span>
             </Button>
           </div>
         }
@@ -371,7 +396,7 @@ export function MainDashboard() {
           </ResponsiveContainer>
         </CardContent>
       </Card>
-      
+
       <GstCalculatorDialog open={isGstCalculatorOpen} onOpenChange={setIsGstCalculatorOpen} />
     </div>
   );
