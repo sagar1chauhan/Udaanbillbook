@@ -128,7 +128,26 @@ const invoiceSchema = new mongoose.Schema({
     dispatchFromAddress: String,
     placeOfDispatch: String,
     placeOfDelivery: String
-  }
+  },
+  sellerDetails: {
+    companyName: String,
+    address: String,
+    phone: String,
+    email: String,
+    gstin: String
+  },
+  bankDetails: {
+    accountHolder: String,
+    accountNumber: String,
+    ifsc: String,
+    bankName: String,
+    branchName: String
+  },
+  billedToAddress: String,
+  billedToGstin: String,
+  billedToMobile: String,
+  billedToState: String,
+  billingName: String
 }, {
   timestamps: true
 });

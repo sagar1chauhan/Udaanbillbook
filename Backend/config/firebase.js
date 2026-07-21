@@ -1,17 +1,3 @@
-<<<<<<< HEAD
-const admin = require('firebase-admin');
-const path = require('path');
-
-// Initialize Firebase Admin once
-if (!admin.apps || !admin.apps.length) {
-  const serviceAccount = require(path.join(__dirname, '../config/udaanbillbook-74ded-firebase-adminsdk-fbsvc-2d80632f2a.json'));
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
-}
-
-module.exports = admin;
-=======
 const { initializeApp, cert, getApps } = require('firebase-admin/app');
 const { getMessaging } = require('firebase-admin/messaging');
 const path = require('path');
@@ -43,4 +29,3 @@ if (serviceAccount && getApps().length === 0) {
 const messaging = app ? getMessaging(app) : null;
 
 module.exports = { app, messaging };
->>>>>>> 042be14ad8c1a79eb7ca2617c6130f003337deb4

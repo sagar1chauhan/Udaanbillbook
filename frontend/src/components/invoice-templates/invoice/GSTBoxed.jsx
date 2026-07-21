@@ -67,21 +67,21 @@ export function GSTBoxedTemplate({ invoice, printSet, gstSet, activeColor, numbe
         ) : null}
         {printSet.printCompanyName && (
           <h2 className={`font-bold text-slate-900 tracking-wide uppercase ${getCompanyNameSizeClass(printSet.companyNameTextSize)}`}>
-            {printSet.companyName || "KESHAV TRAVELS"}
+            {printSet.companyName || "UDAAN BUSINESS"}
           </h2>
         )}
-        {printSet.printAddress && (
+        {printSet.printAddress && printSet.address && (
           <p className={`text-slate-700 whitespace-pre-line leading-tight ${getInvoiceSizeClass(textSz, "text-[9px]")}`}>
-            {printSet.address || "S-99/134 first floor moti lal nehru camp JNU, New Delhi, Delhi, 110067"}
+            {printSet.address}
           </p>
         )}
         <div className={`text-slate-600 flex flex-wrap justify-center gap-x-3 ${getInvoiceSizeClass(textSz, "text-[9px]")}`}>
-          {printSet.printPhone && <span>Ph.: {printSet.phone || "+919718403525"}</span>}
-          {printSet.printEmail && <span>Email: {printSet.email || "dpakk1989@gmail.com"}</span>}
+          {printSet.printPhone && printSet.phone && <span>Ph.: {printSet.phone}</span>}
+          {printSet.printEmail && printSet.email && <span>Email: {printSet.email}</span>}
         </div>
         <div className={`font-bold text-slate-800 flex justify-center gap-x-4 pt-1 border-t border-dashed mt-1.5 ${getInvoiceSizeClass(textSz, "text-[9px]")}`}>
-          {printSet.printGstin && <span>GSTIN : {gstSet.gstin || "07AQXPD2556K2ZB"}</span>}
-          <span>PAN No: AQXPD2556K</span>
+          {printSet.printGstin && gstSet.gstin && <span>GSTIN : {gstSet.gstin}</span>}
+          {gstSet.pan && <span>PAN No: {gstSet.pan}</span>}
         </div>
       </div>
 
@@ -205,11 +205,21 @@ export function GSTBoxedTemplate({ invoice, printSet, gstSet, activeColor, numbe
               const r = Number(l.rate) || 0;
               const d = Number(l.discount) || 0;
               const g = Number(l.gst) || 0;
+              const isExcl = l.taxType === "exclusive";
 
               const rateAfterDisc = r * (1 - d / 100);
-              const lineTotal = q * rateAfterDisc;
-              const taxableVal = lineTotal / (1 + g / 100);
-              const totalTax = lineTotal - taxableVal;
+              let taxableVal, totalTax, lineTotal;
+
+              if (isExcl) {
+                taxableVal = q * rateAfterDisc;
+                totalTax = taxableVal * (g / 100);
+                lineTotal = taxableVal + totalTax;
+              } else {
+                lineTotal = q * rateAfterDisc;
+                taxableVal = lineTotal / (1 + g / 100);
+                totalTax = lineTotal - taxableVal;
+              }
+
               const cgstAmount = totalTax / 2;
               const dAmount = r * (d / 100);
 

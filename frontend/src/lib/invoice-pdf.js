@@ -60,51 +60,41 @@ function numberToIndianWords(num) {
 }
 
 export function downloadInvoicePdf(rawDocData, options = {}) {
-  // Graceful defaults to match Image 5 out-of-the-box and handle older invoice structure
   const data = {
-    number: rawDocData?.number || "85",
-    date: rawDocData?.date || "30/09/2024",
+    number: rawDocData?.number || rawDocData?.invoiceNumber || "-",
+    date: rawDocData?.date || "-",
     business: {
-      name: rawDocData?.business?.name || "KESHAV TRAVELS",
-      address: rawDocData?.business?.address || "S-99/134 first floor moti lal nehru camp JNU, New Delhi , Delhi, 110067",
-      phone: rawDocData?.business?.phone || "+919718403525",
-      email: rawDocData?.business?.email || "dpakk1989@gmail.com",
-      gstin: rawDocData?.business?.gstin || "07AQXPD2556K2ZB",
-      pan: rawDocData?.business?.pan || "AQXPD2556K",
+      name: rawDocData?.business?.name || "-",
+      address: rawDocData?.business?.address || "-",
+      phone: rawDocData?.business?.phone || "-",
+      email: rawDocData?.business?.email || "-",
+      gstin: rawDocData?.business?.gstin || "-",
+      pan: rawDocData?.business?.pan || "-",
     },
     party: {
-      name: rawDocData?.party?.name || "Subhash Chand nbcc",
-      phone: rawDocData?.party?.phone || "01145661608336",
-      address: rawDocData?.party?.address || "Ground floor okhla phase-1 South east Delhi, Delhi, 110020",
-      email: rawDocData?.party?.email || "subhash.chand.nbcc.@nic.in",
-      gstin: rawDocData?.party?.gstin || "07AAECN7829F1ZA",
-      state: rawDocData?.party?.state || "Delhi",
-      stateCode: rawDocData?.party?.stateCode || "07",
+      name: rawDocData?.party?.name || "-",
+      phone: rawDocData?.party?.phone || "-",
+      address: rawDocData?.party?.address || "-",
+      email: rawDocData?.party?.email || "-",
+      gstin: rawDocData?.party?.gstin || "-",
+      state: rawDocData?.party?.state || "-",
+      stateCode: rawDocData?.party?.stateCode || "-",
     },
-    reverseCharge: rawDocData?.reverseCharge || "yes",
-    challanNo: rawDocData?.challanNo || "",
-    vehicleNo: rawDocData?.vehicleNo || "DL2CAZ6541",
-    dateOfSupply: rawDocData?.dateOfSupply || "",
-    placeOfSupply: rawDocData?.placeOfSupply || "",
+    reverseCharge: rawDocData?.reverseCharge || "No",
+    challanNo: rawDocData?.challanNo || "-",
+    vehicleNo: rawDocData?.vehicleNo || "-",
+    dateOfSupply: rawDocData?.dateOfSupply || "-",
+    placeOfSupply: rawDocData?.placeOfSupply || "-",
     taxInclusive: rawDocData?.taxInclusive !== undefined ? rawDocData.taxInclusive : true,
-    lines: Array.isArray(rawDocData?.lines) ? rawDocData.lines : [
-      {
-        name: "Monthly taxi bill for the month of 01/09/2024 to 30/09/2024",
-        hsnSac: "996601",
-        qty: 1,
-        unit: "1",
-        rate: 46250,
-        gst: 5
-      }
-    ],
+    lines: Array.isArray(rawDocData?.lines) && rawDocData.lines.length > 0 ? rawDocData.lines : [],
     bank: {
-      accountHolder: rawDocData?.bank?.accountHolder || "Keshav travels",
-      accountNumber: rawDocData?.bank?.accountNumber || "921020024898267",
-      ifsc: rawDocData?.bank?.ifsc || "UTIB0003532",
-      name: rawDocData?.bank?.name || "Axis Bank",
-      branch: rawDocData?.bank?.branch || "R K PURAM",
+      accountHolder: rawDocData?.bank?.accountHolder || "-",
+      accountNumber: rawDocData?.bank?.accountNumber || "-",
+      ifsc: rawDocData?.bank?.ifsc || "-",
+      name: rawDocData?.bank?.name || "-",
+      branch: rawDocData?.bank?.branch || "-",
     },
-    terms: rawDocData?.terms || "1. We are responsible for the loss of singed ,Duty slip, please check\n2. Interest@24% will be charged if bill not paid within 15 days of bill date\n3. All Dispute are subject to delhi jurisdictions",
+    terms: rawDocData?.terms || "1. Goods once sold will not be taken back.\n2. Subject to local jurisdiction.",
   };
 
   const doc = new jsPDF({ unit: "pt", format: "a4" });

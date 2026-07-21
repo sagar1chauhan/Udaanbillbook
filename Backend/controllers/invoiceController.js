@@ -39,7 +39,9 @@ const createInvoice = async (req, res) => {
       invoiceNumber, party, partyName, type, date, items, 
       subtotal, discountAmount, taxableAmount, gstAmount, 
       roundOff, grandTotal, status, receivedAmount,
-      paymentMethod, paymentDetails
+      paymentMethod, paymentDetails, transportDetails, shippingDetails,
+      sellerDetails, bankDetails,
+      billedToAddress, billedToGstin, billedToMobile, billedToState, billingName
     } = req.body;
 
     if (!invoiceNumber || !type || !items || items.length === 0) {
@@ -86,7 +88,16 @@ const createInvoice = async (req, res) => {
       status,
       receivedAmount,
       paymentMethod,
-      paymentDetails
+      paymentDetails,
+      transportDetails,
+      shippingDetails,
+      sellerDetails,
+      bankDetails,
+      billedToAddress,
+      billedToGstin,
+      billedToMobile,
+      billedToState,
+      billingName
     });
 
     // Update Item stock
@@ -164,7 +175,9 @@ const createSentInvoice = async (req, res) => {
       invoiceNumber, party, partyName, type, date, items, 
       subtotal, discountAmount, taxableAmount, gstAmount, 
       roundOff, grandTotal, status, receivedAmount,
-      paymentMethod, paymentDetails
+      paymentMethod, paymentDetails, transportDetails, shippingDetails,
+      sellerDetails, bankDetails,
+      billedToAddress, billedToGstin, billedToMobile, billedToState, billingName
     } = req.body;
 
     if (!invoiceNumber || !type || !items || items.length === 0) {
@@ -202,6 +215,15 @@ const createSentInvoice = async (req, res) => {
       receivedAmount,
       paymentMethod,
       paymentDetails,
+      transportDetails,
+      shippingDetails,
+      sellerDetails,
+      bankDetails,
+      billedToAddress,
+      billedToGstin,
+      billedToMobile,
+      billedToState,
+      billingName,
       isSent: true
     });
 

@@ -105,7 +105,28 @@ const sentInvoiceSchema = new mongoose.Schema({
   isSent: {
     type: Boolean,
     default: true,
-  }
+  },
+  transportDetails: mongoose.Schema.Types.Mixed,
+  shippingDetails: mongoose.Schema.Types.Mixed,
+  sellerDetails: {
+    companyName: String,
+    address: String,
+    phone: String,
+    email: String,
+    gstin: String
+  },
+  bankDetails: {
+    accountHolder: String,
+    accountNumber: String,
+    ifsc: String,
+    bankName: String,
+    branchName: String
+  },
+  billedToAddress: String,
+  billedToGstin: String,
+  billedToMobile: String,
+  billedToState: String,
+  billingName: String
 }, {
   timestamps: true
 });

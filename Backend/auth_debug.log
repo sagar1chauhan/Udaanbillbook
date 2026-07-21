@@ -8307,3 +8307,360 @@
 [2026-07-20T06:39:50.247Z] Token decoded successfully. User ID: 6a44eb38aa1a6297f54296e7
 [2026-07-20T06:39:50.293Z] Authenticated user: admin@udaan.com (Role: admin)
 >>>>>>> 1127566c9fc881dc644e5be84d94caba2f144ab4
+[2026-07-21T10:34:44.511Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T10:34:44.515Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:34:44.519Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:34:44.521Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:34:44.523Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T10:34:44.525Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:34:44.544Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:34:44.548Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:34:44.556Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:34:44.609Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T10:34:44.610Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:34:44.643Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:03.285Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:03.289Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:03.324Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:03.496Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:03.499Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:03.560Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:03.602Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:03.604Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:03.659Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:03.716Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:03.717Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:03.755Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:06.997Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:06.999Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:07.004Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T10:37:07.007Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:07.029Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:07.038Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:07.093Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T10:37:07.097Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:07.126Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:11.102Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:11.103Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:11.133Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:11.249Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:11.251Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:11.284Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:11.322Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:11.324Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:11.356Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:11.388Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:11.390Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:11.420Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:43.886Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T10:37:43.889Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:43.892Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:43.894Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:43.923Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:43.931Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:43.965Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T10:37:43.967Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:43.995Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:48.370Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:48.371Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:48.401Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:51.083Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:51.085Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:51.088Z] Received token: eyJhbGciOiJIUzI... for path: /api/reports/dashboard
+[2026-07-21T10:37:51.091Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:51.224Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:51.227Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:51.663Z] Received token: eyJhbGciOiJIUzI... for path: /api/reports/dashboard
+[2026-07-21T10:37:51.666Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:51.699Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:52.935Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:52.938Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:52.940Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T10:37:52.942Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:52.988Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:52.991Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:53.026Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T10:37:53.027Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:53.063Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:55.270Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:55.272Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:55.300Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:55.370Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:55.374Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:55.426Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:55.463Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:55.465Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:55.497Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:55.529Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:55.530Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:55.557Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:56.547Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T10:37:56.549Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:56.552Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:37:56.555Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:56.581Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:56.598Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:37:56.615Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T10:37:56.617Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:37:56.647Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:39:33.277Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T10:39:33.280Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:39:33.290Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:39:33.291Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:39:33.294Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T10:39:33.296Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:39:33.319Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:39:33.328Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:39:33.331Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:39:33.354Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T10:39:33.355Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:39:33.404Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:39:35.853Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:39:35.854Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:39:35.891Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:39:35.936Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T10:39:35.938Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:39:35.987Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:39:36.112Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T10:39:36.114Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:39:36.150Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:39:36.210Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:39:36.211Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:39:36.222Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T10:39:36.223Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:39:36.254Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:39:36.263Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:39:36.329Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T10:39:36.331Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:39:36.363Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:42:15.095Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:42:15.097Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:42:15.102Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T10:42:15.106Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:42:15.131Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:42:15.147Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:42:32.217Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T10:42:32.219Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:42:32.222Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:42:32.230Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:42:32.248Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:42:32.267Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:42:32.279Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T10:42:32.282Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:42:32.310Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:42:38.251Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T10:42:38.253Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:42:38.255Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:42:38.257Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:42:38.284Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:42:38.291Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:42:38.340Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T10:42:38.342Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:42:38.375Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:44:31.259Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:44:31.263Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:44:31.266Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T10:44:31.269Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:44:31.303Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:44:31.306Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:46:56.625Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:46:56.630Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:46:56.639Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T10:46:56.642Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:46:56.670Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:46:56.691Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:50:09.538Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T10:50:09.541Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:50:09.589Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:51:17.262Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:51:17.264Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:51:17.268Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T10:51:17.270Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:51:17.304Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:51:17.314Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:59:42.186Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:59:42.192Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:59:42.199Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T10:59:42.202Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:59:42.224Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:59:42.229Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:59:55.477Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T10:59:55.481Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:59:55.485Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T10:59:55.488Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:59:55.507Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:59:55.516Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T10:59:55.539Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T10:59:55.541Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T10:59:55.570Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:10:23.690Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:10:23.694Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:10:23.702Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T11:10:23.704Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:10:23.707Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T11:10:23.711Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:10:23.727Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:10:23.734Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:10:23.747Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:10:23.766Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:10:23.768Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:10:23.819Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:10:26.672Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:10:26.674Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:10:26.680Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T11:10:26.682Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:10:26.685Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T11:10:26.687Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:10:26.712Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:10:26.718Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:10:26.723Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:10:26.751Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:10:26.753Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:10:26.784Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:14:39.168Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:14:39.172Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:14:39.179Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T11:14:39.181Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:14:39.184Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T11:14:39.186Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:14:39.219Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:14:39.225Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:14:39.228Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:14:39.286Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:14:39.288Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:14:39.367Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:16:11.243Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:16:11.247Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:16:11.251Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:16:11.253Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:16:11.256Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T11:16:11.258Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:16:11.260Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T11:16:11.262Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:16:11.280Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:16:11.287Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:16:11.291Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:16:11.295Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:21:01.327Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:21:01.329Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:21:01.332Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T11:21:01.333Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:21:01.335Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T11:21:01.337Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:21:01.361Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:21:01.364Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:21:01.371Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:21:01.403Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:21:01.405Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:21:01.436Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:25:29.029Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:25:29.031Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:25:29.034Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T11:25:29.035Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:25:29.037Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T11:25:29.039Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:25:29.064Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:25:29.075Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:25:29.079Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:25:29.097Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:25:29.099Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:25:29.131Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:28:12.478Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:28:12.480Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:28:12.483Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T11:28:12.487Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:28:12.491Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T11:28:12.493Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:28:12.849Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:28:12.852Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:28:13.092Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:28:13.098Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:28:13.156Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:28:13.218Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:32:14.057Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:32:14.060Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:32:14.063Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T11:32:14.065Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:32:14.068Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T11:32:14.069Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:32:14.087Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:32:14.090Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:32:14.100Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:32:14.122Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:32:14.123Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:32:14.166Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:32:55.395Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T11:32:55.398Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:32:55.448Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:32:55.488Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T11:32:55.492Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:32:55.573Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:32:55.780Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T11:32:55.783Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:32:55.850Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:32:55.889Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T11:32:55.891Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:32:55.904Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T11:32:55.906Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:32:55.920Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:32:55.934Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:32:56.036Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T11:32:56.038Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:32:56.064Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:33:12.962Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:33:12.963Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:33:12.967Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T11:33:12.979Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:33:12.995Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:33:13.024Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:33:13.040Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:33:13.043Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:33:13.069Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:34:27.647Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:34:27.649Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:34:27.651Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T11:34:27.653Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:34:27.654Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T11:34:27.656Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:34:27.672Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:34:27.680Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:34:27.682Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:34:27.698Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:34:27.700Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:34:27.729Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:35:28.101Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:35:28.106Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:35:28.116Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T11:35:28.119Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:35:28.124Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T11:35:28.126Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:35:28.160Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:35:28.167Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:35:28.172Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:35:28.216Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:35:28.221Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:35:28.263Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:41:19.363Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:41:19.366Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:41:19.372Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T11:41:19.376Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:41:19.383Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T11:41:19.385Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:41:19.535Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:41:19.540Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:41:19.547Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:41:19.597Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:41:19.600Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:41:19.632Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:47:24.721Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:47:24.723Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:47:24.728Z] Received token: eyJhbGciOiJIUzI... for path: /api/settings/invoice-templates
+[2026-07-21T11:47:24.731Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:47:24.734Z] Received token: eyJhbGciOiJIUzI... for path: /api/auth/me
+[2026-07-21T11:47:24.736Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:47:24.741Z] Received token: eyJhbGciOiJIUzI... for path: /api/invoices
+[2026-07-21T11:47:24.743Z] Token decoded successfully. User ID: 6a460f6d27dfba3d1c34b913
+[2026-07-21T11:47:24.768Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:47:24.773Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:47:24.858Z] Authenticated user: hp4270077@gmail.com (Role: vendor)
+[2026-07-21T11:47:24.861Z] Authenticated user: hp4270077@gmail.com (Role: vendor)

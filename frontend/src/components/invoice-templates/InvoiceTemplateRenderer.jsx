@@ -4,7 +4,8 @@ import { TEMPLATES } from "./registry";
 
 export function normalizeInvoice(inv) {
   if (!inv) return null;
-  const lines = inv.lines || inv.items || [];
+  const rawLines = inv.lines || inv.items || [];
+  const lines = rawLines.filter((l) => l.name && l.name.trim() !== "");
   const customer = inv.customer || inv.partyName || "Walk-in Customer";
   const totals = inv.totals || {
     subtotal: inv.subtotal || 0,
@@ -16,15 +17,15 @@ export function normalizeInvoice(inv) {
   };
   const meta = {
     reverseCharge: inv.reverseCharge || "No",
-    challanNo: inv.challanNo || "",
-    vehicleNo: inv.vehicleNo || "",
+    challanNo: inv.challanNo || inv.transportDetails?.challanNo || "",
+    vehicleNo: inv.vehicleNo || inv.transportDetails?.vehicleNumber || "",
     dateOfSupply: inv.dateOfSupply || "",
-    placeOfSupply: inv.placeOfSupply || "Delhi",
-    billedToAddress: inv.billedToAddress || "",
-    billedToGstin: inv.billedToGstin || "",
-    billedToMobile: inv.billedToMobile || "",
-    billedToState: inv.billedToState || "",
-    billingName: inv.billingName || "",
+    placeOfSupply: inv.placeOfSupply || inv.shippingDetails?.placeOfDelivery || "Delhi",
+    billedToAddress: inv.billedToAddress || inv.shippingDetails?.shipToAddress || inv.party?.address || inv.partyAddress || "",
+    billedToGstin: inv.billedToGstin || inv.shippingDetails?.shipToGSTIN || inv.party?.gstin || "",
+    billedToMobile: inv.billedToMobile || inv.shippingDetails?.phone || inv.party?.phone || "",
+    billedToState: inv.billedToState || inv.shippingDetails?.state || inv.party?.state || "Delhi",
+    billingName: inv.billingName || inv.shippingDetails?.shipToName || inv.partyName || inv.party?.name || "",
     poNumber: inv.poNumber || "",
     poDate: inv.poDate || "",
     invoiceNumber: inv.invoiceNumber || "INV-XXXX",
@@ -59,6 +60,24 @@ export function InvoiceTemplateRenderer({ invoice, templateName, printSettings, 
   
   const normalizedInvoice = normalizeInvoice(invoice);
 
+  const effectivePrintSet = {
+    printCompanyName: true,
+    printAddress: true,
+    printPhone: true,
+    printEmail: true,
+    printGstin: true,
+    ...printSettings,
+    companyName: invoice.sellerDetails?.companyName || printSettings?.companyName || user?.businessName || "",
+    address: invoice.sellerDetails?.address || printSettings?.address || user?.businessAddress || "",
+    phone: invoice.sellerDetails?.phone || printSettings?.phone || user?.phone || "",
+    email: invoice.sellerDetails?.email || printSettings?.email || user?.email || "",
+  };
+
+  const effectiveGstSet = {
+    ...gstSettings,
+    gstin: invoice.sellerDetails?.gstin || gstSettings?.gstin || ""
+  };
+
   const colors = [
     { id: "slate", raw: "#334155", class: "text-slate-800", bgClass: "bg-slate-800" },
     { id: "emerald", raw: "#059669", class: "text-emerald-700", bgClass: "bg-emerald-700" },
@@ -68,7 +87,7 @@ export function InvoiceTemplateRenderer({ invoice, templateName, printSettings, 
     { id: "rose", raw: "#e11d48", class: "text-rose-700", bgClass: "bg-rose-700" }
   ];
 
-  const themeColor = printSettings?.themeColor || "slate";
+  const themeColor = effectivePrintSet?.themeColor || "slate";
   const activeColor = colors.find(c => c.id === themeColor) || colors[0];
 
   const aToWords = (amount) => {
@@ -109,8 +128,8 @@ export function InvoiceTemplateRenderer({ invoice, templateName, printSettings, 
     <div className="bg-white relative" id="invoice-print-area">
       <TemplateComponent 
         invoice={normalizedInvoice} 
-        printSet={printSettings} 
-        gstSet={gstSettings}
+        printSet={effectivePrintSet} 
+        gstSet={effectiveGstSet}
         activeColor={activeColor}
         numberToWords={aToWords}
         showUdaanLogo={showUdaanLogo}

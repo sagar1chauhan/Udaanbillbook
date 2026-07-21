@@ -24,6 +24,7 @@ import { downloadInvoicePdf } from "@/lib/invoice-pdf";
 import { useInvoices } from "@/contexts/InvoiceContext";
 import api from "@/lib/api";
 import { validateUtr, validateUpi } from "@/lib/validation";
+import { InvoiceTemplateRenderer } from "@/components/invoice-templates/InvoiceTemplateRenderer";
 
 const fmt = (n) => "₹" + n.toLocaleString("en-IN");
 
@@ -159,20 +160,42 @@ export function BillingDashboard() {
     setStatusModal(false);
   };
 
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [selectedPreviewInv, setSelectedPreviewInv] = useState(null);
+
   const downloadOne = (inv) => {
     downloadInvoicePdf({
       number: inv.invoiceNumber || inv.id,
-      date: new Date(inv.date).toLocaleDateString(),
+      date: inv.date ? new Date(inv.date).toLocaleDateString("en-IN") : new Date().toLocaleDateString("en-IN"),
       business: {
-        name: "Sharma Traders",
-        address: "Shop 12, MG Road, Indore, MP 452001",
-        gstin: "23ABCDE1234F1Z5",
-        phone: "+91 98765 43210",
+        name: inv.sellerDetails?.companyName || user?.businessName || "Udaan Business",
+        address: inv.sellerDetails?.address || user?.businessAddress || "",
+        gstin: inv.sellerDetails?.gstin || "",
+        phone: inv.sellerDetails?.phone || user?.phone || "",
+        email: inv.sellerDetails?.email || user?.email || "",
       },
-      party: { name: inv.partyName || inv.party },
-      lines: [
-        { name: "Items as per challan", qty: 1, rate: (inv.grandTotal || inv.amount) / 1.18, gst: 18 },
-      ],
+      party: {
+        name: inv.partyName || inv.party || "Customer",
+        phone: inv.shippingDetails?.phone || "",
+        address: inv.shippingDetails?.address || "",
+        gstin: inv.shippingDetails?.gstin || "",
+        state: inv.shippingDetails?.state || "Delhi",
+        stateCode: "07"
+      },
+      lines: Array.isArray(inv.items) && inv.items.length > 0 ? inv.items.map(it => ({
+        name: it.name || "Item",
+        hsnSac: it.hsnSac || "",
+        qty: Number(it.qty) || 1,
+        rate: Number(it.rate) || 0,
+        gst: Number(it.gst) || 0
+      })) : [],
+      bank: {
+        accountHolder: inv.bankDetails?.accountHolder || user?.businessName || "",
+        accountNumber: inv.bankDetails?.accountNumber || "",
+        ifsc: inv.bankDetails?.ifsc || "",
+        name: inv.bankDetails?.bankName || "",
+        branch: inv.bankDetails?.branchName || "",
+      }
     });
     toast.success(`${inv.invoiceNumber || inv.id} downloaded`);
   };
@@ -185,21 +208,8 @@ export function BillingDashboard() {
   };
 
   const previewOne = (inv) => {
-    downloadInvoicePdf({
-      number: inv.invoiceNumber || inv.id,
-      date: new Date(inv.date).toLocaleDateString(),
-      business: {
-        name: "Sharma Traders",
-        address: "Shop 12, MG Road, Indore, MP 452001",
-        gstin: "23ABCDE1234F1Z5",
-        phone: "+91 98765 43210",
-      },
-      party: { name: inv.partyName || inv.party },
-      lines: [
-        { name: "Items as per challan", qty: 1, rate: (inv.grandTotal || inv.amount) / 1.18, gst: 18 },
-      ],
-    }, { preview: true });
-    toast.success(`Opening preview for ${inv.invoiceNumber || inv.id}`);
+    setSelectedPreviewInv(inv);
+    setPreviewModalOpen(true);
   };
 
   const deleteOne = async (inv) => {
@@ -596,6 +606,50 @@ export function BillingDashboard() {
             <Button className="rounded-xl bg-emerald-500 hover:bg-emerald-600" onClick={handleModalSubmit}>
               Update Status
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ====== Invoice Template Preview Modal ====== */}
+      <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl p-6">
+          <DialogHeader className="flex flex-row items-center justify-between border-b pb-3">
+            <DialogTitle className="text-lg font-bold">
+              Invoice Preview — {selectedPreviewInv?.invoiceNumber}
+            </DialogTitle>
+            {selectedPreviewInv && (
+              <Button 
+                size="sm" 
+                onClick={() => downloadOne(selectedPreviewInv)} 
+                className="bg-emerald-600 hover:bg-emerald-700 rounded-xl"
+              >
+                <FileDown className="mr-1.5 h-4 w-4" /> Download PDF
+              </Button>
+            )}
+          </DialogHeader>
+          <div className="pt-4 flex justify-center bg-slate-100 p-4 rounded-xl overflow-x-auto">
+            {selectedPreviewInv && (
+              <div className="w-full max-w-3xl bg-white p-4 rounded-xl shadow-sm">
+                <InvoiceTemplateRenderer 
+                  invoice={selectedPreviewInv} 
+                  templateName="GST Boxed" 
+                  printSettings={{
+                    printCompanyName: true,
+                    companyName: selectedPreviewInv.sellerDetails?.companyName || user?.businessName,
+                    printAddress: true,
+                    address: selectedPreviewInv.sellerDetails?.address || user?.businessAddress,
+                    printPhone: true,
+                    phone: selectedPreviewInv.sellerDetails?.phone || user?.phone,
+                    printEmail: true,
+                    email: selectedPreviewInv.sellerDetails?.email || user?.email,
+                    printGstin: true
+                  }}
+                  gstSettings={{
+                    gstin: selectedPreviewInv.sellerDetails?.gstin || ""
+                  }}
+                />
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

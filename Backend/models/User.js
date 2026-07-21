@@ -85,19 +85,9 @@ const userSchema = new mongoose.Schema({
       type: Date
     }
   },
-  // FCM push notification token from client device/browser
-  fcmToken: {
-    type: String,
-    default: null
-  },
-  // Web-push VAPID subscription (legacy, kept for backward compat)
-  pushSubscription: {
-    endpoint: { type: String },
-    keys: {
-      p256dh: { type: String },
-      auth: { type: String }
-    }
-  }
+  // FCM tokens array - supports multiple devices (web + mobile)
+  fcmTokens: [{ type: String }],
+  fcmTokenMobile: [{ type: String }]
 }, {
   timestamps: true
 });

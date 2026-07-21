@@ -585,7 +585,7 @@ export default function NewSale() {
     }
 
     const payload = {
-      invoiceNumber: "INV-" + Math.floor(1000 + Math.random() * 9000),
+      invoiceNumber: invoiceNo || ("INV-" + Math.floor(1000 + Math.random() * 9000)),
       party: null,
       partyName: customer || "Walk-in Customer",
       type: "Sale",
@@ -610,56 +610,69 @@ export default function NewSale() {
       paymentMethod: status === "Unpaid" ? "Cash" : paymentMethod,
       paymentDetails: status === "Unpaid" ? {} : paymentDetails,
       transportDetails,
-      shippingDetails
+      shippingDetails,
+      billedToAddress: shippingDetails?.shipToAddress || billedToAddress || "",
+      billedToGstin: shippingDetails?.shipToGSTIN || billedToGstin || "",
+      billedToMobile: shippingDetails?.phone || billedToMobile || "",
+      billedToState: shippingDetails?.state || billedToState || "Delhi",
+      billingName: customer || "Walk-in Customer",
+      sellerDetails: {
+        companyName: sellerName || user?.businessName || "",
+        address: sellerAddress || user?.businessAddress || "",
+        phone: sellerPhone || user?.phone || "",
+        email: sellerEmail || user?.email || "",
+        gstin: sellerGstin || ""
+      },
+      bankDetails: {
+        accountHolder: sellerName || user?.businessName || "",
+        accountNumber: paymentDetails?.accountNumber || "",
+        ifsc: paymentDetails?.ifsc || "",
+        bankName: paymentDetails?.bankName || "",
+        branchName: paymentDetails?.branchName || ""
+      }
     };
 
-    setPendingSave({ isSend, payload });
+    const currentSave = { isSend, payload };
+    setPendingSave(currentSave);
 
     try {
-      const { data: user } = await api.get('/auth/me');
+      const { data: userData } = await api.get('/auth/me');
       
-      if (user.showAds) {
+      if (userData.showAds) {
         setShowAdModal(true);
         return; // wait for ad to finish
       }
       
-      continueFlow(user);
+      continueFlow(userData, false, currentSave);
     } catch (err) {
-      toast.error("Failed to check user settings.");
+      // Fallback if auth check fails or offline
+      continueFlow(user, false, currentSave);
     }
   };
 
-  const continueFlow = async (user = null, forceResume = false) => {
-    if (!user) {
+  const continueFlow = async (userData = null, forceResume = false, targetSave = null) => {
+    let activeUser = userData;
+    if (!activeUser) {
       try {
         const res = await api.get('/auth/me');
-        user = res.data;
+        activeUser = res.data;
       } catch (e) {
-        toast.error("Failed to check user settings.");
-        return;
+        activeUser = user;
       }
     }
 
-    if (user.billsGenerated === 0 && !forceResume) {
-      sessionStorage.setItem('pendingNewSale', JSON.stringify({
-        customer, receivedAmount, lines, pendingSave
-      }));
-      navigate('/register', { state: { returnUrl: '/sale/new' } });
-      return;
-    }
-
-    if (user.billLimit !== -1 && user.billsGenerated >= user.billLimit) {
+    if (activeUser?.billLimit !== undefined && activeUser?.billLimit !== -1 && activeUser?.billsGenerated >= activeUser?.billLimit) {
       setShowSubModal(true);
       return;
     }
 
-    // We no longer intercept with a drawer for E-Way Bills since fields are on the left pane!
-    executeSave();
+    executeSave(targetSave);
   };
 
-  const executeSave = async () => {
-    if (!pendingSave) return;
-    const { isSend, payload } = pendingSave;
+  const executeSave = async (targetSave = null) => {
+    const saveObj = targetSave || pendingSave;
+    if (!saveObj) return;
+    const { isSend, payload } = saveObj;
     try {
       const endpoint = isSend ? "/invoices/send" : "/invoices";
       await api.post(endpoint, payload);
@@ -737,7 +750,7 @@ export default function NewSale() {
             <Eye className="h-3.5 w-3.5" />
             {activePane === "form" ? "View Preview" : "View Form"}
           </Button>
-          <Button size="icon" variant="ghost" className="h-9 w-9 text-slate-600 rounded-xl" onClick={() => handleSave(false)}>
+          <Button size="icon" variant="ghost" className="h-9 w-9 text-slate-600 rounded-xl" onClick={() => window.print()} title="Print Invoice">
             <Printer className="h-4 w-4" />
           </Button>
         </div>
@@ -775,30 +788,6 @@ export default function NewSale() {
                         placeholder="Seller GSTIN"
                         className="h-9 rounded-lg"
                       />
-                    </div>
-                  )}
-                  {user?.plan !== "Free Plan" && (
-                    <div className="space-y-1">
-                      <Label className="text-xs">Company Logo (Premium)</Label>
-                      <div className="flex items-center gap-3">
-                        <Input 
-                          type="file" 
-                          accept="image/*"
-                          onChange={(e) => {
-                            if (e.target.files && e.target.files[0]) {
-                              const reader = new FileReader();
-                              reader.onload = (ev) => setLogoUrl(ev.target.result);
-                              reader.readAsDataURL(e.target.files[0]);
-                            }
-                          }}
-                          className="h-9 text-xs" 
-                        />
-                        {logoUrl && (
-                          <button onClick={() => setLogoUrl("")} className="text-red-500 text-xs font-bold underline hover:text-red-700 shrink-0">
-                            Clear
-                          </button>
-                        )}
-                      </div>
                     </div>
                   )}
                   <div className="grid grid-cols-2 gap-3">
@@ -1109,7 +1098,14 @@ export default function NewSale() {
                       {/* Rate / Price */}
                       <div className="col-span-4 sm:col-span-2">
                         <Label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-1">Price/Unit</Label>
-                        <Input type="number" min={0} value={l.rate} onChange={(e) => updateLine(i, 'rate', Number(e.target.value) || 0)} className="h-9 bg-white text-xs text-right rounded-lg border-slate-200" />
+                        <Input 
+                          type="number" 
+                          min={0} 
+                          value={l.rate === 0 ? "" : l.rate} 
+                          onChange={(e) => updateLine(i, 'rate', e.target.value === "" ? 0 : Number(e.target.value))} 
+                          placeholder="0.00"
+                          className="h-9 bg-white text-xs text-right rounded-lg border-slate-200" 
+                        />
                       </div>
 
                       {/* Delete Button */}
@@ -1125,8 +1121,21 @@ export default function NewSale() {
                       <div className="flex items-center gap-2 mt-2.5 bg-amber-50 border border-amber-200/60 rounded-lg px-3 py-1.5 max-w-max">
                         <span className="text-[10px] text-amber-600 font-semibold shrink-0">Purchase Price ₹</span>
                         <input 
-                          type="number" value={l.purchasePrice || ""} 
-                          onChange={(e) => updateLine(i, 'purchasePrice', Number(e.target.value) || 0)} 
+                          type="number" 
+                          value={l.purchasePrice === 0 ? "" : (l.purchasePrice || "")} 
+                          onChange={(e) => {
+                            const val = e.target.value === "" ? 0 : Number(e.target.value);
+                            setLines((prev) => prev.map((item, idx) => {
+                              if (idx === i) {
+                                return {
+                                  ...item,
+                                  purchasePrice: val,
+                                  rate: val
+                                };
+                              }
+                              return item;
+                            }));
+                          }} 
                           placeholder="0.00" 
                           className="h-5 w-16 bg-transparent text-[11px] font-bold text-amber-800 focus:outline-none" 
                         />
