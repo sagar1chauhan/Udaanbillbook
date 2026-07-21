@@ -98,17 +98,30 @@ export function AppTopbar() {
 
         {/* Right Section */}
         <div className="flex items-center gap-2">
-          {/* New Invoice Button (Desktop Only) */}
-          <Button
-            size="sm"
-            className="hidden h-10 rounded-xl px-4 md:inline-flex"
-            asChild
-          >
-            <Link to={`${rolePrefix}/sale/new`}>
-              <Plus className="mr-1 h-4 w-4" />
-              New Invoice
-            </Link>
-          </Button>
+          {/* New Invoice & E-Way Bill Buttons (Desktop Only) */}
+          <div className="hidden md:flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-10 rounded-xl px-4 border-emerald-500 text-emerald-600 hover:bg-emerald-50"
+              asChild
+            >
+              <Link to={`${rolePrefix}/sale/new?ewaybill=true`}>
+                <Plus className="mr-1 h-4 w-4" />
+                E-Way Bill
+              </Link>
+            </Button>
+            <Button
+              size="sm"
+              className="h-10 rounded-xl px-4"
+              asChild
+            >
+              <Link to={`${rolePrefix}/sale/new`}>
+                <Plus className="mr-1 h-4 w-4" />
+                New Invoice
+              </Link>
+            </Button>
+          </div>
 
           {/* Bell Icon */}
           <DropdownMenu>
@@ -212,6 +225,7 @@ export function AppTopbar() {
 
         </div>
       </header>
+      <NewInvoiceDialog open={open} onOpenChange={setOpen} />
     </>
   );
 }

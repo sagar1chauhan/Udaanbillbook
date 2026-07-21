@@ -101,6 +101,33 @@ const invoiceSchema = new mongoose.Schema({
     bankName: String,
     accountNumber: String,
     ifsc: String
+  },
+  transportDetails: {
+    transporterName: String,
+    transporterId: String, // GSTIN
+    vehicleNumber: String,
+    vehicleType: {
+      type: String,
+      enum: ['Regular', 'ODC']
+    },
+    modeOfTransport: {
+      type: String,
+      enum: ['Road', 'Rail', 'Air', 'Ship']
+    },
+    approxDistance: Number,
+    lrNumber: String,
+    lrDate: Date,
+    ewbNumber: String
+  },
+  shippingDetails: {
+    shipToName: String,
+    shipToGSTIN: String,
+    shipToAddress: String,
+    dispatchFromName: String,
+    dispatchFromGSTIN: String,
+    dispatchFromAddress: String,
+    placeOfDispatch: String,
+    placeOfDelivery: String
   }
 }, {
   timestamps: true

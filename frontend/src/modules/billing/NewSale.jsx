@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { ArrowLeft, ReceiptText, Printer, Plus, Send, Trash2, X, ShieldCheck, Eye } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { validateUtr, validateUpi } from "@/lib/validation";
 import { useMockAuth } from "@/lib/auth-store";
 import { InvoiceTemplateRenderer } from "@/components/invoice-templates/InvoiceTemplateRenderer";
 import { usePlatformSettings } from "@/lib/platform-settings";
+import { TransportDetailsDrawer } from "@/components/TransportDetailsDrawer";
 
 function TemplatePreviewMini({ previewColor, previewStyle }) {
   const base = "h-8 w-12 rounded border border-slate-300 bg-white flex flex-col p-0.5 space-y-0.5 mb-1.5 overflow-hidden";
@@ -180,6 +181,7 @@ function SignaturePad({ value, onChange }) {
 
 export default function NewSale() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { addInvoice } = useInvoices();
   const { user } = useMockAuth();
   const { settings } = usePlatformSettings();
@@ -266,6 +268,10 @@ export default function NewSale() {
     ifsc: ""
   }));
 
+  const [showTransportDrawer, setShowTransportDrawer] = useState(false);
+  const [transportDetails, setTransportDetails] = useState({});
+  const [shippingDetails, setShippingDetails] = useState({});
+
   // Additional Meta Fields
   const [reverseCharge, setReverseCharge] = useState(() => getInitialState("reverseCharge", "No"));
   const [challanNo, setChallanNo] = useState(() => getInitialState("challanNo", ""));
@@ -293,6 +299,14 @@ export default function NewSale() {
   const [sellerEmail, setSellerEmail] = useState(() => getInitialState("sellerEmail", ""));
   const [sellerPhone, setSellerPhone] = useState(() => getInitialState("sellerPhone", ""));
   const [sellerGstin, setSellerGstin] = useState(() => getInitialState("sellerGstin", ""));
+  const [logoUrl, setLogoUrl] = useState(() => getInitialState("logoUrl", ""));
+  const [invoiceNumber, setInvoiceNumber] = useState(() => getInitialState("invoiceNumber", ""));
+  const [bankDetails, setBankDetails] = useState(() => getInitialState("bankDetails", {
+    accountNumber: "",
+    bankName: "",
+    ifsc: "",
+    branchName: ""
+  }));
 
   // Footer & T&C Override Fields (Dynamically shown based on PRINT checkboxes)
   const [terms, setTerms] = useState(() => getInitialState("terms", ""));
@@ -307,8 +321,21 @@ export default function NewSale() {
   const [partyBalance, setPartyBalance] = useState(() => getInitialState("partyBalance", ""));
 
   const [activePane, setActivePane] = useState("form");
-  const [invoiceTemplate, setInvoiceTemplate] = useState(() => getInitialState("invoiceTemplate", "GST Boxed"));
+  const [invoiceTemplate, setInvoiceTemplate] = useState(() => {
+    if (searchParams.get("ewaybill") === "true") return "Green E-Way";
+    return getInitialState("invoiceTemplate", "GST Boxed");
+  });
   const [themeColor, setThemeColor] = useState(() => getInitialState("themeColor", "slate"));
+  
+  const isEwayMode = ["E way bill", "Green E-Way", "Minimal E-Way", "Official E-Way"].includes(invoiceTemplate);
+
+  useEffect(() => {
+    if (searchParams.get("ewaybill") === "true") {
+      if (!isEwayMode) setInvoiceTemplate("Green E-Way");
+    } else {
+      if (isEwayMode) setInvoiceTemplate(settings?.printSettings?.themeName || "GST Boxed");
+    }
+  }, [searchParams, settings?.printSettings?.themeName]);
 
   // Dynamic templates from API
   const [availableTemplates, setAvailableTemplates] = useState([]);
@@ -581,7 +608,9 @@ export default function NewSale() {
       status: status,
       receivedAmount: receivedAmount,
       paymentMethod: status === "Unpaid" ? "Cash" : paymentMethod,
-      paymentDetails: status === "Unpaid" ? {} : paymentDetails
+      paymentDetails: status === "Unpaid" ? {} : paymentDetails,
+      transportDetails,
+      shippingDetails
     };
 
     setPendingSave({ isSend, payload });
@@ -624,6 +653,7 @@ export default function NewSale() {
       return;
     }
 
+    // We no longer intercept with a drawer for E-Way Bills since fields are on the left pane!
     executeSave();
   };
 
@@ -747,6 +777,30 @@ export default function NewSale() {
                       />
                     </div>
                   )}
+                  {user?.plan !== "Free Plan" && (
+                    <div className="space-y-1">
+                      <Label className="text-xs">Company Logo (Premium)</Label>
+                      <div className="flex items-center gap-3">
+                        <Input 
+                          type="file" 
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              const reader = new FileReader();
+                              reader.onload = (ev) => setLogoUrl(ev.target.result);
+                              reader.readAsDataURL(e.target.files[0]);
+                            }
+                          }}
+                          className="h-9 text-xs" 
+                        />
+                        {logoUrl && (
+                          <button onClick={() => setLogoUrl("")} className="text-red-500 text-xs font-bold underline hover:text-red-700 shrink-0">
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-3">
                     {printSet.printPhone && (
                       <div className="space-y-1">
@@ -787,12 +841,68 @@ export default function NewSale() {
               </div>
             )}
 
+            {/* Bank Details Block */}
+            <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bank Details (On Invoice)</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Account No.</Label>
+                  <Input 
+                    value={bankDetails.accountNumber} 
+                    onChange={(e) => setBankDetails({...bankDetails, accountNumber: e.target.value})} 
+                    placeholder="Account Number"
+                    className="h-9 rounded-lg"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Bank Name</Label>
+                  <Input 
+                    value={bankDetails.bankName} 
+                    onChange={(e) => setBankDetails({...bankDetails, bankName: e.target.value})} 
+                    placeholder="e.g. Axis Bank"
+                    className="h-9 rounded-lg"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">IFSC Code</Label>
+                  <Input 
+                    value={bankDetails.ifsc} 
+                    onChange={(e) => setBankDetails({...bankDetails, ifsc: e.target.value})} 
+                    placeholder="e.g. UTIB0003532"
+                    className="h-9 rounded-lg"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Branch Name</Label>
+                  <Input 
+                    value={bankDetails.branchName} 
+                    onChange={(e) => setBankDetails({...bankDetails, branchName: e.target.value})} 
+                    placeholder="e.g. MG Road Branch"
+                    className="h-9 rounded-lg"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Customer Details Block */}
             <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Billed To (Customer Details)</span>
               </div>
               <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3 pb-3 border-b border-slate-100">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Invoice No. (Override)</Label>
+                    <Input 
+                      value={invoiceNumber} 
+                      onChange={(e) => setInvoiceNumber(e.target.value)} 
+                      placeholder="e.g. INV-1001"
+                      className="h-9 rounded-lg"
+                    />
+                  </div>
+                </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Customer Name</Label>
                   <Input 
@@ -897,7 +1007,8 @@ export default function NewSale() {
                 <div className="space-y-1">
                   <Label className="text-xs">Date of Supply</Label>
                   <Input 
-                    type="date"
+                    type="text"
+                    placeholder="dd/mm/yyyy"
                     value={dateOfSupply} 
                     onChange={(e) => setDateOfSupply(e.target.value)} 
                     className="h-9 rounded-lg"
@@ -967,59 +1078,39 @@ export default function NewSale() {
                     {/* Row 1: Core fields */}
                     <div className="grid grid-cols-12 gap-3 items-end">
                       {/* Item Name */}
-                      {cols.itemName && (
-                        <div className="col-span-12 sm:col-span-5">
-                          <Label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-1">{colNames.itemName || "Item Name"}</Label>
-                          <Input value={l.name} onChange={(e) => updateLine(i, 'name', e.target.value)} placeholder="Product description" className="h-9 bg-white text-xs rounded-lg border-slate-200" />
-                        </div>
-                      )}
+                      <div className="col-span-12 sm:col-span-5">
+                        <Label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-1">Item Name</Label>
+                        <Input value={l.name} onChange={(e) => updateLine(i, 'name', e.target.value)} placeholder="Product description" className="h-9 bg-white text-xs rounded-lg border-slate-200" />
+                      </div>
 
                       {/* HSN/SAC */}
-                      {cols.hsnSac && gstSet.enableHsn && (
-                        <div className="col-span-4 sm:col-span-2">
-                          <Label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-1">{colNames.hsnSac || "HSN/SAC"}</Label>
-                          <Input value={l.hsnSac} onChange={(e) => updateLine(i, 'hsnSac', e.target.value)} placeholder="996601" className="h-9 bg-white text-xs rounded-lg border-slate-200" />
-                        </div>
-                      )}
+                      <div className="col-span-4 sm:col-span-2">
+                        <Label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-1">HSN/SAC</Label>
+                        <Input value={l.hsnSac} onChange={(e) => updateLine(i, 'hsnSac', e.target.value)} placeholder="996601" className="h-9 bg-white text-xs rounded-lg border-slate-200" />
+                      </div>
 
                       {/* Quantity + Free Qty */}
-                      {cols.quantity && (
-                        <div className="col-span-4 sm:col-span-2">
-                          <Label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-1">{colNames.quantity || "Quantity"}</Label>
-                          <Input type="number" min={1} value={l.qty} onChange={(e) => updateLine(i, 'qty', Number(e.target.value) || 0)} className="h-9 bg-white text-xs text-center rounded-lg border-slate-200" />
-                          {txnSet.freeQty && (
-                            <div className="mt-1">
-                              <Input 
-                                type="number" min={0} value={l.freeQty || 0} 
-                                onChange={(e) => updateLine(i, 'freeQty', Number(e.target.value) || 0)} 
-                                placeholder="Free Qty"
-                                title="Free Quantity"
-                                className="h-7 bg-blue-50 text-[10px] text-center rounded border-blue-200 placeholder:text-blue-300" 
-                              />
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      <div className="col-span-4 sm:col-span-2">
+                        <Label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-1">Quantity</Label>
+                        <Input type="number" min={1} value={l.qty} onChange={(e) => updateLine(i, 'qty', Number(e.target.value) || 0)} className="h-9 bg-white text-xs text-center rounded-lg border-slate-200" />
+                        {txnSet.freeQty && (
+                          <div className="mt-1">
+                            <Input 
+                              type="number" min={0} value={l.freeQty || 0} 
+                              onChange={(e) => updateLine(i, 'freeQty', Number(e.target.value) || 0)} 
+                              placeholder="Free Qty"
+                              title="Free Quantity"
+                              className="h-7 bg-blue-50 text-[10px] text-center rounded border-blue-200 placeholder:text-blue-300" 
+                            />
+                          </div>
+                        )}
+                      </div>
 
-                      {/* Rate / Price + Tax Type */}
-                      {cols.priceUnit && (
-                        <div className="col-span-4 sm:col-span-2">
-                          <Label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-1">{colNames.priceUnit || "Price/Unit"}</Label>
-                          <Input type="number" min={0} value={l.rate} onChange={(e) => updateLine(i, 'rate', Number(e.target.value) || 0)} className="h-9 bg-white text-xs text-right rounded-lg border-slate-200" />
-                          {txnSet.taxOnRate && (
-                            <div className="mt-1">
-                              <select 
-                                value={l.taxType || "inclusive"} 
-                                onChange={(e) => updateLine(i, 'taxType', e.target.value)}
-                                className="h-7 w-full text-[10px] rounded border border-slate-200 bg-emerald-50 px-2 font-semibold text-emerald-700 focus:outline-none"
-                              >
-                                <option value="inclusive">Tax Inclusive</option>
-                                <option value="exclusive">Tax Exclusive</option>
-                              </select>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      {/* Rate / Price */}
+                      <div className="col-span-4 sm:col-span-2">
+                        <Label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-1">Price/Unit</Label>
+                        <Input type="number" min={0} value={l.rate} onChange={(e) => updateLine(i, 'rate', Number(e.target.value) || 0)} className="h-9 bg-white text-xs text-right rounded-lg border-slate-200" />
+                      </div>
 
                       {/* Delete Button */}
                       <div className="col-span-12 sm:col-span-1 flex sm:justify-end justify-start items-end">
@@ -1045,12 +1136,10 @@ export default function NewSale() {
                     {/* Row 2: Secondary fields */}
                     <div className="grid grid-cols-12 gap-3 mt-3 items-end">
                       {/* Discount */}
-                      {(cols.discount || cols.discountPercent) && (
-                        <div className="col-span-4 sm:col-span-2">
-                          <Label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-1">Discount %</Label>
-                          <Input type="number" min={0} max={100} value={l.discount} onChange={(e) => updateLine(i, 'discount', Number(e.target.value) || 0)} className="h-9 bg-white text-xs text-center rounded-lg border-slate-200" />
-                        </div>
-                      )}
+                      <div className="col-span-4 sm:col-span-2">
+                        <Label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-1">Discount %</Label>
+                        <Input type="number" min={0} max={100} value={l.discount} onChange={(e) => updateLine(i, 'discount', Number(e.target.value) || 0)} className="h-9 bg-white text-xs text-center rounded-lg border-slate-200" />
+                      </div>
 
                       {/* GST Rate */}
                       {gstSet.enableGst && (
@@ -1070,6 +1159,21 @@ export default function NewSale() {
                             <option value="18">18%</option>
                             <option value="28">28%</option>
                             <option value="custom">Custom</option>
+                          </select>
+                        </div>
+                      )}
+
+                      {/* Tax Type (Inclusive/Exclusive) */}
+                      {txnSet.taxOnRate && gstSet.enableGst && (
+                        <div className="col-span-4 sm:col-span-3">
+                          <Label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-1">Tax Type</Label>
+                          <select 
+                            value={l.taxType || "inclusive"} 
+                            onChange={(e) => updateLine(i, 'taxType', e.target.value)}
+                            className="h-9 w-full text-xs rounded-lg border border-slate-200 bg-emerald-50 px-2.5 font-semibold text-emerald-700 focus:outline-none"
+                          >
+                            <option value="inclusive">Tax Inclusive</option>
+                            <option value="exclusive">Tax Exclusive</option>
                           </select>
                         </div>
                       )}
@@ -1179,8 +1283,81 @@ export default function NewSale() {
               </div>
             </div>
 
+            {/* E-Way Bill Transport Details */}
+            {isEwayMode && (
+              <div className="bg-white rounded-xl p-4 shadow-sm border space-y-4">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Transport & Dispatch Details</span>
+                
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Transporter Name</Label>
+                      <Input value={transportDetails.transporterName || ""} onChange={(e) => setTransportDetails({...transportDetails, transporterName: e.target.value})} className="h-9 text-xs rounded-lg" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Transporter ID (GSTIN)</Label>
+                      <Input value={transportDetails.transporterId || ""} onChange={(e) => setTransportDetails({...transportDetails, transporterId: e.target.value})} className="h-9 text-xs rounded-lg uppercase" />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Vehicle Number</Label>
+                      <Input value={transportDetails.vehicleNumber || ""} onChange={(e) => setTransportDetails({...transportDetails, vehicleNumber: e.target.value})} className="h-9 text-xs rounded-lg uppercase" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Approx Distance (KM)</Label>
+                      <Input type="number" value={transportDetails.approxDistance || ""} onChange={(e) => setTransportDetails({...transportDetails, approxDistance: Number(e.target.value)})} className="h-9 text-xs rounded-lg" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">LR/RR Number</Label>
+                      <Input value={transportDetails.lrNumber || ""} onChange={(e) => setTransportDetails({...transportDetails, lrNumber: e.target.value})} className="h-9 text-xs rounded-lg uppercase" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">LR/RR Date</Label>
+                      <Input type="date" value={transportDetails.lrDate ? new Date(transportDetails.lrDate).toISOString().split('T')[0] : ""} onChange={(e) => setTransportDetails({...transportDetails, lrDate: e.target.value})} className="h-9 text-xs rounded-lg" />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Mode of Transport</Label>
+                      <select value={transportDetails.modeOfTransport || "Road"} onChange={(e) => setTransportDetails({...transportDetails, modeOfTransport: e.target.value})} className="w-full h-9 rounded-lg border bg-white px-2 text-xs focus:outline-none">
+                        <option value="Road">Road</option>
+                        <option value="Rail">Rail</option>
+                        <option value="Air">Air</option>
+                        <option value="Ship">Ship</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Vehicle Type</Label>
+                      <select value={transportDetails.vehicleType || "Regular"} onChange={(e) => setTransportDetails({...transportDetails, vehicleType: e.target.value})} className="w-full h-9 rounded-lg border bg-white px-2 text-xs focus:outline-none">
+                        <option value="Regular">Regular</option>
+                        <option value="ODC">ODC</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t space-y-3">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Dispatch From (Address)</span>
+                    <Input value={shippingDetails.dispatchFromAddress || ""} onChange={(e) => setShippingDetails({...shippingDetails, dispatchFromAddress: e.target.value})} placeholder="Warehouse / Shop Address" className="h-9 text-xs rounded-lg" />
+                    <Input value={shippingDetails.placeOfDispatch || ""} onChange={(e) => setShippingDetails({...shippingDetails, placeOfDispatch: e.target.value})} placeholder="Place of Dispatch (City/PIN)" className="h-9 text-xs rounded-lg" />
+                  </div>
+
+                  <div className="pt-2 border-t space-y-3">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Ship To (Address)</span>
+                    <Input value={shippingDetails.shipToAddress || ""} onChange={(e) => setShippingDetails({...shippingDetails, shipToAddress: e.target.value})} placeholder="Delivery Address" className="h-9 text-xs rounded-lg" />
+                    <Input value={shippingDetails.placeOfDelivery || ""} onChange={(e) => setShippingDetails({...shippingDetails, placeOfDelivery: e.target.value})} placeholder="Place of Delivery (City/PIN)" className="h-9 text-xs rounded-lg" />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Footer / Additional Details Card */}
-            {(printSet.printDescription || printSet.printTermsAndConditions || printSet.printAcknowledgement || printSet.printReceivedByDetails || printSet.printDeliveredByDetails || printSet.printSignatureText) && (
+            {!isEwayMode && (printSet.printDescription || printSet.printTermsAndConditions || printSet.printAcknowledgement || printSet.printReceivedByDetails || printSet.printDeliveredByDetails || printSet.printSignatureText) && (
               <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Footer & T&C Details</span>
                 <div className="space-y-3">
@@ -1333,36 +1510,13 @@ export default function NewSale() {
                       />
                     </div>
                   )}
-                  <div className="grid grid-cols-2 gap-3">
-                    {printSet.printReceivedByDetails && (
-                      <div className="space-y-1">
-                        <Label className="text-xs">Received By</Label>
-                        <Input 
-                          value={receivedBy} 
-                          onChange={(e) => setReceivedBy(e.target.value)} 
-                          placeholder="Name of receiver"
-                          className="h-9 rounded-lg"
-                        />
-                      </div>
-                    )}
-                    {printSet.printDeliveredByDetails && (
-                      <div className="space-y-1">
-                        <Label className="text-xs">Delivered By</Label>
-                        <Input 
-                          value={deliveredBy} 
-                          onChange={(e) => setDeliveredBy(e.target.value)} 
-                          placeholder="Name of deliverer"
-                          className="h-9 rounded-lg"
-                        />
-                      </div>
-                    )}
-                  </div>
+
                 </div>
               </div>
             )}
 
             {/* Calculations & Payment Configuration */}
-            {printSet.paymentMode && (
+            {!isEwayMode && printSet.paymentMode && (
               <div className="bg-white rounded-xl shadow-sm border p-4 space-y-4">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Payment Setup</span>
                 
@@ -1518,6 +1672,7 @@ export default function NewSale() {
                 paymentMethod,
                 paymentDetails,
                 lines,
+                totals,
                 reverseCharge,
                 challanNo,
                 vehicleNo,
@@ -1527,7 +1682,8 @@ export default function NewSale() {
                 billedToGstin,
                 billedToMobile,
                 billedToState,
-                invoiceNumber: "INV-" + (settings?.lastInvoiceNo || "1001"),
+                bankDetails,
+                invoiceNumber: invoiceNumber || "INV-" + (settings?.lastInvoiceNo || "1001"),
                 date: paymentDate ? new Date(paymentDate + "T12:00:00").toISOString() : new Date().toISOString(),
                 time: paymentTime,
                 terms,
@@ -1535,7 +1691,12 @@ export default function NewSale() {
                 receivedBy,
                 deliveredBy,
                 acknowledgement,
-                partyBalance
+                partyBalance,
+                billingName,
+                poNumber,
+                poDate,
+                transportDetails,
+                shippingDetails
               }}
               printSettings={{
                 ...printSet,
@@ -1545,7 +1706,8 @@ export default function NewSale() {
                 phone: sellerPhone,
                 signatureText: signatureText,
                 signatureUrl: signatureUrl,
-                signatureImgUrl: signatureImgUrl
+                signatureImgUrl: signatureImgUrl,
+                logoUrl: logoUrl
               }}
               gstSettings={{
                 ...gstSet,
@@ -1555,92 +1717,58 @@ export default function NewSale() {
               templateData={availableTemplates.find(t => t.name === invoiceTemplate)}
               themeColor={themeColor}
               numberToWords={numberToWords}
+              documentType={isEwayMode ? "EWAY" : "INVOICE"}
             />
           </div>
 
-            {/* Visual Invoice Theme Colors Selector */}
-            <div className="mt-4 bg-white border border-slate-300 rounded-xl p-4 shadow-sm shrink-0">
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">Select Template Theme Accent Color</h3>
-              <div className="flex flex-wrap gap-2.5">
-                {[
-                  { id: "slate", class: "bg-slate-800 text-white", name: "Slate" },
-                  { id: "red", class: "bg-rose-600 text-white", name: "Rose" },
-                  { id: "blue", class: "bg-blue-600 text-white", name: "Blue" },
-                  { id: "emerald", class: "bg-emerald-600 text-white", name: "Emerald" },
-                  { id: "purple", class: "bg-purple-600 text-white", name: "Purple" },
-                  { id: "amber", class: "bg-amber-500 text-slate-900", name: "Amber" },
-                  { id: "rose", class: "bg-pink-600 text-white", name: "Pink" },
-                  { id: "indigo", class: "bg-indigo-600 text-white", name: "Indigo" }
-                ].map((col) => (
-                  <button
-                    key={col.id}
-                    onClick={() => setThemeColor(col.id)}
-                    className={`h-8 px-3 rounded-xl text-[10px] font-bold transition-all flex items-center gap-1.5 ${
-                      col.class
-                    } ${
-                      themeColor === col.id
-                        ? "ring-2 ring-offset-2 ring-emerald-500 scale-105"
-                        : "opacity-80 hover:opacity-100"
-                    }`}
-                  >
-                    <span className="h-2 w-2 rounded-full bg-white/30" />
-                    {col.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Visual Invoice Template Selector Cards */}
-            <div className="mt-4 bg-white border border-slate-300 rounded-xl p-4 shadow-sm shrink-0">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Select Invoice Template Layout</h3>
-                <span className="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full font-bold uppercase">
-                  Plan: {user?.subscription?.plan || "Free"}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                {availableTemplates.map((tpl) => {
-                  const requiredPlan = tpl.planTier;
-                  const currentPlan = user?.subscription?.plan || "Free";
-                  
-                  const plansOrder = ["Free", "Silver", "Gold", "Enterprise"];
-                  const hasAccess = plansOrder.indexOf(currentPlan) >= plansOrder.indexOf(requiredPlan);
-
-                  const handleSelect = () => {
-                    if (!hasAccess) {
-                      toast.error(`"${tpl.name}" is a premium template. Please upgrade to ${requiredPlan} Plan to unlock this format.`);
-                      return;
-                    }
-                    setInvoiceTemplate(tpl.name);
-                  };
-
-                  return (
+            {/* Visual Invoice Template Selector */}
+            {!isEwayMode && (
+              <div className="mt-4 bg-white border border-slate-300 rounded-xl p-4 shadow-sm shrink-0">
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">Select Invoice Design</h3>
+                <div className="flex flex-wrap gap-2.5">
+                  {[
+                    { id: "GST Boxed", name: "Standard (Boxed)" },
+                    { id: "Classic White", name: "Classic" },
+                    { id: "Modern Blue", name: "Modern" },
+                    { id: "Minimalist", name: "Minimal" },
+                    { id: "Professional", name: "Professional" }
+                  ].map((tpl) => (
                     <button
-                      key={tpl._id}
-                      onClick={handleSelect}
-                      className={`flex flex-col items-center p-2.5 rounded-lg border text-center transition-all relative ${
-                        !hasAccess ? "opacity-50 hover:opacity-70 bg-slate-100/50" : ""
-                      } ${
-                        invoiceTemplate === tpl.name
-                          ? "border-emerald-500 bg-emerald-50/50 shadow-sm ring-1 ring-emerald-500 scale-105"
-                          : "border-slate-200 hover:border-slate-300 bg-slate-50/30"
+                      key={tpl.id}
+                      onClick={() => setInvoiceTemplate(tpl.id)}
+                      className={`h-8 px-4 rounded-xl text-[11px] font-bold transition-all border ${
+                        invoiceTemplate === tpl.id
+                          ? "bg-slate-800 text-white border-slate-800 shadow-md scale-105"
+                          : "bg-white text-slate-600 border-slate-200 hover:border-slate-400 hover:bg-slate-50"
                       }`}
                     >
-                      <TemplatePreviewMini previewColor={tpl.previewColor} previewStyle={tpl.previewStyle} />
-                      <span className="text-[10px] font-bold text-slate-800 leading-tight block">{tpl.name}</span>
-                      <span className="text-[8px] text-slate-500 block leading-tight mt-0.5">{tpl.description}</span>
-                      {!hasAccess && (
-                        <span className="absolute top-1 right-1 text-[8px] bg-amber-500 text-white px-1.5 py-0.2 rounded font-extrabold uppercase scale-90">
-                          {requiredPlan}
-                        </span>
-                      )}
+                      {tpl.name}
                     </button>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
+
+      {/* Transport Drawer */}
+      <TransportDetailsDrawer 
+        isOpen={showTransportDrawer}
+        onClose={() => setShowTransportDrawer(false)}
+        onSave={() => {
+          setShowTransportDrawer(false);
+          // Update the pendingSave payload before executing
+          if (pendingSave) {
+            pendingSave.payload.transportDetails = transportDetails;
+            pendingSave.payload.shippingDetails = shippingDetails;
+          }
+          executeSave();
+        }}
+        transportDetails={transportDetails}
+        setTransportDetails={setTransportDetails}
+        shippingDetails={shippingDetails}
+        setShippingDetails={setShippingDetails}
+      />
 
       {/* Ad Modal */}
       {showAdModal && (
@@ -1737,13 +1865,46 @@ export default function NewSale() {
       )}
 
         {/* Floating Bottom Action bar */}
-      <div className="sticky bottom-0 shrink-0 bg-white border-t p-4 flex gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:justify-center">
-        <Button variant="outline" className="flex-1 rounded-full h-12 text-[14px] font-bold border-slate-300 md:max-w-xs" onClick={() => handleSave(false)}>
-          SAVE INVOICE
+      <div className="sticky bottom-0 shrink-0 bg-white border-t p-4 flex flex-col md:flex-row gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:justify-center items-center">
+        <div className="flex bg-slate-100 p-1 rounded-full border border-slate-200 self-stretch md:self-auto shrink-0 mb-2 md:mb-0">
+          <button 
+            className={`flex-1 md:w-28 px-3 py-2 rounded-full text-xs font-bold transition-colors ${!isEwayMode ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+            onClick={() => setInvoiceTemplate(settings?.printSettings?.themeName || "GST Boxed")}
+          >
+            Invoice
+          </button>
+          
+          {isEwayMode ? (
+            <>
+              <button 
+                className={`flex-1 md:w-28 px-3 py-2 rounded-full text-xs font-bold transition-colors ${invoiceTemplate === 'Green E-Way' ? 'bg-white shadow-sm text-emerald-700' : 'text-slate-500 hover:text-slate-700'}`}
+                onClick={() => setInvoiceTemplate("Green E-Way")}
+              >
+                Green E-Way
+              </button>
+              <button 
+                className={`flex-1 md:w-28 px-3 py-2 rounded-full text-xs font-bold transition-colors ${invoiceTemplate === 'Minimal E-Way' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                onClick={() => setInvoiceTemplate("Minimal E-Way")}
+              >
+                Minimal E-Way
+              </button>
+            </>
+          ) : (
+            <button 
+              className={`flex-1 md:w-28 px-3 py-2 rounded-full text-xs font-bold transition-colors ${isEwayMode ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+              onClick={() => setInvoiceTemplate("Green E-Way")}
+            >
+              E-Way Bill
+            </button>
+          )}
+        </div>
+        
+        <Button variant="outline" className="w-full md:flex-1 rounded-full h-12 text-[14px] font-bold border-slate-300 md:max-w-xs" onClick={() => handleSave(false)}>
+          SAVE {isEwayMode ? "E-WAY BILL" : "INVOICE"}
         </Button>
-        <Button className="flex-[2] rounded-full h-12 text-[14px] font-bold bg-emerald-500 hover:bg-emerald-600 md:max-w-xs" onClick={() => handleSave(true)}>
+        <Button className="w-full md:flex-[2] rounded-full h-12 text-[14px] font-bold bg-emerald-500 hover:bg-emerald-600 md:max-w-xs" onClick={() => handleSave(true)}>
           <Send className="mr-2 h-4 w-4" />
-          SAVE & SEND BILL
+          SAVE & SEND {isEwayMode ? "E-WAY BILL" : "BILL"}
         </Button>
       </div>
     </div>

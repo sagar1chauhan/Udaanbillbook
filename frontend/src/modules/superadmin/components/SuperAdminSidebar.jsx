@@ -25,7 +25,6 @@ const menuGroups = [
       { title: "Revenue", url: "/admin/revenue", icon: TrendingUp },
       { title: "Vendors", url: "/admin/users", icon: Users },
       { title: "Categories", url: "/admin/categories", icon: LayoutGrid },
-      { title: "Templates", url: "/admin/templates", icon: FileText },
     ],
   },
   {

@@ -236,16 +236,7 @@ export function SubscriptionManager() {
                     </li>
                   ))}
                 </ul>
-                {plan.allowedTemplates && plan.allowedTemplates.length > 0 && (
-                  <div className="border-t border-white/5 pt-3">
-                    <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1">Templates allowed</p>
-                    <div className="flex flex-wrap gap-1">
-                      {plan.allowedTemplates.map(t => (
-                        <span key={t} className="text-[9px] bg-white/5 px-2 py-0.5 rounded text-slate-400">{t}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {/* Templates allowed rendering removed */}
                 <div className="border-t border-white/5 pt-3 mt-3 flex items-center justify-between">
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Udaan Logo</p>
                   {plan.showUdaanLogo ? (
@@ -324,40 +315,7 @@ export function SubscriptionManager() {
                 />
               </div>
 
-              {/* Templates Access Selection Checkboxes */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-2">Allowed Bill Templates</label>
-                <div className="grid grid-cols-2 gap-2 bg-white/5 p-3 rounded-xl border border-white/10 max-h-36 overflow-y-auto">
-                  {availableTemplates.map((templateObj) => {
-                    const tpl = templateObj.name;
-                    const isChecked = formData.allowedTemplates.includes(tpl);
-                    const handleToggleTemplate = () => {
-                      if (isChecked) {
-                        setFormData({
-                          ...formData,
-                          allowedTemplates: formData.allowedTemplates.filter(t => t !== tpl)
-                        });
-                      } else {
-                        setFormData({
-                          ...formData,
-                          allowedTemplates: [...formData.allowedTemplates, tpl]
-                        });
-                      }
-                    };
-                    return (
-                      <label key={tpl} className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          className="rounded bg-white/5 border-white/10 text-emerald-500 focus:ring-emerald-500"
-                          checked={isChecked}
-                          onChange={handleToggleTemplate}
-                        />
-                        {tpl}
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
+              {/* Templates Access Selection Checkboxes Removed */}
 
               <div>
                 <label className="block text-xs font-semibold text-slate-400 mb-1">Features (One per line) *</label>

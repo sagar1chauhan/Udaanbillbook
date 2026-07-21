@@ -147,6 +147,7 @@ export function MainDashboard() {
     { label: "Purchase", feature: "billing", icon: ShoppingBasket, color: "text-blue-600", bg: "bg-blue-50/50", border: "border-blue-100", link: "/vendor/billing?type=purchase" },
     { label: "Expenses", feature: "expenses", icon: ReceiptText, color: "text-blue-600", bg: "bg-blue-50/50", border: "border-blue-100", link: "/vendor/expenses" },
     { label: "Estimate", feature: "billing", icon: FileText, color: "text-emerald-600", bg: "bg-emerald-50/50", border: "border-emerald-100", link: "/vendor/billing" },
+    { label: "E-Way Bill", feature: "billing", icon: Truck, color: "text-purple-600", bg: "bg-purple-50/50", border: "border-purple-100", link: "/vendor/sale/new?ewaybill=true" },
     { label: "Customers", feature: "parties", icon: UserCheck, color: "text-emerald-600", bg: "bg-emerald-50/50", border: "border-emerald-100", link: "/vendor/parties?type=customer" },
     { label: "Suppliers", feature: "parties", icon: Truck, color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200", link: "/vendor/parties?type=supplier" },
     { label: "Products", feature: "inventory", icon: Package, color: "text-blue-600", bg: "bg-blue-50/50", border: "border-blue-100", link: "/vendor/inventory" },
@@ -172,9 +173,6 @@ export function MainDashboard() {
             </Button>
             <Button variant="outline" size="icon" className="rounded-xl shrink-0" onClick={() => setIsGstCalculatorOpen(true)} title="GST Calculator">
               <Calculator className="h-4 w-4" />
-            </Button>
-            <Button className="rounded-xl flex-1 px-2 text-xs sm:text-sm sm:px-4 sm:flex-none" onClick={() => setSearchParams({ "create-invoice": "true" })}>
-              <Plus className="mr-1 h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" /> <span className="truncate">New Invoice</span>
             </Button>
           </div>
         }

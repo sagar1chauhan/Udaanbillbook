@@ -903,7 +903,23 @@ const deleteUser = async (req, res) => {
 // @access  Private (Admin)
 const getInvoiceTemplates = async (req, res) => {
   try {
-    const templates = await InvoiceTemplate.find({}).sort({ sortOrder: 1 });
+    let templates = await InvoiceTemplate.find({}).sort({ sortOrder: 1 });
+    if (templates.length === 0) {
+      const defaultTemplates = [
+        { name: "GST Boxed", description: "Standard boxed layout for GST invoices", componentKey: "gst-boxed", planTier: "Free", previewColor: "bg-slate-800", previewStyle: "header-bar", sortOrder: 1 },
+        { name: "Classic White", description: "Clean and professional white layout", componentKey: "classic-white", planTier: "Free", previewColor: "bg-gray-100", previewStyle: "header-bar", sortOrder: 2 },
+        { name: "Modern Green", description: "Modern look with green accents", componentKey: "modern-green", planTier: "Silver", previewColor: "bg-green-600", previewStyle: "header-bar", sortOrder: 3 },
+        { name: "Stylish Blue", description: "Stylish blue themed invoice", componentKey: "stylish-blue", planTier: "Gold", previewColor: "bg-blue-600", previewStyle: "header-bar", sortOrder: 4 },
+        { name: "Minimalist", description: "Minimalist layout without borders", componentKey: "minimalist", planTier: "Gold", previewColor: "bg-white", previewStyle: "header-bar", sortOrder: 5 },
+        { name: "Crimson Rose", description: "Elegant crimson colored theme", componentKey: "crimson-rose", planTier: "Gold", previewColor: "bg-rose-600", previewStyle: "header-bar", sortOrder: 6 },
+        { name: "Warm Amber", description: "Warm amber accents", componentKey: "warm-amber", planTier: "Enterprise", previewColor: "bg-amber-600", previewStyle: "header-bar", sortOrder: 7 },
+        { name: "Royal Purple", description: "Premium purple theme", componentKey: "royal-purple", planTier: "Enterprise", previewColor: "bg-purple-600", previewStyle: "header-bar", sortOrder: 8 },
+        { name: "Charcoal Dark", description: "Dark mode charcoal theme", componentKey: "charcoal-dark", planTier: "Enterprise", previewColor: "bg-gray-800", previewStyle: "header-bar", sortOrder: 9 },
+        { name: "Tally Classic", description: "Classic Tally-style invoice", componentKey: "tally-classic", planTier: "Enterprise", previewColor: "bg-yellow-100", previewStyle: "header-bar", sortOrder: 10 }
+      ];
+      await InvoiceTemplate.insertMany(defaultTemplates);
+      templates = await InvoiceTemplate.find({}).sort({ sortOrder: 1 });
+    }
     res.status(200).json(templates);
   } catch (error) {
     res.status(500).json({ message: error.message });

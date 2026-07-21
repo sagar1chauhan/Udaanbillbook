@@ -85,9 +85,9 @@ export const securityLogs = [
 
 export const subscriptionPlans = [
   { id: 1, name: "Free", price: 0, interval: "forever", activeSubscribers: 924, monthlyRevenue: 0, features: ["50 invoices/month", "Basic inventory", "1 user", "Udaan branding"], status: "Active" },
-  { id: 2, name: "Silver", price: 199, interval: "month", activeSubscribers: 1102, monthlyRevenue: 219298, features: ["Unlimited invoices", "Advanced inventory", "3 users", "No branding", "Basic GST"], status: "Active" },
-  { id: 3, name: "Gold", price: 299, interval: "month", activeSubscribers: 648, monthlyRevenue: 193752, features: ["Everything in Silver", "Unlimited users", "E-way bills", "Advanced GST", "Staff management"], status: "Active", popular: true },
-  { id: 4, name: "Enterprise", price: 499, interval: "month", activeSubscribers: 173, monthlyRevenue: 86327, features: ["Everything in Gold", "Custom themes", "Priority support", "Barcode gen", "API access"], status: "Active" },
+  { id: 2, name: "Silver", price: 199, interval: "month", activeSubscribers: 1102, monthlyRevenue: 219298, features: ["Unlimited invoices", "Advanced inventory", "3 users", "No branding", "Basic GST", "Company Logo"], status: "Active" },
+  { id: 3, name: "Gold", price: 299, interval: "month", activeSubscribers: 648, monthlyRevenue: 193752, features: ["Everything in Silver", "Unlimited users", "E-way bills", "Advanced GST", "Staff management", "Company Logo"], status: "Active", popular: true },
+  { id: 4, name: "Enterprise", price: 499, interval: "month", activeSubscribers: 173, monthlyRevenue: 86327, features: ["Everything in Gold", "Custom themes", "Priority support", "Barcode gen", "API access", "Company Logo"], status: "Active" },
 ];
 
 export const fmt = (n) => "₹" + n.toLocaleString("en-IN");

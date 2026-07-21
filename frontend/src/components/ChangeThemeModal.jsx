@@ -48,7 +48,7 @@ export function ChangeThemeModal({ isOpen, onClose, settings, updateSettings }) 
         <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
           {/* Left Side: Theme Selection */}
           <div className="w-full md:w-1/2 border-r flex flex-col">
-            <div className="p-4 bg-slate-50 border-b">
+            <div className="p-4 bg-slate-50 flex-1">
               <h3 className="font-semibold text-slate-700 mb-3">Theme Colors</h3>
               <div className="flex flex-wrap gap-3">
                 {colors.map((color) => (
@@ -63,41 +63,6 @@ export function ChangeThemeModal({ isOpen, onClose, settings, updateSettings }) 
                 ))}
               </div>
             </div>
-
-            <ScrollArea className="flex-1 p-4 bg-slate-100">
-              <div className="grid grid-cols-2 gap-4">
-                {availableTemplates.map((theme) => (
-                  <div
-                    key={theme.name}
-                    className={`bg-white rounded-lg border overflow-hidden cursor-pointer transition-all hover:shadow-md ${selectedTheme === theme.name ? "ring-2 ring-blue-500 border-transparent shadow-md" : "border-slate-200"}`}
-                    onClick={() => setSelectedTheme(theme.name)}
-                  >
-                    <div className="relative aspect-[3/4] bg-slate-100 p-2 border-b">
-                      {theme.planTier === "Free" && (
-                        <div className="absolute top-0 right-0 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg z-10">
-                          Free
-                        </div>
-                      )}
-                      {/* Placeholder for theme image - in a real app, use actual thumbnails */}
-                      <div className="w-full h-full bg-white shadow-sm border border-slate-200 relative overflow-hidden">
-                         <div className="absolute top-0 left-0 w-full h-4" style={{ backgroundColor: selectedColor, borderTopWidth: theme.name === 'GST Boxed' ? '4px' : '0' }}></div>
-                         <div className="p-2 pt-6">
-                           <div className="w-1/2 h-2 bg-slate-200 mb-2"></div>
-                           <div className="w-1/3 h-2 bg-slate-200 mb-4"></div>
-                           <div className="w-full h-12 bg-slate-50 border border-slate-200 mb-2 flex">
-                              <div className="w-full h-2 bg-slate-200 mt-2 mx-1"></div>
-                           </div>
-                           <div className="w-full h-2 bg-slate-200"></div>
-                         </div>
-                      </div>
-                    </div>
-                    <div className="p-3 text-center">
-                      <p className="text-[13px] font-semibold text-slate-800">{theme.name}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
           </div>
 
           {/* Right Side: Large Preview Placeholder */}
