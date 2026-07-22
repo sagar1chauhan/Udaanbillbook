@@ -2,8 +2,17 @@ branch_structure.json
 temp_auto_push.bat
 temp_interactive_push.bat
 
-.env
-*.env.local
+
 
 # Firebase service account credentials (NEVER commit)
 Backend/config/*firebase-adminsdk*.json
+
+
+# Environment files
+.env
+**/.env
+*.env
+*.env.local
+*.env.development.local
+*.env.test.local
+*.env.production.local
