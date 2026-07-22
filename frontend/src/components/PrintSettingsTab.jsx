@@ -161,11 +161,40 @@ export function PrintSettingsTab({ settings, updateSettings, isMobile }) {
                 onCheckedChange={(c) => handleUpdate("printCompanyLogo", !!c)} 
                 className="h-5 w-5 rounded shadow-sm data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 border-slate-300" 
               />
-              <Label className="text-[13px] flex items-center gap-2 cursor-pointer">
+              <label className="text-[13px] flex items-center gap-2 cursor-pointer">
                 Company Logo <span className="text-blue-500 font-normal hover:underline">(Change)</span>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        handleUpdate("logoUrl", reader.result);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
                 <Info className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Label>
+              </label>
             </div>
+            {print.logoUrl && (
+              <div className="flex items-center gap-3 pl-8 mb-2">
+                <div className="border rounded p-1 bg-white w-16 h-10 flex items-center justify-center">
+                  <img src={print.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => handleUpdate("logoUrl", "")} 
+                  className="text-xs text-red-500 hover:underline font-semibold"
+                >
+                  Remove Logo
+                </button>
+              </div>
+            )}
 
             {renderCheckInput("printAddress", "address", "Address")}
             {renderCheckInput("printEmail", "email", "Email")}
