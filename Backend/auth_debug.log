@@ -9062,3 +9062,6 @@
 [2026-07-22T07:37:24.704Z] Received token: eyJhbGciOiJIUzI... for path: /api/notifications/register-token
 [2026-07-22T07:37:24.721Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
 [2026-07-22T07:37:24.784Z] Authenticated user: undefined (Role: vendor)
+[2026-07-22T08:41:27.892Z] Received token: eyJhbGciOiJIUzI... for path: /api/notifications/register-token
+[2026-07-22T08:41:27.927Z] Token decoded successfully. User ID: 6a4f7ef89a7804afe43cc88f
+[2026-07-22T08:41:29.777Z] Authenticated user: undefined (Role: vendor)
