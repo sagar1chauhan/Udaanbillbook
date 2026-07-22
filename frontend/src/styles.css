@@ -237,3 +237,88 @@ aside nav::-webkit-scrollbar,
   display: none !important;
 }
 
+/* Print Stylesheet for clean invoice/page printing */
+@media print {
+  /* Hide sidebar, top bar, navigation, toaster, buttons, and form panels during print */
+  aside,
+  header,
+  footer,
+  nav,
+  button,
+  .no-print,
+  [data-sidebar="sidebar"],
+  .sidebar-provider,
+  .sidebar-inset > div:first-child, /* AppTopbar */
+  .mobile-bottom-nav,
+  .toaster,
+  /* Hide top action bar in NewSale.jsx */
+  .min-h-\[100vh\] > div:first-child,
+  /* Hide left form column in NewSale.jsx */
+  .w-full.md\:w-1\/2.lg\:w-5\/12,
+  /* Hide the template design selectors below the invoice preview */
+  .mt-4.bg-white.border.border-slate-300,
+  .select-template-section {
+    display: none !important;
+  }
+
+  /* Reset body and layout container sizes and margins for A4 printing */
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm !important;
+    height: auto !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Main wrapper reset */
+  .sidebar-inset,
+  main,
+  .min-h-\[100vh\],
+  .flex-1.flex.overflow-hidden {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Expand right-side invoice preview to occupy full printable area */
+  .w-full.md\:w-1\/2.lg\:w-7\/12 {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  /* Format the sheet paper containing the template design */
+  .bg-white.shadow-xl.rounded-xl.border {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    background: #ffffff !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Define standard A4 page size and tight print margins */
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm 10mm 12mm;
+  }
+}
+

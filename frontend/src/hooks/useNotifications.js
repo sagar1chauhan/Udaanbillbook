@@ -52,8 +52,8 @@ export function useNotifications() {
 
         // Save token to backend
         try {
-          await api.post('/notifications/save-token', {
-            token,
+          await api.post('/notifications/register-token', {
+            fcmToken: token,
             platform: 'web',
           });
           console.log('✅ FCM Token saved to backend');

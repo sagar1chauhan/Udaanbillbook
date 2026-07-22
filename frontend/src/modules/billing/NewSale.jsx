@@ -585,7 +585,7 @@ export default function NewSale() {
     }
 
     const payload = {
-      invoiceNumber: invoiceNo || ("INV-" + Math.floor(1000 + Math.random() * 9000)),
+      invoiceNumber: invoiceNumber || ("INV-" + Math.floor(1000 + Math.random() * 9000)),
       party: null,
       partyName: customer || "Walk-in Customer",
       type: "Sale",
@@ -678,7 +678,17 @@ export default function NewSale() {
       await api.post(endpoint, payload);
       addInvoice();
       localStorage.removeItem("Udaan.sale_draft");
-      toast.success(isSend ? "Sale invoice saved & sent successfully!" : "Sale invoice created successfully!");
+      
+      if (isSend) {
+        const phoneStr = billedToMobile ? `91${billedToMobile}` : "";
+        const msg = encodeURIComponent(
+          `Hi ${payload.partyName}, your invoice ${payload.invoiceNumber} of ₹${payload.grandTotal} is generated. Thank you for doing business with us!`
+        );
+        const waUrl = phoneStr ? `https://wa.me/${phoneStr}?text=${msg}` : `https://wa.me/?text=${msg}`;
+        window.open(waUrl, "_blank");
+      }
+
+      toast.success(isSend ? "Sale invoice saved & shared via WhatsApp!" : "Sale invoice created successfully!");
       const userRole = user?.role?.toLowerCase() || "user";
       const rolePrefix = (userRole === "staff" || userRole === "viewer") ? "/staff" : "/vendor";
       navigate(`${rolePrefix}/billing`);
