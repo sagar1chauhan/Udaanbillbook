@@ -48,7 +48,8 @@ export function useNotifications() {
       });
 
       if (token) {
-        console.log('✅ FCM Token obtained:', token.slice(0, 20) + '...');
+        console.log('✅ FCM Token obtained (copy this full token for Postman):');
+        console.log(token);
 
         // Save token to backend
         try {
