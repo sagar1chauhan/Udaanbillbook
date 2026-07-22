@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { useInvoices } from "@/contexts/InvoiceContext";
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -185,6 +186,9 @@ export default function NewSale() {
   const { addInvoice } = useInvoices();
   const { user } = useMockAuth();
   const { settings } = usePlatformSettings();
+
+  const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+  const [editingItemIndex, setEditingItemIndex] = useState(null);
 
   const printSet = settings?.printSettings || {};
   const gstSet = settings?.gstSettings || {};
@@ -543,6 +547,17 @@ export default function NewSale() {
     }
   };
 
+  const handleMobileAdd = () => {
+    setLines([...lines, { name: "", hsnSac: "", qty: 1, rate: 0, discount: 0, gst: 18 }]);
+    setEditingItemIndex(lines.length);
+    setIsItemModalOpen(true);
+  };
+
+  const handleMobileEdit = (index) => {
+    setEditingItemIndex(index);
+    setIsItemModalOpen(true);
+  };
+
   const handleSave = async (isSend = false) => {
     if (!lines.some(l => l.name.trim() !== "")) {
       toast.error("Please add at least one item.");
@@ -797,15 +812,15 @@ export default function NewSale() {
       {/* Main Split Screen Container */}
       <div className="flex-1 flex overflow-hidden">
         {/* LEFT COLUMN: Billing Creator Form */}
-        <div className={`w-full md:w-1/2 lg:w-5/12 flex flex-col h-full bg-slate-50 overflow-y-auto border-r custom-scrollbar ${activePane === 'preview' ? 'hidden md:flex' : 'flex'}`}>
-          <div className="p-4 space-y-4 pb-24">
+        <div className={`w-full md:w-1/2 lg:w-5/12 flex flex-col h-full bg-white md:bg-slate-50 overflow-y-auto border-r custom-scrollbar ${activePane === 'preview' ? 'hidden md:flex' : 'flex'}`}>
+          <div className="p-4 md:p-4 space-y-6 md:space-y-4 pb-24 bg-white md:bg-transparent">
             
             {isEwayMode ? (
               <>
                 {/* 1. E-Way Bill Details */}
-                <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
+                <div className="md:bg-white md:rounded-xl md:p-4 md:shadow-sm md:border border-b border-slate-100 md:border-b-0 pb-6 md:pb-0 space-y-3">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">1. E-Way Bill Details</span>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <Label className="text-xs">eWay Bill No</Label>
                       <Input 
@@ -828,13 +843,13 @@ export default function NewSale() {
                 </div>
 
                 {/* 2. Address Details */}
-                <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
+                <div className="md:bg-white md:rounded-xl md:p-4 md:shadow-sm md:border border-b border-slate-100 md:border-b-0 pb-6 md:pb-0 space-y-3">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">2. Address Details</span>
                   <div className="space-y-3">
                     {/* From Section */}
                     <div className="border-b pb-3 space-y-2">
                       <span className="text-xs font-bold text-slate-600 block">From (Seller / Dispatcher)</span>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <Label className="text-xs">Seller Name</Label>
                           <Input 
@@ -854,7 +869,7 @@ export default function NewSale() {
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                       <div className="space-y-2">
                         <Label className="text-xs font-semibold text-slate-700">Company Logo</Label>
                         <div className="flex items-center gap-3">
@@ -892,7 +907,8 @@ export default function NewSale() {
                           </div>
                         )}
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
+                      </div>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <Label className="text-xs">Dispatch From Address</Label>
                           <Input 
@@ -917,7 +933,7 @@ export default function NewSale() {
                     {/* To Section */}
                     <div className="space-y-2">
                       <span className="text-xs font-bold text-slate-600 block">To (Customer / Consignee)</span>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <Label className="text-xs">Customer Name</Label>
                           <Input 
@@ -937,7 +953,7 @@ export default function NewSale() {
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <Label className="text-xs">Ship To Address</Label>
                           <Input 
@@ -957,7 +973,7 @@ export default function NewSale() {
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <Label className="text-xs">Customer State</Label>
                           <Input 
@@ -982,10 +998,10 @@ export default function NewSale() {
                 </div>
 
                 {/* 4 & 5. Transporter & Vehicle Details */}
-                <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
+                <div className="md:bg-white md:rounded-xl md:p-4 md:shadow-sm md:border border-b border-slate-100 md:border-b-0 pb-6 md:pb-0 space-y-3">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">4 & 5. Transporter & Vehicle Details</span>
                   <div className="space-y-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <Label className="text-xs">Transporter Name</Label>
                         <Input 
@@ -1006,7 +1022,7 @@ export default function NewSale() {
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <Label className="text-xs">Vehicle Number</Label>
                         <Input 
@@ -1028,7 +1044,7 @@ export default function NewSale() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
                       <div className="space-y-1">
                         <Label className="text-[11px]">Transport Mode</Label>
                         <select 
@@ -1068,7 +1084,7 @@ export default function NewSale() {
               <>
                 {/* Seller/Company Details Block (Dynamically shown based on PRINT checkboxes) */}
                 {(printSet.printCompanyName || printSet.printAddress || printSet.printEmail || printSet.printPhone || printSet.printGstin) && (
-                  <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
+                  <div className="md:bg-white md:rounded-xl md:p-4 md:shadow-sm md:border border-b border-slate-100 md:border-b-0 pb-6 md:pb-0 space-y-3">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Seller Details (Your Info)</span>
                     <div className="space-y-3">
                       {printSet.printCompanyName && (
@@ -1132,7 +1148,7 @@ export default function NewSale() {
                           />
                         </div>
                       )}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                         {printSet.printPhone && (
                           <div className="space-y-1">
                             <Label className="text-xs">Phone Number</Label>
@@ -1173,11 +1189,11 @@ export default function NewSale() {
                 )}
 
                 {/* Bank Details Block */}
-                <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
+                <div className="md:bg-white md:rounded-xl md:p-4 md:shadow-sm md:border border-b border-slate-100 md:border-b-0 pb-6 md:pb-0 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bank Details (On Invoice)</span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <Label className="text-xs">Account No.</Label>
                       <Input 
@@ -1218,7 +1234,7 @@ export default function NewSale() {
                 </div>
 
                 {/* Customer Details Block */}
-                <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
+                <div className="md:bg-white md:rounded-xl md:p-4 md:shadow-sm md:border border-b border-slate-100 md:border-b-0 pb-6 md:pb-0 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Billed To (Customer Details)</span>
                   </div>
@@ -1254,7 +1270,7 @@ export default function NewSale() {
                         />
                       </div>
                     )}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <Label className="text-xs">Mobile Number</Label>
                         <Input 
@@ -1276,7 +1292,7 @@ export default function NewSale() {
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <Label className="text-xs">Billing Address</Label>
                         <Input 
@@ -1312,9 +1328,9 @@ export default function NewSale() {
                 </div>
 
                 {/* Transport & Additional Details Block */}
-                <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
+                <div className="md:bg-white md:rounded-xl md:p-4 md:shadow-sm md:border border-b border-slate-100 md:border-b-0 pb-6 md:pb-0 space-y-3">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Transport & Supply Details</span>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <Label className="text-xs">Challan No.</Label>
                       <Input 
@@ -1334,7 +1350,7 @@ export default function NewSale() {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <Label className="text-xs">Date of Supply</Label>
                       <Input 
@@ -1397,15 +1413,43 @@ export default function NewSale() {
             )}
 
             {/* Items List Block */}
-            <div className="bg-white rounded-xl shadow-sm border p-4 space-y-4">
+            <div className="md:bg-white md:rounded-xl md:shadow-sm md:border md:p-4 border-b border-slate-100 md:border-b-0 pb-6 md:pb-0 space-y-4">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-xs text-slate-800 uppercase tracking-wide">Item Details List</span>
-                <Button type="button" size="sm" variant="outline" onClick={addLine} className="rounded-full text-xs h-7 px-3 gap-1.5">
-                  <Plus className="h-3 w-3" /> Add Item Row
-                </Button>
+                <div className="flex gap-2">
+                  <Button type="button" size="sm" variant="outline" onClick={addLine} className="hidden md:flex rounded-full text-xs h-7 px-3 gap-1.5">
+                    <Plus className="h-3 w-3" /> Add Item Row
+                  </Button>
+                  <Button type="button" size="sm" variant="outline" onClick={handleMobileAdd} className="flex md:hidden rounded-full text-xs h-7 px-3 gap-1.5 bg-emerald-50 text-emerald-600 border-emerald-200">
+                    <Plus className="h-3 w-3" /> Add Item Row
+                  </Button>
+                </div>
               </div>
 
-              <div className="space-y-3">
+              {/* Mobile Summary List */}
+              <div className="md:hidden space-y-3">
+                {lines.map((l, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
+                    <div className="flex flex-col flex-1">
+                      <span className="font-semibold text-xs text-slate-800">{l.name || `Item ${i + 1}`}</span>
+                      <span className="text-[10px] text-slate-500 mt-0.5">
+                        {l.qty} {l.unit || 'unit'} x ₹{l.rate} {l.discount > 0 ? `(-${l.discount}%)` : ''}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button type="button" size="sm" variant="ghost" className="h-7 px-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg text-[10px]" onClick={() => handleMobileEdit(i)}>
+                        Edit
+                      </Button>
+                      <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg" onClick={() => removeLine(i)} disabled={lines.length === 1}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Inline Edit List */}
+              <div className="hidden md:block space-y-3">
                 {lines.map((l, i) => (
                   <div key={i} className="rounded-xl border border-slate-200 bg-gradient-to-b from-slate-50/80 to-white p-4 relative group">
                     {/* Row 1: Core fields */}
@@ -1639,7 +1683,7 @@ export default function NewSale() {
 
             {/* Footer / Additional Details Card */}
             {!isEwayMode && (printSet.printDescription || printSet.printTermsAndConditions || printSet.printAcknowledgement || printSet.printReceivedByDetails || printSet.printDeliveredByDetails || printSet.printSignatureText) && (
-              <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
+              <div className="md:bg-white md:rounded-xl md:p-4 md:shadow-sm md:border border-b border-slate-100 md:border-b-0 pb-6 md:pb-0 space-y-3">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Footer & T&C Details</span>
                 <div className="space-y-3">
                   {printSet.printDescription && (
@@ -1798,7 +1842,7 @@ export default function NewSale() {
 
             {/* Calculations & Payment Configuration */}
             {!isEwayMode && printSet.paymentMode && (
-              <div className="bg-white rounded-xl shadow-sm border p-4 space-y-4">
+              <div className="md:bg-white md:rounded-xl md:shadow-sm md:border md:p-4 border-b border-slate-100 md:border-b-0 pb-6 md:pb-0 space-y-4">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Payment Setup</span>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
@@ -1871,7 +1915,7 @@ export default function NewSale() {
                 {status !== "Unpaid" && paymentMethod === "Online" && (
                   <div className="space-y-3 pt-3 border-t border-dashed border-slate-200">
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Online Payment Details</span>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <Label className="text-[11px] text-slate-500 font-medium">Transaction ID / UPI</Label>
                         <Input 
@@ -1906,7 +1950,7 @@ export default function NewSale() {
 
                 {status !== "Unpaid" && paymentMethod === "Bank Transfer" && (
                   <div className="space-y-3 pt-3 border-t border-dashed">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
                       <div className="space-y-1">
                         <Label className="text-[10px] text-slate-500">Bank Name</Label>
                         <Input 
@@ -2145,7 +2189,89 @@ export default function NewSale() {
         </div>
       )}
 
-        {/* Floating Bottom Action bar */}
+        {/* Mobile Item Details Modal */}
+      <Dialog open={isItemModalOpen} onOpenChange={setIsItemModalOpen}>
+        <DialogContent className="max-w-md w-[95vw] bg-white p-5 max-h-[90vh] overflow-y-auto rounded-xl">
+          <DialogHeader className="mb-2">
+            <DialogTitle className="text-lg font-bold text-slate-800">Item Details</DialogTitle>
+          </DialogHeader>
+          
+          {editingItemIndex !== null && lines[editingItemIndex] && (
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Item Name</Label>
+                <Input value={lines[editingItemIndex].name} onChange={(e) => updateLine(editingItemIndex, 'name', e.target.value)} placeholder="Product description" className="h-11 bg-slate-50 border-slate-200" />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Quantity</Label>
+                  <Input type="number" min={1} value={lines[editingItemIndex].qty} onChange={(e) => updateLine(editingItemIndex, 'qty', Number(e.target.value) || 0)} className="h-11 bg-slate-50 border-slate-200 text-center" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Price/Unit (₹)</Label>
+                  <Input type="number" min={0} value={lines[editingItemIndex].rate === 0 ? "" : lines[editingItemIndex].rate} onChange={(e) => updateLine(editingItemIndex, 'rate', e.target.value === "" ? 0 : Number(e.target.value))} placeholder="0.00" className="h-11 bg-slate-50 border-slate-200 text-right font-semibold" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Discount %</Label>
+                  <Input type="number" min={0} max={100} value={lines[editingItemIndex].discount} onChange={(e) => updateLine(editingItemIndex, 'discount', Number(e.target.value) || 0)} className="h-11 bg-slate-50 border-slate-200 text-center" />
+                </div>
+                {gstSet.enableGst && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-600 uppercase tracking-wider">GST Rate %</Label>
+                    <select 
+                      value={[0, 5, 12, 18, 28].includes(Number(lines[editingItemIndex].gst)) ? String(lines[editingItemIndex].gst) : "custom"} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        updateLine(editingItemIndex, 'gst', val === "custom" ? 5 : Number(val));
+                      }} 
+                      className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="0">0%</option>
+                      <option value="5">5%</option>
+                      <option value="12">12%</option>
+                      <option value="18">18%</option>
+                      <option value="28">28%</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-600 uppercase tracking-wider">HSN/SAC</Label>
+                  <Input value={lines[editingItemIndex].hsnSac} onChange={(e) => updateLine(editingItemIndex, 'hsnSac', e.target.value)} placeholder="996601" className="h-11 bg-slate-50 border-slate-200" />
+                </div>
+                {txnSet.taxOnRate && gstSet.enableGst && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Tax Type</Label>
+                    <select 
+                      value={lines[editingItemIndex].taxType || "inclusive"} 
+                      onChange={(e) => updateLine(editingItemIndex, 'taxType', e.target.value)}
+                      className="h-11 w-full rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-sm font-semibold text-emerald-700 focus:outline-none"
+                    >
+                      <option value="inclusive">Tax Inclusive</option>
+                      <option value="exclusive">Tax Exclusive</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-6">
+            <Button type="button" className="w-full h-11 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md" onClick={() => setIsItemModalOpen(false)}>
+              Save & Update Item
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Floating Bottom Action bar */}
       <div className="sticky bottom-0 shrink-0 bg-white border-t p-2 md:p-4 flex flex-col md:flex-row gap-2 md:gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:justify-center items-center z-10">
         <div className="flex bg-slate-100 p-1 rounded-full border border-slate-200 self-stretch md:self-auto shrink-0 mb-1 md:mb-0 overflow-x-auto custom-scrollbar">
           <button 
