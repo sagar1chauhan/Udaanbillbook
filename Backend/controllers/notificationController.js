@@ -10,18 +10,30 @@ const User = require('../models/User');
 const registerToken = async (req, res) => {
   try {
     const { fcmToken, platform = 'web' } = req.body;
-    if (!fcmToken) return res.status(400).json({ message: 'fcmToken is required.' });
+    if (!fcmToken) return res.status(400).json({ message: 'fcmToken is required.', fcmTokenStored: false });
 
     const field = platform === 'mobile' ? 'fcmTokenMobile' : 'fcmTokens';
 
     // Add token to array if not already present
-    await User.findByIdAndUpdate(req.user._id, {
-      $addToSet: { [field]: fcmToken }
-    });
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { $addToSet: { [field]: fcmToken } },
+      { new: true }
+    );
 
-    res.json({ message: `FCM token registered (${platform}).`, userId: req.user._id });
+    // Verify token is actually in the array
+    const storedTokens = platform === 'mobile' ? updatedUser.fcmTokenMobile : updatedUser.fcmTokens;
+    const fcmTokenStored = storedTokens && storedTokens.includes(fcmToken);
+
+    res.json({
+      message: `FCM token registered (${platform}).`,
+      fcmTokenStored,
+      userId: req.user._id,
+      platform,
+      totalTokens: storedTokens ? storedTokens.length : 0,
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: err.message, fcmTokenStored: false });
   }
 };
 
