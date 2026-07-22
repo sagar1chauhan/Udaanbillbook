@@ -564,6 +564,28 @@ export default function NewSale() {
       return;
     }
 
+    // Bank Account & IFSC Validation
+    const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+    if (bankDetails.accountNumber && (bankDetails.accountNumber.length < 9 || bankDetails.accountNumber.length > 18)) {
+      toast.error("Please enter a valid 9 to 18-digit Bank Account Number.");
+      return;
+    }
+    if (bankDetails.ifsc && !ifscRegex.test(bankDetails.ifsc)) {
+      toast.error("Please enter a valid 11-character IFSC code (e.g., SBIN0001234).");
+      return;
+    }
+
+    if (status !== "Unpaid" && paymentMethod === "Bank Transfer") {
+      if (paymentDetails.accountNumber && (paymentDetails.accountNumber.length < 9 || paymentDetails.accountNumber.length > 18)) {
+        toast.error("Please enter a valid 9 to 18-digit Payment Bank Account Number.");
+        return;
+      }
+      if (paymentDetails.ifsc && !ifscRegex.test(paymentDetails.ifsc)) {
+        toast.error("Please enter a valid 11-character Payment IFSC code (e.g., SBIN0001234).");
+        return;
+      }
+    }
+
     if (status !== "Unpaid" && paymentMethod === "Online") {
       const isUtrValid = validateUtr(paymentDetails.utr);
       const isUpiValid = validateUpi(paymentDetails.transactionId);
@@ -772,295 +794,525 @@ export default function NewSale() {
         <div className={`w-full md:w-1/2 lg:w-5/12 flex flex-col h-full bg-slate-50 overflow-y-auto border-r custom-scrollbar ${activePane === 'preview' ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 space-y-4 pb-24">
             
-            {/* Seller/Company Details Block (Dynamically shown based on PRINT checkboxes) */}
-            {(printSet.printCompanyName || printSet.printAddress || printSet.printEmail || printSet.printPhone || printSet.printGstin) && (
-              <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Seller Details (Your Info)</span>
-                <div className="space-y-3">
-                  {printSet.printCompanyName && (
+            {isEwayMode ? (
+              <>
+                {/* 1. E-Way Bill Details */}
+                <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">1. E-Way Bill Details</span>
+                  <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <Label className="text-xs">Company Name</Label>
+                      <Label className="text-xs">eWay Bill No</Label>
                       <Input 
-                        value={sellerName} 
-                        onChange={(e) => setSellerName(e.target.value)} 
-                        placeholder="Seller Company Name"
+                        value={transportDetails.ewbNumber || ""} 
+                        onChange={(e) => setTransportDetails({...transportDetails, ewbNumber: e.target.value})} 
+                        placeholder="e.g. 123456789000"
+                        className="h-9 rounded-lg"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Document Number</Label>
+                      <Input 
+                        value={invoiceNumber} 
+                        onChange={(e) => setInvoiceNumber(e.target.value)} 
+                        placeholder="e.g. INV-1001"
+                        className="h-9 rounded-lg"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Address Details */}
+                <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">2. Address Details</span>
+                  <div className="space-y-3">
+                    {/* From Section */}
+                    <div className="border-b pb-3 space-y-2">
+                      <span className="text-xs font-bold text-slate-600 block">From (Seller / Dispatcher)</span>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Seller Name</Label>
+                          <Input 
+                            value={sellerName} 
+                            onChange={(e) => setSellerName(e.target.value)} 
+                            placeholder="Seller Company Name"
+                            className="h-9 rounded-lg"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Seller GSTIN</Label>
+                          <Input 
+                            value={sellerGstin} 
+                            onChange={(e) => setSellerGstin(e.target.value.toUpperCase().slice(0, 15))} 
+                            placeholder="Seller GSTIN"
+                            className="h-9 rounded-lg"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Dispatch From Address</Label>
+                          <Input 
+                            value={shippingDetails.dispatchFromAddress || ""} 
+                            onChange={(e) => setShippingDetails({ ...shippingDetails, dispatchFromAddress: e.target.value })} 
+                            placeholder="Full address of dispatch"
+                            className="h-9 rounded-lg"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Place of Dispatch</Label>
+                          <Input 
+                            value={shippingDetails.placeOfDispatch || ""} 
+                            onChange={(e) => setShippingDetails({ ...shippingDetails, placeOfDispatch: e.target.value })} 
+                            placeholder="e.g. Delhi"
+                            className="h-9 rounded-lg"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* To Section */}
+                    <div className="space-y-2">
+                      <span className="text-xs font-bold text-slate-600 block">To (Customer / Consignee)</span>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Customer Name</Label>
+                          <Input 
+                            value={customer} 
+                            onChange={(e) => setCustomer(e.target.value)} 
+                            placeholder="Enter Customer Name"
+                            className="h-9 rounded-lg"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Customer GSTIN</Label>
+                          <Input 
+                            value={billedToGstin} 
+                            onChange={(e) => setBilledToGstin(e.target.value.toUpperCase().slice(0, 15))} 
+                            placeholder="Customer GSTIN"
+                            className="h-9 rounded-lg"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Ship To Address</Label>
+                          <Input 
+                            value={shippingDetails.shipToAddress || ""} 
+                            onChange={(e) => setShippingDetails({ ...shippingDetails, shipToAddress: e.target.value })} 
+                            placeholder="Full delivery address"
+                            className="h-9 rounded-lg"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Place of Delivery</Label>
+                          <Input 
+                            value={shippingDetails.placeOfDelivery || ""} 
+                            onChange={(e) => setShippingDetails({ ...shippingDetails, placeOfDelivery: e.target.value })} 
+                            placeholder="e.g. Mumbai"
+                            className="h-9 rounded-lg"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Customer State</Label>
+                          <Input 
+                            value={billedToState} 
+                            onChange={(e) => setBilledToState(e.target.value)} 
+                            placeholder="e.g. Delhi (07)"
+                            className="h-9 rounded-lg"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Customer Mobile</Label>
+                          <Input 
+                            value={billedToMobile} 
+                            onChange={(e) => setBilledToMobile(e.target.value.replace(/\D/g, "").slice(0, 10))} 
+                            placeholder="10-digit number"
+                            className="h-9 rounded-lg"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4 & 5. Transporter & Vehicle Details */}
+                <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">4 & 5. Transporter & Vehicle Details</span>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Transporter Name</Label>
+                        <Input 
+                          value={transportDetails.transporterName || ""} 
+                          onChange={(e) => setTransportDetails({...transportDetails, transporterName: e.target.value})} 
+                          placeholder="Transporter Co. Name"
+                          className="h-9 text-xs rounded-lg" 
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Transporter ID (GSTIN)</Label>
+                        <Input 
+                          value={transportDetails.transporterId || ""} 
+                          onChange={(e) => setTransportDetails({...transportDetails, transporterId: e.target.value.toUpperCase().slice(0, 15)})} 
+                          placeholder="Transporter GSTIN"
+                          className="h-9 text-xs rounded-lg uppercase" 
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Vehicle Number</Label>
+                        <Input 
+                          value={transportDetails.vehicleNumber || ""} 
+                          onChange={(e) => setTransportDetails({...transportDetails, vehicleNumber: e.target.value.toUpperCase()})} 
+                          placeholder="e.g. DL2CAZXXXX"
+                          className="h-9 text-xs rounded-lg uppercase" 
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Approx Distance (KM)</Label>
+                        <Input 
+                          type="number" 
+                          value={transportDetails.approxDistance || ""} 
+                          onChange={(e) => setTransportDetails({...transportDetails, approxDistance: Number(e.target.value)})} 
+                          placeholder="e.g. 250"
+                          className="h-9 text-xs rounded-lg" 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-[11px]">Transport Mode</Label>
+                        <select 
+                          value={transportDetails.modeOfTransport || "Road"} 
+                          onChange={(e) => setTransportDetails({...transportDetails, modeOfTransport: e.target.value})} 
+                          className="w-full h-9 rounded-lg border bg-white px-2 text-xs focus:outline-none"
+                        >
+                          <option value="Road">Road</option>
+                          <option value="Rail">Rail</option>
+                          <option value="Air">Air</option>
+                          <option value="Ship">Ship</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px]">Doc/LR No.</Label>
+                        <Input 
+                          value={transportDetails.lrNumber || ""} 
+                          onChange={(e) => setTransportDetails({...transportDetails, lrNumber: e.target.value.toUpperCase()})} 
+                          placeholder="LR No"
+                          className="h-9 text-xs rounded-lg uppercase" 
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px]">Doc/LR Date</Label>
+                        <Input 
+                          type="date" 
+                          value={transportDetails.lrDate ? new Date(transportDetails.lrDate).toISOString().split('T')[0] : ""} 
+                          onChange={(e) => setTransportDetails({...transportDetails, lrDate: e.target.value})} 
+                          className="h-9 text-xs rounded-lg" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Seller/Company Details Block (Dynamically shown based on PRINT checkboxes) */}
+                {(printSet.printCompanyName || printSet.printAddress || printSet.printEmail || printSet.printPhone || printSet.printGstin) && (
+                  <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Seller Details (Your Info)</span>
+                    <div className="space-y-3">
+                      {printSet.printCompanyName && (
+                        <div className="space-y-1">
+                          <Label className="text-xs">Company Name</Label>
+                          <Input 
+                            value={sellerName} 
+                            onChange={(e) => setSellerName(e.target.value)} 
+                            placeholder="Seller Company Name"
+                            className="h-10 rounded-xl border border-slate-200 focus-visible:ring-1 focus-visible:ring-emerald-500" 
+                          />
+                        </div>
+                      )}
+                      {printSet.printGstin && (
+                        <div className="space-y-1">
+                          <Label className="text-xs">GSTIN on Sale</Label>
+                          <Input 
+                            value={sellerGstin} 
+                            onChange={(e) => setSellerGstin(e.target.value.toUpperCase().slice(0, 15))} 
+                            maxLength={15}
+                            placeholder="Seller GSTIN"
+                            className="h-9 rounded-lg"
+                          />
+                        </div>
+                      )}
+                      <div className="grid grid-cols-2 gap-3">
+                        {printSet.printPhone && (
+                          <div className="space-y-1">
+                            <Label className="text-xs">Phone Number</Label>
+                            <Input 
+                              value={sellerPhone} 
+                              onChange={(e) => setSellerPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} 
+                              maxLength={10}
+                              placeholder="Seller Phone"
+                              className="h-9 rounded-lg"
+                            />
+                          </div>
+                        )}
+                        {printSet.printEmail && (
+                          <div className="space-y-1">
+                            <Label className="text-xs">Email Address</Label>
+                            <Input 
+                              value={sellerEmail} 
+                              onChange={(e) => setSellerEmail(e.target.value)} 
+                              placeholder="Seller Email"
+                              className="h-9 rounded-lg"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      {printSet.printAddress && (
+                        <div className="space-y-1">
+                          <Label className="text-xs">Seller Address</Label>
+                          <Input 
+                            value={sellerAddress} 
+                            onChange={(e) => setSellerAddress(e.target.value)} 
+                            placeholder="Seller Address"
+                            className="h-9 rounded-lg"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Bank Details Block */}
+                <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bank Details (On Invoice)</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Account No.</Label>
+                      <Input 
+                        value={bankDetails.accountNumber} 
+                        onChange={(e) => setBankDetails({...bankDetails, accountNumber: e.target.value.replace(/\D/g, "").slice(0, 18)})} 
+                        placeholder="Account Number"
+                        className="h-9 rounded-lg"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Bank Name</Label>
+                      <Input 
+                        value={bankDetails.bankName} 
+                        onChange={(e) => setBankDetails({...bankDetails, bankName: e.target.value})} 
+                        placeholder="e.g. Axis Bank"
+                        className="h-9 rounded-lg"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">IFSC Code</Label>
+                      <Input 
+                        value={bankDetails.ifsc} 
+                        onChange={(e) => setBankDetails({...bankDetails, ifsc: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 11)})} 
+                        placeholder="e.g. UTIB0003532"
+                        className="h-9 rounded-lg"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Branch Name</Label>
+                      <Input 
+                        value={bankDetails.branchName} 
+                        onChange={(e) => setBankDetails({...bankDetails, branchName: e.target.value})} 
+                        placeholder="e.g. MG Road Branch"
+                        className="h-9 rounded-lg"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Customer Details Block */}
+                <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Billed To (Customer Details)</span>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3 pb-3 border-b border-slate-100">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Invoice No. (Override)</Label>
+                        <Input 
+                          value={invoiceNumber} 
+                          onChange={(e) => setInvoiceNumber(e.target.value)} 
+                          placeholder="e.g. INV-1001"
+                          className="h-9 rounded-lg"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Customer Name</Label>
+                      <Input 
+                        value={customer} 
+                        onChange={(e) => setCustomer(e.target.value)} 
+                        placeholder="Enter customer / business name"
                         className="h-10 rounded-xl border border-slate-200 focus-visible:ring-1 focus-visible:ring-emerald-500" 
                       />
                     </div>
-                  )}
-                  {printSet.printGstin && (
-                    <div className="space-y-1">
-                      <Label className="text-xs">GSTIN on Sale</Label>
-                      <Input 
-                        value={sellerGstin} 
-                        onChange={(e) => setSellerGstin(e.target.value.toUpperCase().slice(0, 15))} 
-                        maxLength={15}
-                        placeholder="Seller GSTIN"
-                        className="h-9 rounded-lg"
-                      />
-                    </div>
-                  )}
-                  <div className="grid grid-cols-2 gap-3">
-                    {printSet.printPhone && (
+                    {txnSet.billingName && (
                       <div className="space-y-1">
-                        <Label className="text-xs">Phone Number</Label>
+                        <Label className="text-xs">Billing Name</Label>
                         <Input 
-                          value={sellerPhone} 
-                          onChange={(e) => setSellerPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} 
+                          value={billingName} 
+                          onChange={(e) => setBillingName(e.target.value)} 
+                          placeholder="Enter legal / billing name"
+                          className="h-9 rounded-lg"
+                        />
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Mobile Number</Label>
+                        <Input 
+                          value={billedToMobile} 
+                          onChange={(e) => setBilledToMobile(e.target.value.replace(/\D/g, "").slice(0, 10))} 
                           maxLength={10}
-                          placeholder="Seller Phone"
+                          placeholder="98765..." 
                           className="h-9 rounded-lg"
                         />
                       </div>
-                    )}
-                    {printSet.printEmail && (
                       <div className="space-y-1">
-                        <Label className="text-xs">Email Address</Label>
+                        <Label className="text-xs">GSTIN</Label>
                         <Input 
-                          value={sellerEmail} 
-                          onChange={(e) => setSellerEmail(e.target.value)} 
-                          placeholder="Seller Email"
+                          value={billedToGstin} 
+                          onChange={(e) => setBilledToGstin(e.target.value.toUpperCase().slice(0, 15))} 
+                          maxLength={15}
+                          placeholder="07AAAA..." 
+                          className="h-9 rounded-lg"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Billing Address</Label>
+                        <Input 
+                          value={billedToAddress} 
+                          onChange={(e) => setBilledToAddress(e.target.value)} 
+                          placeholder="City, State" 
+                          className="h-9 rounded-lg"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">State & Code</Label>
+                        <Input 
+                          value={billedToState} 
+                          onChange={(e) => setBilledToState(e.target.value)} 
+                          placeholder="e.g. Delhi (07)" 
+                          className="h-9 rounded-lg"
+                        />
+                      </div>
+                    </div>
+                    {printSet.currentBalanceParty && (
+                      <div className="space-y-1">
+                        <Label className="text-xs">Party Current Balance (₹)</Label>
+                        <Input 
+                          type="number"
+                          value={partyBalance} 
+                          onChange={(e) => setPartyBalance(Number(e.target.value) || 0)} 
+                          placeholder="e.g. 15000" 
                           className="h-9 rounded-lg"
                         />
                       </div>
                     )}
                   </div>
-                  {printSet.printAddress && (
+                </div>
+
+                {/* Transport & Additional Details Block */}
+                <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Transport & Supply Details</span>
+                  <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <Label className="text-xs">Seller Address</Label>
+                      <Label className="text-xs">Challan No.</Label>
                       <Input 
-                        value={sellerAddress} 
-                        onChange={(e) => setSellerAddress(e.target.value)} 
-                        placeholder="Seller Address"
+                        value={challanNo} 
+                        onChange={(e) => setChallanNo(e.target.value)} 
+                        placeholder="Challan reference" 
                         className="h-9 rounded-lg"
                       />
                     </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Vehicle Number</Label>
+                      <Input 
+                        value={vehicleNo} 
+                        onChange={(e) => setVehicleNo(e.target.value.toUpperCase())} 
+                        placeholder="DL2CAZXXXX" 
+                        className="h-9 rounded-lg"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Date of Supply</Label>
+                      <Input 
+                        type="text"
+                        placeholder="dd/mm/yyyy"
+                        value={dateOfSupply} 
+                        onChange={(e) => setDateOfSupply(e.target.value)} 
+                        className="h-9 rounded-lg"
+                      />
+                    </div>
+                    {gstSet.placeOfSupply && (
+                      <div className="space-y-1">
+                        <Label className="text-xs">Place of Supply</Label>
+                        <Input 
+                          value={placeOfSupply} 
+                          onChange={(e) => setPlaceOfSupply(e.target.value)} 
+                          placeholder="Delhi" 
+                          className="h-9 rounded-lg"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {txnSet.poDetails && (
+                    <div className="grid grid-cols-2 gap-3 border-t pt-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Customer P.O. No.</Label>
+                        <Input 
+                          value={poNumber} 
+                          onChange={(e) => setPoNumber(e.target.value)} 
+                          placeholder="P.O. reference" 
+                          className="h-9 rounded-lg"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">P.O. Date</Label>
+                        <Input 
+                          type="date"
+                          value={poDate} 
+                          onChange={(e) => setPoDate(e.target.value)} 
+                          className="h-9 rounded-lg"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {gstSet.reverseCharge && (
+                    <div className="flex items-center justify-between pt-1">
+                      <Label className="text-xs">Reverse Charge</Label>
+                      <select
+                        value={reverseCharge}
+                        onChange={(e) => setReverseCharge(e.target.value)}
+                        className="h-8 rounded-lg border text-xs bg-white px-2 focus:outline-none"
+                      >
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                      </select>
+                    </div>
                   )}
                 </div>
-              </div>
+              </>
             )}
-
-            {/* Bank Details Block */}
-            <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bank Details (On Invoice)</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Account No.</Label>
-                  <Input 
-                    value={bankDetails.accountNumber} 
-                    onChange={(e) => setBankDetails({...bankDetails, accountNumber: e.target.value})} 
-                    placeholder="Account Number"
-                    className="h-9 rounded-lg"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Bank Name</Label>
-                  <Input 
-                    value={bankDetails.bankName} 
-                    onChange={(e) => setBankDetails({...bankDetails, bankName: e.target.value})} 
-                    placeholder="e.g. Axis Bank"
-                    className="h-9 rounded-lg"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">IFSC Code</Label>
-                  <Input 
-                    value={bankDetails.ifsc} 
-                    onChange={(e) => setBankDetails({...bankDetails, ifsc: e.target.value})} 
-                    placeholder="e.g. UTIB0003532"
-                    className="h-9 rounded-lg"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Branch Name</Label>
-                  <Input 
-                    value={bankDetails.branchName} 
-                    onChange={(e) => setBankDetails({...bankDetails, branchName: e.target.value})} 
-                    placeholder="e.g. MG Road Branch"
-                    className="h-9 rounded-lg"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Customer Details Block */}
-            <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Billed To (Customer Details)</span>
-              </div>
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3 pb-3 border-b border-slate-100">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Invoice No. (Override)</Label>
-                    <Input 
-                      value={invoiceNumber} 
-                      onChange={(e) => setInvoiceNumber(e.target.value)} 
-                      placeholder="e.g. INV-1001"
-                      className="h-9 rounded-lg"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Customer Name</Label>
-                  <Input 
-                    value={customer} 
-                    onChange={(e) => setCustomer(e.target.value)} 
-                    placeholder="Enter customer / business name"
-                    className="h-10 rounded-xl border border-slate-200 focus-visible:ring-1 focus-visible:ring-emerald-500" 
-                  />
-                </div>
-                {txnSet.billingName && (
-                  <div className="space-y-1">
-                    <Label className="text-xs">Billing Name</Label>
-                    <Input 
-                      value={billingName} 
-                      onChange={(e) => setBillingName(e.target.value)} 
-                      placeholder="Enter legal / billing name"
-                      className="h-9 rounded-lg"
-                    />
-                  </div>
-                )}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Mobile Number</Label>
-                    <Input 
-                      value={billedToMobile} 
-                      onChange={(e) => setBilledToMobile(e.target.value.replace(/\D/g, "").slice(0, 10))} 
-                      maxLength={10}
-                      placeholder="98765..." 
-                      className="h-9 rounded-lg"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">GSTIN</Label>
-                    <Input 
-                      value={billedToGstin} 
-                      onChange={(e) => setBilledToGstin(e.target.value.toUpperCase().slice(0, 15))} 
-                      maxLength={15}
-                      placeholder="07AAAA..." 
-                      className="h-9 rounded-lg"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Billing Address</Label>
-                    <Input 
-                      value={billedToAddress} 
-                      onChange={(e) => setBilledToAddress(e.target.value)} 
-                      placeholder="City, State" 
-                      className="h-9 rounded-lg"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">State & Code</Label>
-                    <Input 
-                      value={billedToState} 
-                      onChange={(e) => setBilledToState(e.target.value)} 
-                      placeholder="e.g. Delhi (07)" 
-                      className="h-9 rounded-lg"
-                    />
-                  </div>
-                </div>
-                {printSet.currentBalanceParty && (
-                  <div className="space-y-1">
-                    <Label className="text-xs">Party Current Balance (₹)</Label>
-                    <Input 
-                      type="number"
-                      value={partyBalance} 
-                      onChange={(e) => setPartyBalance(Number(e.target.value) || 0)} 
-                      placeholder="e.g. 15000" 
-                      className="h-9 rounded-lg"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Transport & Additional Details Block */}
-            <div className="bg-white rounded-xl p-4 shadow-sm border space-y-3">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Transport & Supply Details</span>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Challan No.</Label>
-                  <Input 
-                    value={challanNo} 
-                    onChange={(e) => setChallanNo(e.target.value)} 
-                    placeholder="Challan reference" 
-                    className="h-9 rounded-lg"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Vehicle Number</Label>
-                  <Input 
-                    value={vehicleNo} 
-                    onChange={(e) => setVehicleNo(e.target.value.toUpperCase())} 
-                    placeholder="DL2CAZXXXX" 
-                    className="h-9 rounded-lg"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Date of Supply</Label>
-                  <Input 
-                    type="text"
-                    placeholder="dd/mm/yyyy"
-                    value={dateOfSupply} 
-                    onChange={(e) => setDateOfSupply(e.target.value)} 
-                    className="h-9 rounded-lg"
-                  />
-                </div>
-                {gstSet.placeOfSupply && (
-                  <div className="space-y-1">
-                    <Label className="text-xs">Place of Supply</Label>
-                    <Input 
-                      value={placeOfSupply} 
-                      onChange={(e) => setPlaceOfSupply(e.target.value)} 
-                      placeholder="Delhi" 
-                      className="h-9 rounded-lg"
-                    />
-                  </div>
-                )}
-              </div>
-              {txnSet.poDetails && (
-                <div className="grid grid-cols-2 gap-3 border-t pt-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Customer P.O. No.</Label>
-                    <Input 
-                      value={poNumber} 
-                      onChange={(e) => setPoNumber(e.target.value)} 
-                      placeholder="P.O. reference" 
-                      className="h-9 rounded-lg"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">P.O. Date</Label>
-                    <Input 
-                      type="date"
-                      value={poDate} 
-                      onChange={(e) => setPoDate(e.target.value)} 
-                      className="h-9 rounded-lg"
-                    />
-                  </div>
-                </div>
-              )}
-              {gstSet.reverseCharge && (
-                <div className="flex items-center justify-between pt-1">
-                  <Label className="text-xs">Reverse Charge</Label>
-                  <select
-                    value={reverseCharge}
-                    onChange={(e) => setReverseCharge(e.target.value)}
-                    className="h-8 rounded-lg border text-xs bg-white px-2 focus:outline-none"
-                  >
-                    <option value="No">No</option>
-                    <option value="Yes">Yes</option>
-                  </select>
-                </div>
-              )}
-            </div>
 
             {/* Items List Block */}
             <div className="bg-white rounded-xl shadow-sm border p-4 space-y-4">
@@ -1139,8 +1391,7 @@ export default function NewSale() {
                               if (idx === i) {
                                 return {
                                   ...item,
-                                  purchasePrice: val,
-                                  rate: val
+                                  purchasePrice: val
                                 };
                               }
                               return item;
@@ -1302,78 +1553,7 @@ export default function NewSale() {
               </div>
             </div>
 
-            {/* E-Way Bill Transport Details */}
-            {isEwayMode && (
-              <div className="bg-white rounded-xl p-4 shadow-sm border space-y-4">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Transport & Dispatch Details</span>
-                
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Transporter Name</Label>
-                      <Input value={transportDetails.transporterName || ""} onChange={(e) => setTransportDetails({...transportDetails, transporterName: e.target.value})} className="h-9 text-xs rounded-lg" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Transporter ID (GSTIN)</Label>
-                      <Input value={transportDetails.transporterId || ""} onChange={(e) => setTransportDetails({...transportDetails, transporterId: e.target.value})} className="h-9 text-xs rounded-lg uppercase" />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Vehicle Number</Label>
-                      <Input value={transportDetails.vehicleNumber || ""} onChange={(e) => setTransportDetails({...transportDetails, vehicleNumber: e.target.value})} className="h-9 text-xs rounded-lg uppercase" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Approx Distance (KM)</Label>
-                      <Input type="number" value={transportDetails.approxDistance || ""} onChange={(e) => setTransportDetails({...transportDetails, approxDistance: Number(e.target.value)})} className="h-9 text-xs rounded-lg" />
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">LR/RR Number</Label>
-                      <Input value={transportDetails.lrNumber || ""} onChange={(e) => setTransportDetails({...transportDetails, lrNumber: e.target.value})} className="h-9 text-xs rounded-lg uppercase" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">LR/RR Date</Label>
-                      <Input type="date" value={transportDetails.lrDate ? new Date(transportDetails.lrDate).toISOString().split('T')[0] : ""} onChange={(e) => setTransportDetails({...transportDetails, lrDate: e.target.value})} className="h-9 text-xs rounded-lg" />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Mode of Transport</Label>
-                      <select value={transportDetails.modeOfTransport || "Road"} onChange={(e) => setTransportDetails({...transportDetails, modeOfTransport: e.target.value})} className="w-full h-9 rounded-lg border bg-white px-2 text-xs focus:outline-none">
-                        <option value="Road">Road</option>
-                        <option value="Rail">Rail</option>
-                        <option value="Air">Air</option>
-                        <option value="Ship">Ship</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Vehicle Type</Label>
-                      <select value={transportDetails.vehicleType || "Regular"} onChange={(e) => setTransportDetails({...transportDetails, vehicleType: e.target.value})} className="w-full h-9 rounded-lg border bg-white px-2 text-xs focus:outline-none">
-                        <option value="Regular">Regular</option>
-                        <option value="ODC">ODC</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t space-y-3">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Dispatch From (Address)</span>
-                    <Input value={shippingDetails.dispatchFromAddress || ""} onChange={(e) => setShippingDetails({...shippingDetails, dispatchFromAddress: e.target.value})} placeholder="Warehouse / Shop Address" className="h-9 text-xs rounded-lg" />
-                    <Input value={shippingDetails.placeOfDispatch || ""} onChange={(e) => setShippingDetails({...shippingDetails, placeOfDispatch: e.target.value})} placeholder="Place of Dispatch (City/PIN)" className="h-9 text-xs rounded-lg" />
-                  </div>
-
-                  <div className="pt-2 border-t space-y-3">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Ship To (Address)</span>
-                    <Input value={shippingDetails.shipToAddress || ""} onChange={(e) => setShippingDetails({...shippingDetails, shipToAddress: e.target.value})} placeholder="Delivery Address" className="h-9 text-xs rounded-lg" />
-                    <Input value={shippingDetails.placeOfDelivery || ""} onChange={(e) => setShippingDetails({...shippingDetails, placeOfDelivery: e.target.value})} placeholder="Place of Delivery (City/PIN)" className="h-9 text-xs rounded-lg" />
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Footer / Additional Details Card */}
             {!isEwayMode && (printSet.printDescription || printSet.printTermsAndConditions || printSet.printAcknowledgement || printSet.printReceivedByDetails || printSet.printDeliveredByDetails || printSet.printSignatureText) && (
@@ -1657,7 +1837,7 @@ export default function NewSale() {
                         <Label className="text-[10px] text-slate-500">Account No.</Label>
                         <Input 
                           value={paymentDetails.accountNumber} 
-                          onChange={(e) => setPaymentDetails({ ...paymentDetails, accountNumber: e.target.value })} 
+                          onChange={(e) => setPaymentDetails({ ...paymentDetails, accountNumber: e.target.value.replace(/\D/g, "").slice(0, 18) })} 
                           className="h-8 text-xs"
                         />
                       </div>
@@ -1665,7 +1845,7 @@ export default function NewSale() {
                         <Label className="text-[10px] text-slate-500">IFSC Code</Label>
                         <Input 
                           value={paymentDetails.ifsc} 
-                          onChange={(e) => setPaymentDetails({ ...paymentDetails, ifsc: e.target.value })} 
+                          onChange={(e) => setPaymentDetails({ ...paymentDetails, ifsc: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 11) })} 
                           className="h-8 text-xs"
                         />
                       </div>

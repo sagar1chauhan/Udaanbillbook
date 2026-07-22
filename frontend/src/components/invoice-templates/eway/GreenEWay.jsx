@@ -123,8 +123,20 @@ export function GreenEWay({ invoice, printSet, gstSet, numberToWords }) {
               const rateAfterDisc = r * (1 - d / 100);
               const taxable = q * rateAfterDisc;
               
-              const cgst = g / 2;
-              const sgst = g / 2;
+              const sellerStateStr = printSet?.state || "";
+              const customerStateStr = meta?.billedToState || "";
+              const isInterstate = sellerStateStr && customerStateStr &&
+                !(sellerStateStr.toLowerCase().replace(/[^a-z]/g, '') === customerStateStr.toLowerCase().replace(/[^a-z]/g, ''));
+
+              const cgst = isInterstate ? 0 : g / 2;
+              const sgst = isInterstate ? 0 : g / 2;
+              const igst = isInterstate ? g : 0;
+              const cess = Number(l.cess) || 0;
+
+              const cgstStr = cgst > 0 ? `${cgst}%` : "0";
+              const sgstStr = sgst > 0 ? `${sgst}%` : "0";
+              const igstStr = igst > 0 ? `${igst}%` : "0";
+              const cessStr = cess > 0 ? `${cess}%` : "0";
 
               return (
                 <tr key={idx} className="border-b border-black border-dashed last:border-solid">
@@ -132,7 +144,9 @@ export function GreenEWay({ invoice, printSet, gstSet, numberToWords }) {
                   <td className="p-1 border-r border-black">{l.name || l.item || "-"}</td>
                   <td className="p-1 border-r border-black text-center">{q}</td>
                   <td className="p-1 border-r border-black text-center">{taxable.toFixed(2)}</td>
-                  <td className="p-1 text-center font-mono text-[8px]">{cgst}% {sgst}% 0% 0% 0</td>
+                  <td className="p-1 text-center font-mono text-[9px] tracking-wide">
+                    {cgstStr} + {sgstStr} + {igstStr} + {cessStr} + 0
+                  </td>
                 </tr>
               );
             })}
@@ -154,16 +168,30 @@ export function GreenEWay({ invoice, printSet, gstSet, numberToWords }) {
             </tr>
           </thead>
           <tbody className="bg-white">
-            <tr>
-              <td className="p-1.5 border-r border-black">{totals.taxableAmount.toFixed(2)}</td>
-              <td className="p-1.5 border-r border-black">{(totals.gstAmount / 2).toFixed(2)}</td>
-              <td className="p-1.5 border-r border-black">{(totals.gstAmount / 2).toFixed(2)}</td>
-              <td className="p-1.5 border-r border-black">0.00</td>
-              <td className="p-1.5 border-r border-black">0.00</td>
-              <td className="p-1.5 border-r border-black">0.00</td>
-              <td className="p-1.5 border-r border-black">{totals.roundOff.toFixed(2)}</td>
-              <td className="p-1.5 font-bold">{totals.grand.toFixed(2)}</td>
-            </tr>
+            {(() => {
+              const sellerStateStr = printSet?.state || "";
+              const customerStateStr = meta?.billedToState || "";
+              const isInterstate = sellerStateStr && customerStateStr &&
+                !(sellerStateStr.toLowerCase().replace(/[^a-z]/g, '') === customerStateStr.toLowerCase().replace(/[^a-z]/g, ''));
+
+              const formatSummaryAmt = (val) => {
+                const num = Number(val) || 0;
+                return num === 0 ? "-" : num.toFixed(2);
+              };
+
+              return (
+                <tr>
+                  <td className="p-1.5 border-r border-black">{totals.taxableAmount.toFixed(2)}</td>
+                  <td className="p-1.5 border-r border-black">{formatSummaryAmt(isInterstate ? 0 : totals.gstAmount / 2)}</td>
+                  <td className="p-1.5 border-r border-black">{formatSummaryAmt(isInterstate ? 0 : totals.gstAmount / 2)}</td>
+                  <td className="p-1.5 border-r border-black">{formatSummaryAmt(isInterstate ? totals.gstAmount : 0)}</td>
+                  <td className="p-1.5 border-r border-black">{formatSummaryAmt(0)}</td>
+                  <td className="p-1.5 border-r border-black">{formatSummaryAmt(0)}</td>
+                  <td className="p-1.5 border-r border-black">{formatSummaryAmt(totals.roundOff)}</td>
+                  <td className="p-1.5 font-bold">{totals.grand.toFixed(2)}</td>
+                </tr>
+              );
+            })()}
           </tbody>
         </table>
 
