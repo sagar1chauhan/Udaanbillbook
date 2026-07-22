@@ -374,6 +374,9 @@ export default function NewSale() {
       if (!signatureImgUrl && settings.printSettings.signatureImgUrl) {
         setSignatureImgUrl(settings.printSettings.signatureImgUrl);
       }
+      if (!logoUrl && settings.printSettings.logoUrl) {
+        setLogoUrl(settings.printSettings.logoUrl);
+      }
     }
   }, [settings]);
 
@@ -410,7 +413,8 @@ export default function NewSale() {
       signatureText,
       signatureUrl,
       signatureImgUrl,
-      partyBalance
+      partyBalance,
+      logoUrl
     };
     localStorage.setItem("Udaan.sale_draft", JSON.stringify(draft));
   }, [
@@ -418,7 +422,8 @@ export default function NewSale() {
     reverseCharge, challanNo, vehicleNo, dateOfSupply, placeOfSupply,
     billedToAddress, billedToGstin, billedToMobile, billedToState, invoiceTemplate, themeColor,
     sellerName, sellerAddress, sellerEmail, sellerPhone, sellerGstin,
-    terms, description, receivedBy, deliveredBy, acknowledgement, signatureText, signatureUrl, signatureImgUrl, partyBalance
+    terms, description, receivedBy, deliveredBy, acknowledgement, signatureText, signatureUrl, signatureImgUrl, partyBalance,
+    logoUrl
   ]);
 
   const [showAdModal, setShowAdModal] = useState(false);
@@ -848,6 +853,43 @@ export default function NewSale() {
                           />
                         </div>
                       </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold text-slate-700">Company Logo</Label>
+                        <div className="flex items-center gap-3">
+                          <label className="text-[12px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-xl hover:bg-emerald-100 cursor-pointer font-semibold transition-all">
+                            Upload Logo
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              className="hidden" 
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const reader = new FileReader();
+                                  reader.onloadend = () => {
+                                    setLogoUrl(reader.result);
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                            />
+                          </label>
+                          {logoUrl && (
+                            <button 
+                              type="button" 
+                              onClick={() => setLogoUrl("")} 
+                              className="text-[11px] text-red-500 hover:underline font-semibold"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                        {logoUrl && (
+                          <div className="border rounded-xl p-2 bg-slate-50 w-24 h-12 flex items-center justify-center">
+                            <img src={logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
+                          </div>
+                        )}
+                      </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <Label className="text-xs">Dispatch From Address</Label>
@@ -1038,6 +1080,44 @@ export default function NewSale() {
                           />
                         </div>
                       )}
+                      
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold text-slate-700">Company Logo</Label>
+                        <div className="flex items-center gap-3">
+                          <label className="text-[12px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-xl hover:bg-emerald-100 cursor-pointer font-semibold transition-all">
+                            Upload Logo
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              className="hidden" 
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const reader = new FileReader();
+                                  reader.onloadend = () => {
+                                    setLogoUrl(reader.result);
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                            />
+                          </label>
+                          {logoUrl && (
+                            <button 
+                              type="button" 
+                              onClick={() => setLogoUrl("")} 
+                              className="text-[11px] text-red-500 hover:underline font-semibold"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                        {logoUrl && (
+                          <div className="border rounded-xl p-2 bg-slate-50 w-24 h-12 flex items-center justify-center">
+                            <img src={logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
+                          </div>
+                        )}
+                      </div>
                       {printSet.printGstin && (
                         <div className="space-y-1">
                           <Label className="text-xs">GSTIN on Sale</Label>
