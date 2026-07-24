@@ -97,26 +97,26 @@ export function GSTBoxedTemplate({ invoice, printSet, gstSet, activeColor, numbe
 
       {/* Meta grid */}
       <div className="grid grid-cols-2 border-b border-slate-800 divide-x divide-slate-800">
-        <div className="p-2 space-y-1">
+        <div className="p-1.5 space-y-0.5">
           {gstSet.reverseCharge && (
-            <div className="flex"><span className="w-24 shrink-0">Reverse Charge</span><span>: {meta.reverseCharge}</span></div>
+            <div className="flex"><span className="w-16 shrink-0 truncate">Rev. Charge</span><span className="truncate">: {meta.reverseCharge}</span></div>
           )}
-          <div className="flex"><span className="w-24 shrink-0">Invoice No.</span><span>: {meta.invoiceNumber}</span></div>
-          <div className="flex"><span className="w-24 shrink-0">Invoice Date</span><span>: {meta.date}</span></div>
-          <div className="flex"><span className="w-24 shrink-0">State</span><span>: Delhi</span></div>
+          <div className="flex"><span className="w-16 shrink-0">Invoice No.</span><span className="truncate">: {meta.invoiceNumber}</span></div>
+          <div className="flex"><span className="w-16 shrink-0">Invoice Date</span><span className="truncate">: {meta.date}</span></div>
+          <div className="flex"><span className="w-16 shrink-0">State</span><span className="truncate">: Delhi</span></div>
         </div>
-        <div className="p-2 space-y-1">
-          <div className="flex"><span className="w-24 shrink-0">Challan No.</span><span>: {meta.challanNo || "-"}</span></div>
-          {meta.poNumber && <div className="flex"><span className="w-24 shrink-0">P.O. No.</span><span>: {meta.poNumber}</span></div>}
-          {meta.poDate && <div className="flex"><span className="w-24 shrink-0">P.O. Date</span><span>: {meta.poDate}</span></div>}
-          <div className="flex"><span className="w-24 shrink-0">Vehicle No.</span><span>: {meta.vehicleNo || invoice.transportDetails?.vehicleNo || "-"}</span></div>
-          <div className="flex"><span className="w-24 shrink-0">Date of Supply</span><span>: {meta.dateOfSupply ? meta.dateOfSupply.split("-").reverse().join("/") : "-"}</span></div>
+        <div className="p-1.5 space-y-0.5">
+          <div className="flex"><span className="w-16 shrink-0">Challan No.</span><span className="truncate">: {meta.challanNo || "-"}</span></div>
+          {meta.poNumber && <div className="flex"><span className="w-16 shrink-0">P.O. No.</span><span className="truncate">: {meta.poNumber}</span></div>}
+          {meta.poDate && <div className="flex"><span className="w-16 shrink-0">P.O. Date</span><span className="truncate">: {meta.poDate}</span></div>}
+          <div className="flex"><span className="w-16 shrink-0">Vehicle No.</span><span className="truncate">: {meta.vehicleNo || invoice.transportDetails?.vehicleNo || "-"}</span></div>
+          <div className="flex"><span className="w-16 shrink-0">Supply Date</span><span className="truncate">: {meta.dateOfSupply ? meta.dateOfSupply.split("-").reverse().join("/") : "-"}</span></div>
           {gstSet.placeOfSupply && (
-            <div className="flex"><span className="w-24 shrink-0">Place of Supply</span><span>: {meta.placeOfSupply || "Delhi"}</span></div>
+            <div className="flex"><span className="w-16 shrink-0">Place</span><span className="truncate">: {meta.placeOfSupply || "Delhi"}</span></div>
           )}
-          {invoice.transportDetails?.eWayBillNo && <div className="flex"><span className="w-24 shrink-0">E-Way Bill No.</span><span>: {invoice.transportDetails.eWayBillNo}</span></div>}
-          {invoice.transportDetails?.transporterName && <div className="flex"><span className="w-24 shrink-0">Transporter</span><span>: {invoice.transportDetails.transporterName}</span></div>}
-          {invoice.transportDetails?.grRrNo && <div className="flex"><span className="w-24 shrink-0">GR/RR No.</span><span>: {invoice.transportDetails.grRrNo}</span></div>}
+          {invoice.transportDetails?.eWayBillNo && <div className="flex"><span className="w-16 shrink-0">E-Way Bill</span><span className="truncate">: {invoice.transportDetails.eWayBillNo}</span></div>}
+          {invoice.transportDetails?.transporterName && <div className="flex"><span className="w-16 shrink-0">Transporter</span><span className="truncate">: {invoice.transportDetails.transporterName}</span></div>}
+          {invoice.transportDetails?.grRrNo && <div className="flex"><span className="w-16 shrink-0">GR/RR No.</span><span className="truncate">: {invoice.transportDetails.grRrNo}</span></div>}
         </div>
       </div>
 
@@ -126,14 +126,14 @@ export function GSTBoxedTemplate({ invoice, printSet, gstSet, activeColor, numbe
           <div className="font-bold border-b border-slate-300 pb-0.5 mb-1.5 uppercase">
             Details of Receiver | Billed to:
           </div>
-          <div className="grid grid-cols-1 gap-y-1">
-            <div className="flex"><span className="w-20 shrink-0 font-semibold">Name</span><span>: {meta.billingName || customer}</span></div>
-            <div className="flex"><span className="w-20 shrink-0 font-semibold">Address</span><span>: {meta.billedToAddress || "-"}</span></div>
-            <div className="flex"><span className="w-20 shrink-0 font-semibold">GSTIN</span><span>: {meta.billedToGstin || "-"}</span></div>
-            <div className="flex"><span className="w-20 shrink-0 font-semibold">Mobile</span><span>: {meta.billedToMobile || "-"}</span></div>
-            <div className="flex"><span className="w-20 shrink-0 font-semibold">State</span><span>: {meta.billedToState || "Delhi"}</span></div>
+          <div className="grid grid-cols-1 gap-y-0.5">
+            <div className="flex"><span className="w-14 shrink-0 font-semibold">Name</span><span className="truncate">: {meta.billingName || customer}</span></div>
+            <div className="flex"><span className="w-14 shrink-0 font-semibold">Address</span><span className="truncate">: {meta.billedToAddress || "-"}</span></div>
+            <div className="flex"><span className="w-14 shrink-0 font-semibold">GSTIN</span><span className="truncate">: {meta.billedToGstin || "-"}</span></div>
+            <div className="flex"><span className="w-14 shrink-0 font-semibold">Mobile</span><span className="truncate">: {meta.billedToMobile || "-"}</span></div>
+            <div className="flex"><span className="w-14 shrink-0 font-semibold">State</span><span className="truncate">: {meta.billedToState || "Delhi"}</span></div>
             {printSet.currentBalanceParty && invoice.partyBalance && (
-              <div className="flex"><span className="w-20 shrink-0 font-semibold text-red-600">Balance</span><span>: ₹{invoice.partyBalance}</span></div>
+              <div className="flex"><span className="w-14 shrink-0 font-semibold text-red-600">Balance</span><span className="truncate">: ₹{invoice.partyBalance}</span></div>
             )}
           </div>
         </div>
@@ -142,11 +142,11 @@ export function GSTBoxedTemplate({ invoice, printSet, gstSet, activeColor, numbe
             <div className="font-bold border-b border-slate-300 pb-0.5 mb-1.5 uppercase">
               Details of Consignee | Shipped to:
             </div>
-            <div className="grid grid-cols-1 gap-y-1">
-              <div className="flex"><span className="w-20 shrink-0 font-semibold">Name</span><span>: {invoice.shippingDetails.shippingName || meta.billingName || customer}</span></div>
-              <div className="flex"><span className="w-20 shrink-0 font-semibold">Address</span><span>: {invoice.shippingDetails.shippingAddress || "-"}</span></div>
-              <div className="flex"><span className="w-20 shrink-0 font-semibold">GSTIN</span><span>: {invoice.shippingDetails.shippingGstin || meta.billedToGstin || "-"}</span></div>
-              <div className="flex"><span className="w-20 shrink-0 font-semibold">State</span><span>: {invoice.shippingDetails.shippingState || meta.billedToState || "Delhi"}</span></div>
+            <div className="grid grid-cols-1 gap-y-0.5">
+              <div className="flex"><span className="w-14 shrink-0 font-semibold">Name</span><span className="truncate">: {invoice.shippingDetails.shippingName || meta.billingName || customer}</span></div>
+              <div className="flex"><span className="w-14 shrink-0 font-semibold">Address</span><span className="truncate">: {invoice.shippingDetails.shippingAddress || "-"}</span></div>
+              <div className="flex"><span className="w-14 shrink-0 font-semibold">GSTIN</span><span className="truncate">: {invoice.shippingDetails.shippingGstin || meta.billedToGstin || "-"}</span></div>
+              <div className="flex"><span className="w-14 shrink-0 font-semibold">State</span><span className="truncate">: {invoice.shippingDetails.shippingState || meta.billedToState || "Delhi"}</span></div>
             </div>
           </div>
         )}
@@ -298,38 +298,38 @@ export function GSTBoxedTemplate({ invoice, printSet, gstSet, activeColor, numbe
 
       {/* Calculations & Bank */}
       <div className="grid grid-cols-2 divide-x divide-slate-800 border-b border-slate-800">
-        <div className="p-3 space-y-3">
+        <div className="p-2 space-y-2">
           {printSet.amountInWords !== "None" && (
             <div>
-              <span className={`font-bold block border-b pb-0.5 mb-1 uppercase text-slate-700 ${getInvoiceSizeClass(textSz, "text-[9px]")}`}>Total Invoice Amount in words</span>
-              <span className="text-slate-600 leading-tight italic">{numberToWords(totals.grand)}</span>
+              <span className={`font-bold block border-b pb-0.5 mb-1 uppercase text-slate-700 ${getInvoiceSizeClass(textSz, "text-[9px]")}`}>Amount in Words</span>
+              <span className="text-slate-600 leading-tight italic break-words">{numberToWords(totals.grand)}</span>
             </div>
           )}
-          <div className="border rounded-lg p-2.5 bg-slate-50/50 space-y-1">
-            <span className={`font-bold border-b block pb-0.5 mb-1 uppercase tracking-wide ${getInvoiceSizeClass(textSz, "text-[8px]")}`}>Bank Account Details</span>
-            <div className="flex"><span className="w-24 shrink-0">Account No.</span><span>: {invoice.bankDetails?.accountNumber || paymentDetails?.accountNumber || "921020024898267"}</span></div>
-            <div className="flex"><span className="w-24 shrink-0">Bank Name</span><span>: {invoice.bankDetails?.bankName || paymentDetails?.bankName || "Axis Bank"}</span></div>
-            <div className="flex"><span className="w-24 shrink-0">IFSC Code</span><span>: {invoice.bankDetails?.ifsc || paymentDetails?.ifsc || "UTIB0003532"}</span></div>
-            <div className="flex"><span className="w-24 shrink-0">Branch</span><span>: {invoice.bankDetails?.branchName || paymentDetails?.branchName || "-"}</span></div>
+          <div className="border rounded-lg p-1.5 bg-slate-50/50 space-y-0.5">
+            <span className={`font-bold border-b block pb-0.5 mb-1 uppercase tracking-wide ${getInvoiceSizeClass(textSz, "text-[8px]")}`}>Bank Details</span>
+            <div className="flex"><span className="w-16 shrink-0">Acc No.</span><span className="truncate">: {invoice.bankDetails?.accountNumber || paymentDetails?.accountNumber || "921020024898267"}</span></div>
+            <div className="flex"><span className="w-16 shrink-0">Bank</span><span className="truncate">: {invoice.bankDetails?.bankName || paymentDetails?.bankName || "Axis Bank"}</span></div>
+            <div className="flex"><span className="w-16 shrink-0">IFSC</span><span className="truncate">: {invoice.bankDetails?.ifsc || paymentDetails?.ifsc || "UTIB0003532"}</span></div>
+            <div className="flex"><span className="w-16 shrink-0">Branch</span><span className="truncate">: {invoice.bankDetails?.branchName || paymentDetails?.branchName || "-"}</span></div>
           </div>
         </div>
-        <div className="p-3 flex justify-end">
-          <table className="w-64 font-mono">
+        <div className="p-2 flex justify-end">
+          <table className="w-full font-mono">
             <tbody>
-              <tr className="py-1 flex justify-between"><span>Subtotal Before Tax</span><span>{formatAmt(totals.taxableAmount, printSet)}</span></tr>
-              <tr className="py-1 flex justify-between"><span>Add: CGST</span><span>{formatAmt(totals.gstAmount / 2, printSet)}</span></tr>
-              <tr className="py-1 flex justify-between"><span>Add: SGST</span><span>{formatAmt(totals.gstAmount / 2, printSet)}</span></tr>
-              <tr className="py-1 flex justify-between border-t font-semibold"><span>Total GST Tax</span><span>{formatAmt(totals.gstAmount, printSet)}</span></tr>
-              <tr className={`py-1.5 flex justify-between font-extrabold border-t-2 border-slate-900 pt-1.5 ${activeColor.text} ${getInvoiceSizeClass(textSz, "text-[11px]")}`}><span className="uppercase">Amount With Tax</span><span>{formatAmt(totals.grand, printSet)}</span></tr>
+              <tr className="py-0.5 flex justify-between"><span>Subtotal</span><span>{formatAmt(totals.taxableAmount, printSet)}</span></tr>
+              <tr className="py-0.5 flex justify-between"><span>CGST</span><span>{formatAmt(totals.gstAmount / 2, printSet)}</span></tr>
+              <tr className="py-0.5 flex justify-between"><span>SGST</span><span>{formatAmt(totals.gstAmount / 2, printSet)}</span></tr>
+              <tr className="py-0.5 flex justify-between border-t font-semibold"><span>Total GST</span><span>{formatAmt(totals.gstAmount, printSet)}</span></tr>
+              <tr className={`py-1 flex justify-between font-extrabold border-t-2 border-slate-900 pt-1 ${activeColor.text} ${getInvoiceSizeClass(textSz, "text-[11px]")}`}><span className="uppercase">Total</span><span>{formatAmt(totals.grand, printSet)}</span></tr>
               {printSet.receivedAmount && (
-                <tr className={`py-1 flex justify-between text-slate-600 ${getInvoiceSizeClass(textSz, "text-[9px]")}`}>
-                  <span>Received Amount</span>
+                <tr className={`py-0.5 flex justify-between text-slate-600 ${getInvoiceSizeClass(textSz, "text-[9px]")}`}>
+                  <span>Received</span>
                   <span>{formatAmt(Number(invoice.receivedAmount || 0), printSet)}</span>
                 </tr>
               )}
               {printSet.balanceAmount && (
-                <tr className={`py-1 flex justify-between text-slate-600 font-bold border-t border-dashed mt-0.5 ${getInvoiceSizeClass(textSz, "text-[9px]")}`}>
-                  <span>Balance Amount</span>
+                <tr className={`py-0.5 flex justify-between text-slate-600 font-bold border-t border-dashed mt-0.5 ${getInvoiceSizeClass(textSz, "text-[9px]")}`}>
+                  <span>Balance</span>
                   <span>{formatAmt(Math.max(0, totals.grand - Number(invoice.receivedAmount || 0)), printSet)}</span>
                 </tr>
               )}

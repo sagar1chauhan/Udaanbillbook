@@ -331,6 +331,44 @@ export default function NewSale() {
   });
   const [themeColor, setThemeColor] = useState(() => getInitialState("themeColor", "slate"));
   
+  // Invoice preview scaling for mobile
+  const invoiceWrapperRef = useRef(null);
+  const invoiceScalerRef = useRef(null);
+
+  useEffect(() => {
+    const wrapper = invoiceWrapperRef.current;
+    const scaler = invoiceScalerRef.current;
+    if (!wrapper || !scaler) return;
+
+    const INVOICE_NATURAL_WIDTH = 480; // min-width of the invoice content
+
+    const updateScale = () => {
+      const containerWidth = wrapper.clientWidth;
+      if (containerWidth < INVOICE_NATURAL_WIDTH && containerWidth > 0) {
+        const scale = containerWidth / INVOICE_NATURAL_WIDTH;
+        scaler.style.setProperty('--invoice-scale', scale);
+        scaler.style.setProperty('--invoice-inner-w', `${INVOICE_NATURAL_WIDTH}px`);
+        // Adjust wrapper height to match the scaled content height
+        requestAnimationFrame(() => {
+          const scaledHeight = scaler.scrollHeight * scale;
+          wrapper.style.height = `${scaledHeight}px`;
+        });
+      } else {
+        scaler.style.setProperty('--invoice-scale', '1');
+        scaler.style.setProperty('--invoice-inner-w', '100%');
+        wrapper.style.height = 'auto';
+      }
+    };
+
+    const ro = new ResizeObserver(updateScale);
+    ro.observe(wrapper);
+    ro.observe(scaler);
+    // Initial call
+    updateScale();
+
+    return () => ro.disconnect();
+  }, [activePane]); // re-run when switching to preview pane
+
   const isEwayMode = ["E way bill", "Green E-Way", "Minimal E-Way", "Official E-Way"].includes(invoiceTemplate);
 
   useEffect(() => {
@@ -1984,11 +2022,58 @@ export default function NewSale() {
         </div>
 
         {/* RIGHT COLUMN: Live Print Preview styled as selected Vyapar Theme */}
-        <div className={`w-full md:w-1/2 lg:w-7/12 flex flex-col h-full bg-slate-200 overflow-y-auto p-4 custom-scrollbar ${activePane === 'form' ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`w-full md:w-1/2 lg:w-7/12 flex flex-col h-full bg-slate-200 overflow-y-auto p-2 sm:p-4 custom-scrollbar ${activePane === 'form' ? 'hidden md:flex' : 'flex'}`}>
           
+          {/* Visual Invoice Template Selector */}
+          {!isEwayMode && (
+            <div className="mb-2 sm:mb-4 bg-white border border-slate-300 rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-sm shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <h3 className="text-[10px] sm:text-xs font-bold text-slate-800 uppercase tracking-wider hidden md:block">Select Invoice Design</h3>
+              
+              {/* Desktop Template Selector */}
+              <div className="hidden md:flex flex-wrap gap-2.5">
+                {[
+                  { id: "GST Boxed", name: "Standard (Boxed)" },
+                  { id: "Classic White", name: "Classic" },
+                  { id: "Modern Blue", name: "Modern" },
+                  { id: "Minimalist", name: "Minimal" },
+                  { id: "Professional", name: "Professional" }
+                ].map((tpl) => (
+                  <button
+                    key={tpl.id}
+                    onClick={() => setInvoiceTemplate(tpl.id)}
+                    className={`h-8 px-4 rounded-xl text-[11px] font-bold transition-all border ${
+                      invoiceTemplate === tpl.id
+                        ? "bg-slate-800 text-white border-slate-800 shadow-md scale-105"
+                        : "bg-white text-slate-600 border-slate-200 hover:border-slate-400 hover:bg-slate-50"
+                    }`}
+                  >
+                    {tpl.name}
+                  </button>
+                ))}
+              </div>
 
+              {/* Mobile Template Selector Dropdown */}
+              <div className="md:hidden flex items-center justify-between w-full">
+                 <span className="text-[10px] font-medium text-slate-700 uppercase tracking-wider">Design:</span>
+                 <select 
+                   value={invoiceTemplate}
+                   onChange={(e) => setInvoiceTemplate(e.target.value)}
+                   className="h-7 sm:h-8 px-2 w-36 text-[10px] font-medium bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-slate-400"
+                 >
+                    <option value="GST Boxed">Standard (Boxed)</option>
+                    <option value="Classic White">Classic</option>
+                    <option value="Modern Blue">Modern</option>
+                    <option value="Minimalist">Minimal</option>
+                    <option value="Professional">Professional</option>
+                 </select>
+              </div>
+            </div>
+          )}
 
-          <div className="bg-white shadow-xl rounded-xl border border-slate-300 w-full min-h-[297mm] p-6 text-[11px] text-slate-800 leading-normal relative mx-auto max-w-[210mm] overflow-hidden">
+          {/* Responsive invoice preview: scales down on mobile to fit screen */}
+          <div ref={invoiceWrapperRef} className="invoice-preview-wrapper w-full mx-auto" style={{ maxWidth: '210mm' }}>
+            <div ref={invoiceScalerRef} className="invoice-preview-scaler">
+              <div className="bg-white shadow-xl rounded-xl border border-slate-300 w-full p-3 sm:p-6 text-[11px] text-slate-800 leading-normal relative overflow-hidden" style={{ minWidth: '480px' }}>
             <InvoiceTemplateRenderer
               invoice={{
                 customer,
@@ -2045,34 +2130,9 @@ export default function NewSale() {
               documentType={isEwayMode ? "EWAY" : "INVOICE"}
             />
           </div>
+            </div>
+          </div>
 
-            {/* Visual Invoice Template Selector */}
-            {!isEwayMode && (
-              <div className="mt-4 bg-white border border-slate-300 rounded-xl p-4 shadow-sm shrink-0">
-                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">Select Invoice Design</h3>
-                <div className="flex flex-wrap gap-2.5">
-                  {[
-                    { id: "GST Boxed", name: "Standard (Boxed)" },
-                    { id: "Classic White", name: "Classic" },
-                    { id: "Modern Blue", name: "Modern" },
-                    { id: "Minimalist", name: "Minimal" },
-                    { id: "Professional", name: "Professional" }
-                  ].map((tpl) => (
-                    <button
-                      key={tpl.id}
-                      onClick={() => setInvoiceTemplate(tpl.id)}
-                      className={`h-8 px-4 rounded-xl text-[11px] font-bold transition-all border ${
-                        invoiceTemplate === tpl.id
-                          ? "bg-slate-800 text-white border-slate-800 shadow-md scale-105"
-                          : "bg-white text-slate-600 border-slate-200 hover:border-slate-400 hover:bg-slate-50"
-                      }`}
-                    >
-                      {tpl.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -2272,10 +2332,10 @@ export default function NewSale() {
       </Dialog>
 
       {/* Floating Bottom Action bar */}
-      <div className="sticky bottom-0 shrink-0 bg-white border-t p-2 md:p-4 flex flex-col md:flex-row gap-2 md:gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:justify-center items-center z-10">
-        <div className="flex bg-slate-100 p-1 rounded-full border border-slate-200 self-stretch md:self-auto shrink-0 mb-1 md:mb-0 overflow-x-auto custom-scrollbar">
+      <div className="sticky bottom-0 shrink-0 bg-white border-t p-1.5 md:p-4 flex flex-col md:flex-row gap-1.5 md:gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:justify-center items-center z-10">
+        <div className="flex bg-slate-100 p-0.5 md:p-1 rounded-full border border-slate-200 self-stretch md:self-auto shrink-0 mb-0.5 md:mb-0 overflow-x-auto custom-scrollbar">
           <button 
-            className={`flex-1 md:w-28 px-3 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-bold transition-colors whitespace-nowrap ${!isEwayMode ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+            className={`flex-1 md:w-28 px-2 py-1.5 md:px-3 md:py-2 rounded-full text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${!isEwayMode ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
             onClick={() => setInvoiceTemplate(settings?.printSettings?.themeName || "GST Boxed")}
           >
             Invoice
@@ -2284,13 +2344,13 @@ export default function NewSale() {
           {isEwayMode ? (
             <>
               <button 
-                className={`flex-1 md:w-28 px-3 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-bold transition-colors whitespace-nowrap ${invoiceTemplate === 'Green E-Way' ? 'bg-white shadow-sm text-emerald-700' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`flex-1 md:w-28 px-2 py-1.5 md:px-3 md:py-2 rounded-full text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${invoiceTemplate === 'Green E-Way' ? 'bg-white shadow-sm text-emerald-700' : 'text-slate-500 hover:text-slate-700'}`}
                 onClick={() => setInvoiceTemplate("Green E-Way")}
               >
                 Green E-Way
               </button>
               <button 
-                className={`flex-1 md:w-28 px-3 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-bold transition-colors whitespace-nowrap ${invoiceTemplate === 'Minimal E-Way' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`flex-1 md:w-28 px-2 py-1.5 md:px-3 md:py-2 rounded-full text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${invoiceTemplate === 'Minimal E-Way' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
                 onClick={() => setInvoiceTemplate("Minimal E-Way")}
               >
                 Minimal E-Way
@@ -2298,7 +2358,7 @@ export default function NewSale() {
             </>
           ) : (
             <button 
-              className={`flex-1 md:w-28 px-3 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-bold transition-colors whitespace-nowrap ${isEwayMode ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`flex-1 md:w-28 px-2 py-1.5 md:px-3 md:py-2 rounded-full text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${isEwayMode ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
               onClick={() => setInvoiceTemplate("Green E-Way")}
             >
               E-Way Bill
@@ -2306,12 +2366,12 @@ export default function NewSale() {
           )}
         </div>
         
-        <div className="flex flex-row w-full md:w-auto gap-2">
-          <Button variant="outline" className="flex-1 rounded-full h-10 md:h-12 text-[11px] md:text-[14px] font-bold border-slate-300 md:max-w-xs px-2 whitespace-nowrap" onClick={() => handleSave(false)}>
+        <div className="flex flex-row w-full md:w-auto gap-1.5 md:gap-2">
+          <Button variant="outline" className="flex-1 rounded-full h-8 md:h-10 text-xs md:text-sm font-medium border-slate-300 md:max-w-xs px-2 whitespace-nowrap uppercase tracking-wide" onClick={() => handleSave(false)}>
             SAVE {isEwayMode ? "E-WAY" : "INVOICE"}
           </Button>
-          <Button className="flex-[1.5] md:flex-[2] rounded-full h-10 md:h-12 text-[11px] md:text-[14px] font-bold bg-emerald-500 hover:bg-emerald-600 md:max-w-xs px-2 whitespace-nowrap" onClick={() => handleSave(true)}>
-            <Send className="mr-1 h-3 w-3 md:mr-2 md:h-4 md:w-4" />
+          <Button className="flex-[1.5] md:flex-[2] rounded-full h-8 md:h-10 text-xs md:text-sm font-medium bg-emerald-500 hover:bg-emerald-600 md:max-w-xs px-2 whitespace-nowrap uppercase tracking-wide" onClick={() => handleSave(true)}>
+            <Send className="mr-1 h-3 w-3 md:mr-1.5 md:h-3.5 md:w-3.5" />
             SAVE & SEND
           </Button>
         </div>
